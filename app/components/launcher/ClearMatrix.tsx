@@ -27,8 +27,10 @@ export function ClearMatrix({loadouts, report}: {loadouts: readonly string[]; re
           onPointerEnter={event=>{if(event.pointerType==='mouse' && matchMedia('(hover:hover) and (pointer:fine)').matches)setActive({row,column:null});}} onPointerLeave={()=>setActive(null)} onFocus={()=>setActive({row,column:null})}>{difficulty}</th>
         {loadouts.map((name,column)=>{
           const cleared=report?.clears[row]?.[column]===true;
-          const description=`${scoreText(name,locale)} · ${difficulty} · ${t(cleared?'scores.cleared':'scores.clearNotRecorded')}`;
-          return <td key={name} tabIndex={0} aria-label={description} title={description} style={{'--clear-column':column} as CSSProperties} data-cleared={cleared} data-highlight={active?.row===row||active?.column===column} data-hovered={active?.row===row&&active?.column===column}
+          const kind=report?.clearKinds?.[row]?.[column]??(cleared?'unknown':'none');
+          const labelKey=kind==='no-continue'?'scores.clearedNoContinue':kind==='continued'?'scores.clearedContinued':kind==='unknown'?'scores.cleared':'scores.clearNotRecorded';
+          const description=`${scoreText(name,locale)} · ${difficulty} · ${t(labelKey)}`;
+          return <td key={name} tabIndex={0} aria-label={description} title={description} style={{'--clear-column':column} as CSSProperties} data-cleared={cleared} data-clear-kind={kind} data-highlight={active?.row===row||active?.column===column} data-hovered={active?.row===row&&active?.column===column}
             onPointerEnter={event=>{if(event.pointerType==='mouse' && matchMedia('(hover:hover) and (pointer:fine)').matches)setActive({row,column});}} onFocus={()=>setActive({row,column})}>
             <span className="clear-square" aria-hidden="true"/>
           </td>;

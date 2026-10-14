@@ -1035,3 +1035,67 @@ the element is STRONG and rename inputs/actions count0. Actual screenshot
 file/storage checks, types/build/diff pass; logsfiles-readonly-{tests,types,build}.
 No user names or save data were changed. This latest request supersedes the
 earlier inline-rename acceptance above.
+
+## Continued-clear matrix and grouped Launch content — 2026-10-14
+
+Final result: **passed** for the requested color/status changes and Launch
+content grouping. PR81 was closed at the user's request; these changes remain
+local for acceptance.
+
+The production decoder now separates continued/no-continue clear evidence.
+TH06/TH07 dedicated arrays and both TH08 ending flags were verified against
+native writers. TH10 requires a completed ranking to use its continue count;
+TH09 aggregate story records do not classify individual continue history.
+Per the latest user correction, unclassified aggregate clears retain the old
+green/plain Cleared display, with no outline or additional uncertainty message.
+
+Read-only browser evidence uses encrypted synthetic DAT files through the real
+decoder, statistics model, ScorePanel, ClearMatrix and production stylesheet.
+`.cache/redesign/clear-continue-desktop.jpg` (1280×720) shows TH06 mixed clears;
+`clear-continue-th10.jpg` (1280×720) shows a continued Normal clear, no-continue
+Hard/Extra and an aggregate-only Easy clear. Yellow is rgb(197,164,94), green is
+rgb(127,160,106); the latter aggregate cell has title Cleared and outline:none.
+The page is explicitly labeled as test data and never reads or writes the user's
+save library. These screenshots are color/status evidence, not a full-launcher
+layout or gameplay claim.
+
+Launch now contains one inline flex content group so its icon and text stay
+together; workspace hover no longer shifts the icon independently. The actual
+user TH06 launcher was checked at1280×720 and390×844 without clicking Launch.
+In both layouts the icon-to-text gap is8px and the group's center differs from
+the button center by less than0.01px. Narrow document client/scroll widths are
+both380px. Screenshots `launch-content-{desktop,narrow}.jpg` were opened and
+inspected; real data is unchanged. Both browser console checks returned no
+errors. Temporary viewport reset and QA tab closed.
+
+60 relevant checks pass (53 statistics/save library/slots,7 shared action
+styles/intent), plus UI typecheck, production build and diff checks. Earlier
+whole-repository/legacy BrowserSession limitations remain documented; no match
+was started and no real save was imported, changed or deleted for this QA.
+
+## Launch SVG overflow correction — 2026-10-14
+
+The user's subsequent screenshots showed that the earlier content-group check
+missed the actual SVG: its18px grid container still contained a22px SVG because
+the shared primary-icon rule used `!important`. The overflow shifted the visible
+triangle downward even though the container and text line boxes were centered.
+The prior grouping acceptance above was incomplete for this visual defect.
+
+Workspace icons now use an18px flex container and an18px SVG, with an explicit
+workspace override of the shared size. The primary triangle also has a small
+font-relative optical offset to match the UI font's visible glyph center.
+The8px icon/text gap and grouped horizontal center remain unchanged.
+
+Actual TH07 browser screenshots were inspected at494×1010 and1280×720:
+`.cache/redesign/launch-content-corrected-{narrow,desktop}.jpg`. SVG size is18×18
+in both. Pixel analysis of the captured visible ink gives equal749px vertical
+centers in narrow mode and598.5px/598px centers in desktop mode; rasterized edges
+vary by half a pixel. This supersedes the earlier container-only proof. The
+desktop capture also shows an unrelated HTTP502 metadata toast; it is not a
+launch/icon failure. No gameplay or save changes were made.
+
+The7 existing shared-action checks and production build passed again after the
+SVG fix; earlier53 score/storage checks remain applicable. Logs:
+`.cache/redesign/launch-content-corrected-{tests,build}.log`. Temporary viewport
+override restored. Publication uses the explicitly requested LogRassWku account
+and its fork, since that account cannot write directly to the upstream.

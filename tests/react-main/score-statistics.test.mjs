@@ -41,8 +41,8 @@ function score6(name='PLAYER'){const payload=Buffer.alloc(20);payload.writeUInt3
 function plays(game,character,count){const nc=game===7?6:12,payload=Buffer.alloc(game===7?352:536);payload.writeUInt32LE(count,36+6*(nc+5)*4+4+character*4);return encode(game,Buffer.concat([block(`TH${game}K`,Buffer.from([16,0,0,0])),block('PLST',payload)]));}
 function score9(){return encode(9,Buffer.concat([block('TH9K',Buffer.from([16,0,0,0])),block('PLST',Buffer.alloc(500))]));}
 function score10(){const payload=Buffer.alloc(17264);payload.writeUInt32LE(9875,4);payload.writeUInt32LE(14,1204);const body=Buffer.alloc(12+payload.length);body.write('CR');body.writeUInt32LE(body.length,8);payload.copy(body,12);body.writeUInt32LE(body.subarray(8).reduce((sum,b)=>sum+b,0),4);return encode(10,body);}
-function clearBlock(game,character,story,practice=[]){const payload=Buffer.alloc(game===8?28:game===7?20:16),n=game===7?6:5;
- for(let d=0;d<n;d++){if(game===8){payload.writeUInt16LE(story[d]??0,4+d*2);payload.writeUInt16LE(practice[d]??0,14+d*2);}else{payload[4+d]=story[d]??0;payload[4+n+d]=practice[d]??0;}}
+function clearBlock(game,character,clean,allRuns=[]){const payload=Buffer.alloc(game===8?28:game===7?20:16),n=game===7?6:5;
+ for(let d=0;d<n;d++){if(game===8){payload.writeUInt16LE(clean[d]??0,4+d*2);payload.writeUInt16LE(allRuns[d]??0,14+d*2);}else{payload[4+d]=clean[d]??0;payload[4+n+d]=allRuns[d]??0;}}
  if(game===8)payload[25]=character;else if(game===6)payload.writeUInt16LE(character,14);else payload.writeUInt32LE(character,16);
  return block('CLRD',payload);
 }
@@ -102,15 +102,58 @@ test('clear matrix uses explicit story clears and excludes practice, unlocks, ag
  const ranking=api.parseScoreDat('th06',score6());assert.equal(ranking.clears[1][2],true);assert.equal(ranking.clears.flat().filter(Boolean).length,1);assert.equal(ranking.playSeconds,null);
  const header=g=>block(`TH${g}K`,Buffer.from([16,0,0,0]));
  const seven=api.parseScoreDat('th07',encode(7,Buffer.concat([header(7),clearBlock(7,0,[0,99,0,0,99,99],[99,0,99]),clearBlock(7,6,[99,99,99,99,99])])));
- assert.equal(seven.clears.length,5);assert.equal(seven.clears[1][0],true);assert.equal(seven.clears[4][0],true);assert.equal(seven.clears.flat().filter(Boolean).length,2);
+ assert.equal(seven.clears.length,5);assert.equal(seven.clears[1][0],true);assert.equal(seven.clears[4][0],true);assert.equal(seven.clears.flat().filter(Boolean).length,4);
+ assert.equal(seven.clearKinds[0][0],'continued');assert.equal(seven.clearKinds[1][0],'no-continue');
  const defaultRank=Buffer.alloc(40);defaultRank.writeUInt32LE(1000000,4);defaultRank[12]=0;defaultRank[13]=1;defaultRank[14]=99;defaultRank.write('Nanashi',15);
  for(const records of [[block('HSCR',defaultRank),clearBlock(7,0,[0,5])],[clearBlock(7,0,[0,5]),block('HSCR',defaultRank)]]){
  const saved=api.parseScoreDat('th07',encode(7,Buffer.concat([header(7),...records])));assert.equal(saved.clears[1][0],false,'dedicated story progress is authoritative regardless of block order');
  }
  const eight=api.parseScoreDat('th08',encode(8,Buffer.concat([header(8),clearBlock(8,1,[0x80,0x8000,0,0,0],[0x8000,0,0x8000]),clearBlock(8,12,[0xffff,0xffff,0xffff,0xffff,0xffff])])));
- assert.equal(eight.clears[0][1],false,'playable Final B is not a clear');assert.equal(eight.clears[1][1],true);assert.equal(eight.clears[2][1],false,'practice completion is not a story clear');assert.equal(eight.clears.flat().filter(Boolean).length,1);
+ assert.equal(eight.clearKinds[0][1],'continued');assert.equal(eight.clearKinds[1][1],'no-continue');assert.equal(eight.clearKinds[2][1],'continued');assert.equal(eight.clears.flat().filter(Boolean).length,3);
+ const access=api.parseScoreDat('th08',encode(8,Buffer.concat([header(8),clearBlock(8,1,[0x80])]))) ;assert.equal(access.clears[0][1],false,'ordinary Final B access is not completion');
  const ninePayload=Buffer.alloc(500);ninePayload.writeUInt32LE(2,116+3*24+2*4);
  const nine=api.parseScoreDat('th09',encode(9,Buffer.concat([header(9),block('PLST',ninePayload)])));assert.equal(nine.clears[2][3],true);assert.equal(nine.clears.flat().filter(Boolean).length,1);assert.equal(nine.playSeconds,null);
+});
+test('TH06/TH07 keep continued clears yellow and no-continue clears green independently of chapter order',()=>{
+ for(const game of [6,7]){
+  const entries=[clearBlock(game,0,[5,99],[99,99]),clearBlock(game,1,[0,0],[0,99])];
+  for(const records of [entries,[...entries].reverse()]){
+   const bytes=encode(game,Buffer.concat([block(`TH${game}K`,Buffer.from([16,0,0,0])),...records])),copy=Buffer.from(bytes),report=api.parseScoreDat(`th0${game}`,bytes);
+   assert.equal(report.clearKinds[0][0],'continued');assert.equal(report.clearKinds[1][0],'no-continue');assert.equal(report.clearKinds[1][1],'continued');assert.equal(report.clearKinds[0][1],'none');assert.equal(report.clears[0][0],true);assert.deepEqual(bytes,copy);
+   assert.deepEqual(report.sections.find(s=>s.title==='通关与关卡进度').columns,['机体','难度','无续关','含续关']);
+  }
+ }
+});
+test('TH08 treats both ending routes as clears and distinguishes continue arrays from stage access and practice',()=>{
+ const practice=Buffer.alloc(368);practice.writeUInt32LE(99,4);practice[364]=0;
+ const report=api.parseScoreDat('th08',encode(8,Buffer.concat([block('TH8K',Buffer.from([16,0,0,0])),clearBlock(8,0,[0x4000,0x8000,0x80,0,0x8000],[0xc000,0xc000,0xc000]),block('PSCR',practice)])));
+ assert.deepEqual(report.clearKinds.map(row=>row[0]),['no-continue','no-continue','continued','none','no-continue']);
+ assert.equal(report.clears[3][0],false);assert.equal(report.sections.find(s=>s.title==='单关练习').rows.length,45);
+});
+test('ranking fallback uses actual continue bytes and TH06 score units, with no-continue taking precedence',()=>{
+ for(const game of [6,7,8]){
+  const high=continues=>{const b=Buffer.alloc(game===6?20:game===7?40:352);b.writeUInt32LE(1234567*(game===6?10:1)+(game===6?continues:0),4);b[game===6?8:12]=0;b[game===6?9:13]=1;b[game===6?10:14]=99;b.write('PLAYER',game===6?11:15);if(game!==6)b.writeUInt16LE(continues,30);return block('HSCR',b);};
+  const read=records=>api.parseScoreDat(`th0${game}`,encode(game,Buffer.concat([block(`TH${game}K`,Buffer.from([16,0,0,0])),...records])));
+  assert.equal(read([high(2)]).clearKinds[1][0],'continued');
+  for(const records of [[high(2),high(0)],[high(0),high(2)]])assert.equal(read(records).clearKinds[1][0],'no-continue');
+ }
+});
+test('TH09 aggregate counts never borrow continues from an unrelated ranking',()=>{
+ const counts=Buffer.alloc(500);counts.writeUInt32LE(2,116+1*4);counts.writeUInt32LE(1,116+4*4);
+ const high=Buffer.alloc(36);high.writeUInt32LE(999,4);high[12]=0;high[13]=1;high[35]=2;
+ for(const records of [[block('PLST',counts),block('HSCR',high)],[block('HSCR',high),block('PLST',counts)]]){
+  const report=api.parseScoreDat('th09',encode(9,Buffer.concat([block('TH9K',Buffer.from([16,0,0,0])),...records])));
+  assert.equal(report.clearKinds[1][0],'unknown');assert.equal(report.clearKinds[4][0],'no-continue');assert.equal(report.clears[1][0],true);
+ }
+});
+test('TH10 reads continues only from completed rankings and retains unclassified aggregate history',()=>{
+ const chunk=(rows,count=0)=>{const bytes=score10Block(0,0,1,count);for(let i=0;i<rows.length;i++){const o=12+4+(10+i)*24;bytes[o+4]=rows[i].stage;bytes[o+5]=rows[i].continues;}bytes.writeUInt32LE(bytes.subarray(8).reduce((sum,b)=>sum+b,0),4);return bytes;};
+ const read=bytes=>api.parseScoreDat('th10',encode(10,bytes));
+ assert.equal(read(chunk([{stage:8,continues:2}])).clearKinds[1][0],'continued','zero aggregate cannot negate a saved continued clear');
+ assert.equal(read(chunk([{stage:8,continues:0}])).clearKinds[1][0],'no-continue');
+ for(const rows of [[{stage:8,continues:2},{stage:8,continues:0}],[{stage:8,continues:0},{stage:8,continues:2}]])assert.equal(read(chunk(rows,2)).clearKinds[1][0],'no-continue');
+ assert.equal(read(chunk([{stage:6,continues:0}],1)).clearKinds[1][0],'unknown','a failed no-continue run cannot classify a different aggregate clear');
+ assert.equal(read(chunk([{stage:6,continues:2}])).clearKinds[1][0],'none','a continued loss is not a continued clear');
 });
 test('play duration reads gameplay time and keeps TH10 aggregate frames separate from loadout totals',()=>{
  for(const game of [7,8]){const payload=Buffer.alloc(game===7?352:536);payload.writeUInt32LE(999,4);payload.writeUInt32LE(1,20);payload.writeUInt32LE(2,24);payload.writeUInt32LE(3,28);
@@ -172,6 +215,19 @@ async function mount(model,product='th08',locale='zh-CN'){
  const p=api.createLibraryProducts([product],path=>'http://stats.local/'+path,id=>'/?game='+id)[0];
  await React.act(async()=>{root.render(React.createElement(api.LocaleProvider,{locale},React.createElement(api.ScorePanel,{model,product:p,language:'ja',assetUrl:path=>'http://stats.local/'+path})));await tick();});
 }
+for(const locale of ['zh-CN','en'])test(`matrix exposes separate continued/no-continue statuses and leaves empty cells unclassified: ${locale}`,async()=>{
+ const data=encode(6,Buffer.concat([block('TH6K',Buffer.from([16,0,0,0])),clearBlock(6,0,[0,99],[99,99])]));
+ const model=api.createScoreStatistics({read:async()=>stored(data)});await mount(model,'th06',locale);
+ const matrix=env.document.querySelector('.clear-matrix'),continued=matrix.querySelector('td[data-clear-kind=continued]'),clean=matrix.querySelector('td[data-clear-kind=no-continue]');
+ assert.ok(continued);assert.ok(clean);assert.equal(continued.dataset.cleared,'true');assert.equal(clean.dataset.cleared,'true');assert.equal(matrix.querySelectorAll('td[data-clear-kind=none]').length,18);
+ assert.ok(continued.title.includes(locale==='en'?'with continues':'续关通关'));assert.ok(clean.title.includes(locale==='en'?'without continues':'无续关通关'));
+ await React.act(async()=>continued.focus());assert.equal(continued.dataset.hovered,'true');assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,8);model.dispose();
+});
+test('aggregate-only TH09 history keeps the original plain cleared label without extra messages',async()=>{
+ const p=Buffer.alloc(500);p.writeUInt32LE(2,116+4);const bytes=encode(9,Buffer.concat([block('TH9K',Buffer.from([16,0,0,0])),block('PLST',p)]));
+ const model=api.createScoreStatistics({read:async()=>stored(bytes)});await mount(model,'th09');
+ const unknown=env.document.querySelector('td[data-clear-kind=unknown]');assert.ok(unknown);assert.equal(unknown.dataset.cleared,'true');assert.equal(unknown.title,'灵梦 · Normal · 已通关');assert.equal(env.document.querySelector('td[data-clear-kind=no-continue]'),null);model.dispose();
+});
 test('actual panel renders the compact game summary, TH08 pair and named missing-art states',async()=>{
  const model=api.createScoreStatistics({read:async()=>stored(plays(8,1,17))});await mount(model);
  assert.equal(env.document.querySelectorAll('.score-character img').length,2);assert.deepEqual([...env.document.querySelectorAll('[data-character]')].map(n=>n.dataset.character),['marisa','alice']);

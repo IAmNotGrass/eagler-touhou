@@ -53,6 +53,8 @@ const entries = [
   ["scores.defaultPortrait", "作品默认立绘", "Default game artwork"],
   ["scores.clearMatrix", "机体与难度通关记录", "Clears by loadout and difficulty"],
   ["scores.cleared", "已通关", "Cleared"],
+  ["scores.clearedNoContinue", "无续关通关", "Cleared without continues"],
+  ["scores.clearedContinued", "续关通关", "Cleared with continues"],
   ["scores.clearNotRecorded", "未记录通关", "Clear not recorded"],
   ["scores.playTime", "游戏时长", "Play time"],
   ["scores.hourUnit", "时", "h"],

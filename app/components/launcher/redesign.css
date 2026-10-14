@@ -101,8 +101,11 @@ html:has(.directory-layout):not(:has(.player.active)){overflow-y:auto!important}
 .directory-layout .workspace-launch-footer .launch-actions:has(.launch-multiplayer){grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto}
 .directory-layout .workspace-launch-footer .launch-actions .launch{width:100%;min-height:40px;min-width:0;padding:9px 16px;box-sizing:border-box;border:1px solid var(--line);font:500 13px/1.4 var(--ui-font);gap:8px;letter-spacing:0}
 .directory-layout .workspace-launch-footer .launch-actions .launch-secondary{width:auto;margin-left:0;justify-self:end;background:transparent;box-shadow:none}
-.directory-layout .workspace-launch-footer .launch-actions .launch-icon{flex:0 0 18px;width:18px;height:18px}
-.directory-layout .workspace-launch-footer .launch-actions .launch .launch-icon svg{width:18px;height:18px}
+.directory-layout .workspace-launch-footer .launch-actions .launch-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;width:18px;height:18px;line-height:0}
+.directory-layout .workspace-launch-footer .launch-actions .launch .launch-icon svg{width:18px!important;height:18px!important}
+/* Match the UI font's visible glyph center, which sits above its line-box center. */
+.directory-layout .workspace-launch-footer .launch-content>.launch-icon{font-size:inherit;translate:0 -.12em}
+.directory-layout .workspace-launch-footer .launch-actions .launch:hover .launch-icon{transform:none}
 .directory-layout .workspace-launch-footer .launch-actions .launch-multiplayer .launch-icon svg{fill:none!important;stroke:currentColor!important;stroke-width:1.8}
 .workspace-launch-footer .launch-actions .launch-multiplayer{background:#ffffff0d;border-color:#ffffff2e;box-shadow:none;text-decoration:none}
 @media(hover:hover){.workspace-launch-footer .launch-actions .launch-multiplayer:hover{background:#ffffff1a;border-color:#ffffff42;color:var(--paper)}}
@@ -288,7 +291,8 @@ html[lang=en] .directory-coming-soon>span{writing-mode:horizontal-tb;text-align:
 .clear-square{--clear-column-x:calc(var(--clear-axis) + (var(--clear-column) + 2)*var(--clear-gap-x) + var(--clear-column)*var(--clear-cell));display:block;width:var(--clear-cell);height:var(--clear-cell);border-radius:clamp(2px,calc(var(--clear-cell)*.2),5px);background:#ebe7df18;mask-image:linear-gradient(to right,#000 calc(var(--clear-unobscured-width) - var(--clear-column-x) - 24px),#0000 calc(var(--clear-unobscured-width) - var(--clear-column-x) + 80px));transition:filter 120ms ease,scale 120ms ease,box-shadow 120ms ease}
 .clear-matrix-wrap:is([data-revealed=true],:has(:focus-visible)) .clear-square{mask-image:none}
 @media(hover:hover) and (pointer:fine){.score-matrix-region:hover .clear-square{mask-image:none}}
-.clear-matrix td[data-cleared=true] .clear-square{background:#7fa06a}
+.clear-matrix td:is([data-clear-kind=no-continue],[data-clear-kind=unknown]) .clear-square{background:#7fa06a}
+.clear-matrix td[data-clear-kind=continued] .clear-square{background:#c5a45e}
 .clear-matrix th[data-highlight=true]{color:var(--paper)}
 .clear-matrix td[data-highlight=true] .clear-square{filter:brightness(1.35);box-shadow:inset 0 0 0 1px #ebe7df66}
 .clear-matrix td[data-hovered=true] .clear-square{scale:1.1;box-shadow:0 0 0 1px #ebe7df99,0 0 10px #ebe7df18}

@@ -133,8 +133,15 @@ presentation puts its label, value and arrow inside the same40px capsule via
 Recovery/error messages remain outside that control. Its service never
 boots a runtime or writes a save; refresh pauses during native loading, play
 and file operations, then resumes after completion. Dedicated story clear flags
-or counters take priority over ranking defaults; practice/unlock flags and
-aggregate loadouts do not mark cells. Gameplay duration uses the saved play-time
+distinguish no-continue clears (green) from continued clears (muted yellow);
+any recorded no-continue clear takes precedence. TH08 accepts either ending's
+completion bit, without treating stage-access bits as completion. TH10 uses an
+explicit completed ranking's continue count; TH09 aggregate clears cannot be
+paired with an unrelated ranking's continue byte. Aggregate-only history that
+does not distinguish continues retains the previous green/plain Cleared display,
+with no extra outline or message. Practice/unlock flags, default rankings and
+aggregate loadouts do not mark cells. See [DAT clear evidence](score-clear-records.md)
+for field semantics and primary sources. Gameplay duration uses the saved play-time
 field for TH07/TH08 and authoritative total frames (or distinct loadout frames)
 for TH10. Missing or unconfirmed duration fields render no duration text;
 recorded zero remains visible. The matrix aligns left and vertically centers
