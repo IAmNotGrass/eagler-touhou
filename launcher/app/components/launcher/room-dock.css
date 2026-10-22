@@ -1,0 +1,41 @@
+/* Room workspace docked into the redesign card (wide landscape only).
+   Narrow screens keep upstream's full-page room workspace. */
+@media (min-width:1100px) and (orientation:landscape){
+  .directory-layout .workspace-panel.room-workspace-slot{
+    min-height:560px!important;height:calc(100dvh - 124px)!important;
+    background:transparent;border-color:transparent;box-shadow:none;
+  }
+  body.redesign-room-docked #player.room-workspace:not(:fullscreen,:-webkit-full-screen){
+    inset:auto!important;
+    top:var(--room-dock-top,0)!important;left:var(--room-dock-left,0)!important;
+    width:var(--room-dock-width,100%)!important;height:var(--room-dock-height,100dvh)!important;
+    z-index:60!important;
+    border:1px solid #ffffff1c;border-radius:24px;
+    background:var(--panel)!important;box-shadow:0 12px 40px #0003;
+    overflow:auto!important;
+  }
+
+  /* Upstream hides the shell behind its full-page room; docked rooms keep it. */
+  body.redesign-room-docked.mp-room-active .sheet.redesign-sheet:has(.library-layout)>.masthead{visibility:visible!important}
+  body.redesign-room-docked.mp-room-active .directory-layout:not(.directory-collapsed) .redesign-directory{visibility:visible;pointer-events:auto}
+  body.redesign-room-docked .main.library-layout.directory-layout.mp-room-open .redesign-directory .game:not([hidden]){display:block!important}
+
+  /* The catalogue steps aside while the room's game runs. */
+  .library-layout.directory-layout{
+    transition:grid-template-columns .5s cubic-bezier(.22,1,.36,1),column-gap .5s cubic-bezier(.22,1,.36,1);
+  }
+  .library-layout.directory-layout .redesign-directory{
+    transition:opacity .3s ease .15s,translate .5s cubic-bezier(.22,1,.36,1),visibility 0s;
+  }
+  .main.library-layout.directory-layout.directory-collapsed{
+    grid-template-columns:0px minmax(0,1fr);column-gap:0;
+  }
+  .library-layout.directory-layout.directory-collapsed .redesign-directory{
+    opacity:0;translate:-24px 0;visibility:hidden;pointer-events:none;
+    transition:opacity .2s ease,translate .5s cubic-bezier(.22,1,.36,1),visibility 0s .2s;
+  }
+}
+@media (min-width:1100px) and (orientation:landscape) and (prefers-reduced-motion:reduce){
+  .library-layout.directory-layout,
+  .library-layout.directory-layout .redesign-directory{transition:none}
+}
