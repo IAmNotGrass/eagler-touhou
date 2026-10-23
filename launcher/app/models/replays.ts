@@ -32,6 +32,8 @@ export interface ReplaySnapshot {
   readonly animateRows: boolean;
   readonly descriptions: Readonly<Record<string, ReplayDescription>>;
   readonly inspecting: string | null;
+  /** Opened for listing only (redesign files card): no viewer workspace or preparation. */
+  readonly listOnly?: boolean;
 }
 export interface ReplayModelOptions {
   runtime: RuntimeService;
@@ -93,7 +95,7 @@ export function createReplayModel(options: ReplayModelOptions) {
     return preparation.promise;
   }
   function preloadViewer(product: ProductId, token: number): void {
-    if (!options.storage || !options.prepareViewer) return;
+    if (!options.storage || !options.prepareViewer || snapshot.listOnly) return;
     // Listing and downloads stay independent of the eagerly prepared player.
     void prepareViewer(product).then(async () => {
       if (!options.inspect || gameIdForProduct(product) === 'th09') return;
@@ -160,20 +162,20 @@ export function createReplayModel(options: ReplayModelOptions) {
     if (valid(token, product) && readVersion === version) {publish({phase: 'ready', rows: Object.freeze(rows), animateRows, descriptions: {}});preloadViewer(product, token);}
   }
 
-  async function open(product: ProductId): Promise<void> {
+  async function open(product: ProductId, {listOnly = false}: {listOnly?: boolean} = {}): Promise<void> {
     if (disposed) return;
     const token = ++generation;
     retainedRead = null;
     const current = runtime.getSnapshot();
     if (options.storage || !runtimeOwner && !current.ready && current.epoch === null) runtimeOwner = {product, epoch: null};
     retainedOwner = null;
-    publish({descriptions: {}, inspecting: null, open: true, phase: 'loading', productId: product, rows: [], animateRows: false});
+    publish({descriptions: {}, inspecting: null, open: true, listOnly, phase: 'loading', productId: product, rows: [], animateRows: false});
     await options.afterPaint();
     if (!valid(token, product)) return;
     const listing = refresh({animateRows: true});
     // Preparation starts independently of the file read. Native descriptions
     // are filled after the new list is published, including after mutations.
-    void (options.prepareViewer && prepareViewer(product).catch(() => {}));
+    void (options.prepareViewer && !listOnly && prepareViewer(product).catch(() => {}));
     try {await listing;}
     catch (error) {
       if (valid(token, product)) publish({phase: 'error', rows: [], animateRows: false});
@@ -244,7 +246,7 @@ export function createReplayModel(options: ReplayModelOptions) {
       if (!valid(token, product)) return;
       if (runtime.getSnapshot().launched && !options.prepareViewer) throw new Error(t('replay.stopBeforeWatch'));
       if (!snapshot.rows.some(row => row.path === path)) throw new Error(t('runtime.invalidFileEntry'));
-      if (options.prepareViewer) {await prepareViewer(product); if (valid(token, product)) await options.watch(product, path, stage); return;}
+      if (options.prepareViewer) {if (snapshot.listOnly) publish({listOnly: false}); await prepareViewer(product); if (valid(token, product)) await options.watch(product, path, stage); return;}
       // Retire the manager's temporary native owner before playback acquires
       // its own epoch. Router Back may later reopen the retained folder view.
       close(); const closedGeneration = generation; await closeWork;

@@ -57,7 +57,7 @@ function WorkspaceReplayPanel({model, product, actions, reportError,assetUrl}: {
   const errorHandler = useRef(reportError); errorHandler.current = reportError;
   useEffect(() => {
     let active = true;
-    void model.open(product).catch(error => {if (active) errorHandler.current(error);});
+    void model.open(product, {listOnly: true}).catch(error => {if (active) errorHandler.current(error);});
     return () => {active = false; model.close();};
   }, [model, product]);
   const current = state.productId === product && state.open, loading = !current || state.phase === 'loading';

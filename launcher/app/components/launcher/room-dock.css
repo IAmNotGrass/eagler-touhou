@@ -1,8 +1,11 @@
 /* Narrow screens use upstream's full-page room, so the catalogue toggle is moot. */
-body:not(.redesign-room-docked) .room-directory-toggle{display:none!important}
+body:not(.redesign-room-docked) #mpRoomView .mp-room-head .room-directory-toggle{display:none!important}
 /* Full-page rooms (narrow screens) end with the same acknowledgment line. */
 #player.room-workspace>.room-workspace-footer{grid-column:1/-1;min-width:0}
-body.mp-room-active #player.room-workspace>.room-workspace-footer .site-footer{display:grid!important;padding:4px 0 0;margin:0}
+body.mp-room-active #player.room-workspace>.room-workspace-footer .site-footer{display:grid!important;justify-items:center;padding:4px 0 0;margin:0;text-align:center}
+#player.room-workspace>.room-workspace-footer .site-footer-divider{width:100%;margin:0 0 6px;background:linear-gradient(90deg,transparent,rgba(235,231,223,.2) 20%,rgba(235,231,223,.2) 80%,transparent)}
+#player.room-workspace>.room-workspace-footer .site-footer-inner{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 16px;font-size:11px;text-align:center}
+#player.room-workspace>.room-workspace-footer .site-footer p{text-align:center}
 /* Lobby footer refresh icon needs the full button width. */
 .lobby-redesign-sheet .lobby-workspace .lobby-room-tools .lobby-actions .lobby-refresh{flex:0 0 48px;width:48px;height:48px;padding:0}
 

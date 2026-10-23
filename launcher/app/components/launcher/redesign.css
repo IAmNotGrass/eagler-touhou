@@ -686,3 +686,21 @@ body:has(.lobby-redesign-sheet) #roomDialog .lobby-submit{background:var(--red);
  .files-workspace .file-library-row>.file-library-name{font-size:14px}
  .files-workspace .file-library-row>.file-library-size{font-size:10px}
 }
+
+/* Upstream components inside the redesign: settings input entries read as the
+   same plain rows as "Touch layout", with the same trailing chevron. */
+.directory-layout .settings-workspace .input-settings-content{padding:0}
+.directory-layout .settings-workspace .input-settings-entries{display:grid;grid-template-columns:minmax(0,1fr);gap:0;padding:0}
+.directory-layout .settings-workspace .input-settings-entry{display:flex;align-items:center;gap:12px;min-height:44px;padding:0;border:0;border-radius:0;background:none;color:inherit;font:400 15px/1.4 var(--ui-font);text-align:left;cursor:pointer}
+.directory-layout .settings-workspace .input-settings-entry svg{width:18px;height:18px;flex:none;fill:currentColor;opacity:.72}
+.directory-layout .settings-workspace .input-settings-entry strong{flex:1;font:inherit}
+.directory-layout .settings-workspace .input-settings-entry>span{width:44px;flex:none;text-align:center;font-size:32px;line-height:1}
+.directory-layout .settings-workspace .input-settings-entry:focus-visible{outline:2px solid var(--red-bright);outline-offset:2px;border-radius:8px}
+/* Narrow and portrait pages use the same centered acknowledgment line as the
+   desktop footer row, instead of the older right-aligned block. */
+@media(max-width:780px),(orientation:portrait){
+ .directory-layout .workspace-column>.site-footer{grid-template-columns:minmax(0,1fr);justify-content:stretch;justify-items:center;text-align:center}
+ .directory-layout .workspace-column>.site-footer .site-footer-divider{width:100%!important;max-width:none!important;margin:0 0 6px;background:linear-gradient(90deg,transparent,rgba(235,231,223,.2) 20%,rgba(235,231,223,.2) 80%,transparent)}
+ .directory-layout .workspace-column>.site-footer .site-footer-inner{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 16px;font-size:11px;text-align:center}
+ .directory-layout .workspace-column>.site-footer p{text-align:center}
+}
