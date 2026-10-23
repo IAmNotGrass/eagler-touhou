@@ -514,11 +514,24 @@ export function SurfaceNavigationProvider({dirty, isEditing, onDiscard, decision
     const sourceSettings = settingsIdentity(location), targetSettings = settingsIdentity(blocker.location);
     const settingsMotion = sourceSettings !== targetSettings ? targetSettings ? 'open' : 'close' : undefined;
     const filesMotion = filesIdentity(location) !== filesIdentity(blocker.location) ? filesIdentity(blocker.location) ? 'open' : 'close' : undefined;
-    const motion = animateWorkspaceCard(document.querySelector<HTMLElement>(workspaceCardSelector), 'exit', destination.roomCode === null && destination.context === 'library', lessMotion, settingsMotion, filesMotion);
+    const card = document.querySelector<HTMLElement>(workspaceCardSelector);
+    const motion = animateWorkspaceCard(card, 'exit', destination.roomCode === null && destination.context === 'library', lessMotion, settingsMotion, filesMotion);
+    let proceeded = false;
     void motion.finished.then(completed => {
-      if (active && completed && latestBlocker.current.state === 'blocked' && latestBlocker.current.location.key === blocker.location.key) blocker.proceed();
+      if (active && completed && latestBlocker.current.state === 'blocked' && latestBlocker.current.location.key === blocker.location.key) {proceeded = true; blocker.proceed();}
     });
-    return () => {active = false; motion.cancel();};
+    return () => {
+      active = false;
+      if (!proceeded || !card) {motion.cancel(); return;}
+      // The finished exit keeps the card offscreen until the destination
+      // removes or hides it; cancelling first would show it again briefly.
+      const gone = () => !card.isConnected || !!card.closest('[hidden]');
+      if (gone()) {motion.cancel(); return;}
+      const release = () => {observer.disconnect(); clearTimeout(timer); motion.cancel();};
+      const observer = new MutationObserver(() => {if (gone()) release();});
+      observer.observe(document.body, {childList: true, subtree: true, attributes: true, attributeFilter: ['hidden']});
+      const timer = setTimeout(release, 1500);
+    };
   }, [blocker, lessMotion]);
   useEffect(() => {
     if (blocker.state !== 'blocked' || pendingBlockKind.current !== 'page') return;

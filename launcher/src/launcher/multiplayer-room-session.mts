@@ -10,7 +10,6 @@ export interface MultiplayerRoomSessionStorage {
 
 export interface MultiplayerRoomSessionSnapshot {
   room: {
-    roomProducts?: boolean;
     visibility?: "public" | "private";
     disableCheatMovement?: boolean;
     disableLocalChargePriority?: boolean;
@@ -61,7 +60,6 @@ export function createMultiplayerRoomSessionStore({
       storage?.setItem(multiplayerRoomSessionStorageKey(product), JSON.stringify({
         product,
         room: {
-          ...(snapshot.room.roomProducts ? {roomProducts:true} : {}),
           code: snapshot.room.code,
           visibility: snapshot.room.visibility,
           disableCheatMovement: snapshot.room.disableCheatMovement,
@@ -108,7 +106,6 @@ export function createMultiplayerRoomSessionStore({
     return {
       product,
       room: {
-        ...(room.roomProducts === true ? {roomProducts:true} : {}),
         code: roomCode,
         visibility: room.visibility === "private" ? "private" : "public",
         disableCheatMovement: room.disableCheatMovement === true,

@@ -13,7 +13,7 @@ import type {SiteManifest} from '../../src/contracts/site-manifest.mts';
 import {detectUiLocale, isUiMessageKey, UI_LOCALE_STORAGE_KEY, type UiLocale} from '../../src/launcher/i18n.mts';
 import {replayImportAccept} from '../../src/launcher/replay-files.mts';
 import {discouragedBrowserId} from '../../src/launcher/browser-support.mts';
-import {createMultiplayerIdentityStore, multiplayerMemberId, multiplayerDeviceType} from '../../src/launcher/multiplayer-identity.mts';
+import {createMultiplayerIdentityStore, multiplayerMemberId} from '../../src/launcher/multiplayer-identity.mts';
 import {createMultiplayerRoomSessionStore} from '../../src/launcher/multiplayer-room-session.mts';
 import {buildMultiplayerDiagnosticRelayUrl} from '../../src/launcher/multiplayer-relay-url.mts';
 import {createNetworkDiagnosticsModel} from '../components/directory/network-diagnostics-model';

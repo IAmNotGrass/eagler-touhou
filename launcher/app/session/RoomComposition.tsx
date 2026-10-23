@@ -6,16 +6,19 @@ import type { BrowserSession } from './browser-session';
 import { useSurfaceNavigation } from '../navigation/surface-navigation';
 import {SpectatorPlayback} from '../components/player/SpectatorPlayback';
 import {SpectatorMatchScore} from '../components/player/SpectatorMatchScore';
+import {DirectoryDockToggle} from '../components/launcher/DirectoryDockToggle';
 
 /** Room chrome and fullscreen share one permanent Player and room owner. */
 export function RoomComposition({
   session,
   settingsClosing,
   workspaceVisible: roomWorkspace,
+  onLeave = session.leaveRoom,
 }: {
   session: BrowserSession;
   settingsClosing: boolean;
   workspaceVisible: boolean;
+  onLeave?(): void | Promise<void>;
 }) {
   const navigation = useSurfaceNavigation();
   const transfer = useSyncExternalStore(
@@ -63,7 +66,8 @@ export function RoomComposition({
         touchMovementMode: settings?.options.touchMovementMode ?? DEFAULT_GAME_OPTIONS.touchMovementMode,
       }}
       assetUrl={(path) => new URL(path, session.baseUrl).href}
-      onLeave={session.leaveRoom}
+      headerAccessory={<DirectoryDockToggle/>}
+      onLeave={onLeave}
       onCopyRoomCode={session.copyRoomCode}
       onGuide={() => navigation.openInfoDialog('mpGuideDialog')}
       onOpenSettings={navigation.openRoomSettings}
