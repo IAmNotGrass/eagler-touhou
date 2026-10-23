@@ -971,7 +971,7 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
   function openReplayViewer(product: ProductId, path?: string): Promise<void> {
     return (async () => {
       if (roomSession?.service.suspendPreparation()) replayRoomEpoch = roomSession.service.getSnapshot().epoch;
-      if (!replays?.getSnapshot().open || replays.getSnapshot().productId !== product) {requiredNavigation().openInfoDialog('replayDialog', {replace: true}); await replays!.open(product);}
+      if (!replays?.getSnapshot().open || replays.getSnapshot().listOnly || replays.getSnapshot().productId !== product) {requiredNavigation().openInfoDialog('replayDialog', {replace: true}); await replays!.open(product);}
       if (path) {
         if (gameIdForProduct(product) === 'th09') await replays!.watch(path);
         else await replays!.inspect(path);

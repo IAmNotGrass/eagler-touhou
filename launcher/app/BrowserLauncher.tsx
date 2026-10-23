@@ -47,7 +47,8 @@ function BrowserWorkspace({session}: {session: BrowserSession}) {
   const state = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot);
   const replayModel = session.getReplays();
   const replayFiles = useSyncExternalStore(replayModel?.subscribe ?? emptySubscribe, replayModel?.getSnapshot ?? noDiagnostics, replayModel?.getSnapshot ?? noDiagnostics);
-  const replayWorkspace = !!replayFiles?.open;
+  // The redesign files card lists replays without taking over the Player.
+  const replayWorkspace = !!replayFiles?.open && !replayFiles.listOnly;
   const room = useSyncExternalStore(session.room.service.subscribe, session.room.service.getSnapshot, session.room.service.getSnapshot);
   const roomWorkspace = !!room.room && !replayWorkspace && (state.th09NetworkOverlayOpen || !state.roomPlayerExpanded && !session.nativeTouch.isFullscreen());
   const metadata = useSyncExternalStore(session.metadata.subscribe, session.metadata.getSnapshot, session.metadata.getSnapshot);

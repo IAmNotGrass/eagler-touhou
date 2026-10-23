@@ -15,7 +15,7 @@ const deviceIcons={
 };
 
 /** Keep detailed capture in a bounded dialog, outside the options rail. */
-export function InputSettings({keyboard,gamepad,th09Local}:{keyboard?:KeyboardPreferences;gamepad?:GamepadMappingModel;th09Local?:Th09LocalInput}){
+export function InputSettings({keyboard,gamepad,th09Local,expanded=false}:{keyboard?:KeyboardPreferences;gamepad?:GamepadMappingModel;th09Local?:Th09LocalInput;expanded?:boolean}){
   const {locale}=useLocale(),zh=locale==='zh-CN',id=useId(),dialog=useRef<HTMLDialogElement>(null);
   const [open,setOpen]=useState(true),[editing,setEditing]=useState(false),[closing,setClosing]=useState(false);
   const [device,setDevice]=useState<'keyboard'|'gamepad'>(keyboard?'keyboard':'gamepad');
@@ -28,7 +28,7 @@ export function InputSettings({keyboard,gamepad,th09Local}:{keyboard?:KeyboardPr
   const choices=(['keyboard','gamepad'] as const).filter(value=>value==='keyboard'?keyboard:gamepad);
   const label=(value:'keyboard'|'gamepad')=>value==='keyboard'?(zh?'键盘改键':'Keyboard'):(zh?'手柄改键':'Gamepad');
   return <section className="options-group input-settings" data-open={open}>
-    <button className="options-group-head input-settings-heading" type="button" aria-expanded={open} aria-controls={id} onClick={()=>setOpen(!open)}><span>{title}</span><i aria-hidden="true">⌄</i></button>
+    {expanded ? <h2 className="options-group-head input-settings-heading">{title}</h2> : <button className="options-group-head input-settings-heading" type="button" aria-expanded={open} aria-controls={id} onClick={()=>setOpen(!open)}><span>{title}</span><i aria-hidden="true">⌄</i></button>}
     <div id={id} className="input-settings-collapse" inert={!open} aria-hidden={!open}><div className="input-settings-content">
       <div className="input-settings-entries">{choices.map(value=><button className="input-settings-entry" type="button" key={value} onClick={()=>edit(value)} aria-haspopup="dialog">
         <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path d={deviceIcons[value]}/></svg>
