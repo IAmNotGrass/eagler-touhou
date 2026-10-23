@@ -26,6 +26,8 @@ export interface RoomViewContext {
 }
 export interface RoomViewProps {
   quickChat?: MultiplayerQuickChatModel;
+  /** Host-provided header control placed after the back button. */
+  headerAccessory?: import('react').ReactNode;
   service: MultiplayerRoomService;
   network: RoomNetworkPresentation;
   context: RoomViewContext;

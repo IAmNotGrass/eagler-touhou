@@ -9,6 +9,8 @@ type UiMessageEntry = readonly [key: string, zhCN: string, english: string];
 const entries = [
   ...TH075_LOADOUT_MESSAGES,
   ['game.title.th075mp', '东方萃梦想 联机版', 'Touhou 7.5 Multiplayer'],
+  ['room.expandDirectory', '展开作品目录', 'Expand game directory'],
+  ['room.collapseDirectory', '收起作品目录', 'Collapse game directory'],
   ['room.basicSettings', '基础设置', 'Basic settings'],
   ['room.cancelReady', '取消准备', 'Cancel ready'],
   ['room.gameSettingsGroup', '游戏设置', 'Game settings'],
@@ -959,7 +961,7 @@ const entries = [
   ["multiplayer.joinRoom", "加入房间", "Join room"], ["multiplayer.roomAria", "联机房间", "Multiplayer room"],
   ["multiplayer.host", "房主", "Host"], ["multiplayer.you", "我", "You"], ["multiplayer.join", "加入", "Join"],
   ["multiplayer.spectators", "旁观者", "Spectators"], ["multiplayer.spectate", "旁观", "Spectate"],
-  ["multiplayer.joinSpectator", "加入旁观", "Spectate"], ["multiplayer.leaveSpectator", "离开旁观", "Leave spectator mode"],
+  ["multiplayer.joinSpectator", "加入旁观", "Spectate"], ["multiplayer.leaveSpectator", "离开", "Leave"],
   ["multiplayer.name", "昵称", "Name"], ["multiplayer.namePlaceholder", "未命名", "Unnamed"],
   ["multiplayer.nameAria", "联机昵称", "Multiplayer name"], ["multiplayer.spectating", "观战中", "Spectating"],
   ["multiplayer.chooseSeat", "选择座位加入游戏", "Choose a seat to join the game"],

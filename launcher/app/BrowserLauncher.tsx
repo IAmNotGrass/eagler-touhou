@@ -87,7 +87,7 @@ function BrowserWorkspace({session}: {session: BrowserSession}) {
     roomPlayerExpanded: state.roomPlayerExpanded,
     runtimeOpen: state.playerOpen, runtimeLaunched: state.runtime?.launched, titleOverlayOpen: state.th09NetworkOverlayOpen, runtimeFrame: session.attachFrame, requestRuntimeClose: session.requestRuntimeClose, requestRoomLeave: () => {void leaveWithMotion(session.requestRoomLeave).catch(session.reportError);}, requestRoomFullscreenExit: session.exitRoomPlayerFullscreen,
     optionsActions: <SessionLaunchActions session={session}/>, renderWorkspaceActions: middle => <SessionLaunchActions session={session} middle={middle}/>, multiplayerControls: <RoomSettingsControls session={session}/>, multiplayerDiagnostics: <InlineMultiplayerDiagnostics session={session}/>, multiplayerOnline: <LegacyMultiplayerOnline session={session}/>,
-    roomSurface: <RoomComposition session={session} settingsClosing={settingsClosing} workspaceVisible={roomWorkspace}/>,
+    roomSurface: <RoomComposition session={session} settingsClosing={settingsClosing} workspaceVisible={roomWorkspace} onLeave={() => leaveWithMotion(session.leaveRoom)}/>,
     roomDrawer: <RoomDrawer session={session} onClosingChange={setSettingsClosing}/>,
     runtimeControls: <><PlayerControls session={session} replayWorkspace={replayWorkspace} roomWorkspace={roomWorkspace}/>{session.getReplays() && <ReplayWorkspace session={session}/>}<MultiplayerQuickChat model={session.room.quickChat}/></>,
     // The real directory renderer derives these slots from the live service;
@@ -173,7 +173,16 @@ function Directory({session, network, ...props}: LobbySurfaceProps & {session: B
     assetUrl={path => new URL(path, session.baseUrl).href} onGuide={() => navigation.openInfoDialog('mpGuideDialog')}
     onNetwork={() => {navigation.openInfoDialog('lobbyNetworkDialog'); void network.current?.run();}}
     onReplay={() => {void session.openReplayViewer(directory.selectedProduct || directory.products[0] || 'th06mp');}}
-    onOpenForm={mode => {if (session.directory.prepareForm(mode)) navigation.openDirectoryForm(mode);}}/>;
+    onOpenForm={mode => {
+      const directory = session.directory;
+      // Redesign: with a game selected, Create Room enters a default room at once.
+      if (mode === 'create' && directory.getSnapshot().selectedProduct) {
+        const owner = {};
+        if (directory.prepareForm('create') && directory.submitForm(owner) === 'close') directory.formDidClose(owner);
+        return;
+      }
+      if (directory.prepareForm(mode)) navigation.openDirectoryForm(mode);
+    }}/>;
 }
 function SessionLaunchActions({session, middle}: {session: BrowserSession; middle?: ReactNode}) {
   const navigation = useSurfaceNavigation(), {t} = useLocale();

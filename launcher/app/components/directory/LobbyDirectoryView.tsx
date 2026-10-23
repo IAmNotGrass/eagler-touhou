@@ -1,4 +1,5 @@
-import {useSyncExternalStore} from 'react';
+import {useCallback, useState, useSyncExternalStore} from 'react';
+import {InlineRoomJoin, joinRoomByCode} from './InlineRoomJoin';
 import {useLocale} from '../../i18n';
 import {LobbySurface, type LobbySurfaceProps} from '../launcher/LobbySurface';
 import {DirectoryRoomRows} from './DirectoryRoomRows';
@@ -23,7 +24,10 @@ export function LobbyDirectoryView({service, assetUrl, onOpenForm, onReplay, ini
     <button className="lobby-button" id="connectionRefresh" type="button" onClick={service.retry}>{t('lobby.refresh')}</button>
   </aside>;
   const membership = <aside className="lobby-membership" id="membership" hidden={!state.mine}><strong id="membershipTitle">{state.mine ? t('lobby.mine', {code: state.mine.code}) : ''}</strong><p id="membershipHint">{t(state.supportsRecovery ? 'lobby.mineHint' : 'lobby.releaseUnsupported')}</p><button className="lobby-button" id="releaseMembership" type="button" hidden={!state.mine || !state.supportsRecovery} disabled={!!state.recovering || state.connection !== 'live' || state.leaving || !state.mine?.recoveryToken} onClick={service.releaseMembership}>{t(state.recovering ? 'lobby.releasing' : 'lobby.release')}</button></aside>;
-  const roomTools = <LobbyRoomTools disabled={disabled} onCreate={() => onOpenForm('create')} onReplay={onReplay} onJoin={() => onOpenForm('join')} onRefresh={service.refreshRooms}/>;
+  const [codeError, setCodeError] = useState(''), clearCodeError = useCallback(() => setCodeError(''), []);
+  const codeJoin = <InlineRoomJoin disabled={disabled} busy={false} error={codeError} label={t('workspace.joinByCode')}
+    onJoin={code => setCodeError(joinRoomByCode(service, code, t))} onCancel={clearCodeError}/>;
+  const roomTools = <LobbyRoomTools disabled={disabled} onCreate={() => onOpenForm('create')} onReplay={onReplay} onJoin={() => onOpenForm('join')} onRefresh={service.refreshRooms} joinSlot={codeJoin}/>;
   const empty = state.loading || state.visibleRooms.length || state.connectionInterrupted ? null : {
     title: t(state.connection === 'live' ? 'lobby.empty' : state.connection === 'loading' ? 'lobby.connecting' : state.connection === 'unsupported' ? 'lobby.unsupported' : 'lobby.offline'),
     hint: t(state.connection === 'live' ? 'lobby.emptyHint' : state.connection === 'loading' ? 'lobby.loadingHint' : state.connection === 'unsupported' ? 'lobby.unsupportedHint' : state.connection === 'missing' ? 'lobby.noService' : 'lobby.offlineHint'),

@@ -13,7 +13,9 @@ import {LibrarySurface} from './components/launcher/LibrarySurface';
 import {GameWorkspace} from './components/launcher/GameWorkspace';
 import {FilesWorkspace, type WorkspaceReplayActions} from './components/launcher/FilesWorkspace';
 import {SettingsWorkspace} from './components/launcher/SettingsWorkspace';
-import {RoomWorkspaceDock} from './components/launcher/RoomWorkspaceDock';
+import {RoomWorkspaceDock, useRoomDockMedia} from './components/launcher/RoomWorkspaceDock';
+import {createPortal} from 'react-dom';
+import {directoryDock, useDirectoryDockExpanded} from './components/launcher/directory-dock';
 import {resolveMusicAvailability} from '../src/launcher/music-availability.mts';
 import {LobbySurface, type LobbySurfaceProps} from './components/launcher/LobbySurface';
 import {OptionsPanel} from './components/launcher/OptionsPanel';
@@ -146,6 +148,23 @@ function LauncherSurfaces({host}: {host: LauncherHost}) {
   const [playerElement, setPlayerElement] = useState<HTMLElement | null>(null);
   const roomOpen = navigation.roomCode !== null && navigation.productId !== null && isMultiplayerProductId(navigation.productId);
   const roomWorkspace = roomOpen && host.roomWorkspace === true && navigation.surface !== 'touch';
+  const directoryExpanded = useDirectoryDockExpanded(), roomDocked = useRoomDockMedia();
+  const directoryCollapsed = roomOpen && host.roomWorkspace === true && navigation.surface !== 'touch' && !directoryExpanded;
+  // Decided during render, so the class lands in the same commit that removes
+  // the collapse; a later effect would let the transitions start unstaged.
+  const wasCollapsed = useRef(directoryCollapsed), restoreUntil = useRef(0);
+  if (wasCollapsed.current !== directoryCollapsed) {
+    restoreUntil.current = wasCollapsed.current ? performance.now() + 1100 : 0;
+    wasCollapsed.current = directoryCollapsed;
+  }
+  const directoryRestoring = restoreUntil.current > performance.now();
+  const [, settleRestoring] = useState(0);
+  useEffect(() => {
+    if (!directoryRestoring) return;
+    const timer = setTimeout(() => settleRestoring(value => value + 1), restoreUntil.current - performance.now() + 20);
+    return () => clearTimeout(timer);
+  }, [directoryRestoring]);
+  useLayoutEffect(() => {directoryDock.collapse();}, [navigation.roomCode, host.runtimeLaunched]);
   const catalog = host.catalogProducts ?? host.products;
   const workspaceSettingsContext = useMemo(()=>{
     if(!settingsScope)return null;
@@ -238,11 +257,12 @@ function LauncherSurfaces({host}: {host: LauncherHost}) {
       onSite={navigation.selectSite} siteHref={navigation.context === 'lobby' ? host.workspaceLobbyHref ?? host.lobbyHref : undefined}
       lobbyHref={host.workspaceLobbyHref ?? host.lobbyHref} optionsOpen={optionsOpen} settingsOpen={!!settingsScope} settingsCard={settingsScope && workspaceSettingsModel ? <SettingsWorkspace scope={settingsScope} gameTitle={selectedProduct?.title ?? settings?.gameId ?? ''} model={workspaceSettingsModel} effectiveModel={host.settings} actions={host.settingsActions} onOpenTouchLayout={openTouchLayout}/> : undefined}
       filesOpen={filesOpen} filesCard={filesOpen && selectedProduct ? <FilesWorkspace product={selectedProduct.id} language={settings?.language ?? 'ja'} saveLibrary={host.saveLibrary} replays={host.replays} replayActions={host.replayActions} actions={host.settingsActions} hidden={!!settingsScope} assetUrl={host.assetUrl}/> : undefined}
-      roomOpen={roomOpen} directoryCollapsed={roomWorkspace && host.runtimeLaunched === true} foregroundActive={navigation.surface === 'touch' || host.runtimeOpen === true} roomDrawer={host.roomDrawer} onBack={navigation.closeSurface} assetUrl={host.assetUrl} siteNoticeLines={host.siteNoticeLines}>
+      roomOpen={roomOpen} directoryCollapsed={directoryCollapsed} directoryRestoring={directoryRestoring} foregroundActive={navigation.surface === 'touch' || host.runtimeOpen === true} roomDrawer={host.roomDrawer} onBack={navigation.closeSurface} assetUrl={host.assetUrl} siteNoticeLines={host.siteNoticeLines}>
       {host.roomSurface}{roomOpen ? <>{settingsPanel}{roomWorkspace && <RoomWorkspaceDock/>}</> : navigation.context === 'lobby' ? host.renderLobby ? host.renderLobby(lobbyProps) : <LobbySurface {...lobbyProps}/> : optionsOpen && selectedProduct ? <GameWorkspace saveLibrary={host.saveLibrary} scores={host.scores} scoreLanguage={settings?.language ?? 'ja'} assetUrl={host.assetUrl} product={selectedProduct} actions={host.optionsActions} renderActions={host.renderWorkspaceActions} multiplayerOnline={host.multiplayerOnline} multiplayerDiagnostics={host.multiplayerDiagnostics}
         multiplayerHref={host.products.some(product => product.gameId === selectedProduct.gameId && product.multiplayer && !product.hidden) ? directoryGameHref(host.workspaceLobbyHref ?? host.lobbyHref, `${selectedProduct.gameId}mp`) : undefined}
         onFiles={() => navigation.openInfoDialog('scoreFilesDialog')} onSettings={() => navigation.openWorkspaceSettings('game')}/> : null}
     </LibrarySurface>
+    {roomWorkspace && !roomDocked && playerElement && createPortal(<div className="room-workspace-footer">{host.footer}</div>, playerElement)}
     <PlayerSurface roomWorkspace={roomWorkspace} replayWorkspace={host.replayWorkspace} preview={host.bootTouchPreview} previewImage={host.bootTouchPreviewImage} onElement={setPlayerElement} onFrame={host.runtimeFrame} open={roomWorkspace || roomOpen && host.roomPlayerExpanded === true || navigation.surface === 'touch' || host.runtimeOpen === true || host.replayWorkspace === true} editing={navigation.surface === 'touch'}>{host.runtimeControls}</PlayerSurface>
     {editor}{host.overlays}
   </OptionsOwnership>;
