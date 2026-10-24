@@ -704,3 +704,18 @@ body:has(.lobby-redesign-sheet) #roomDialog .lobby-submit{background:var(--red);
  .directory-layout .workspace-column>.site-footer .site-footer-inner{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 16px;font-size:11px;text-align:center}
  .directory-layout .workspace-column>.site-footer p{text-align:center}
 }
+/* Game page polish: English loadout names read upward on one line; the stat
+   row shares a baseline; the adaptation notice uses the styled callout; the
+   clear grid may grow on tall screens instead of leaving the card empty. */
+.clear-matrix[data-vertical-heads=true][data-head-script=latin] .clear-head-label{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);white-space:nowrap;line-height:1.15;letter-spacing:.01em}
+.clear-matrix[data-vertical-heads=true][data-head-script=latin] thead th{overflow-wrap:normal}
+.score-metrics{align-items:end}
+.score-content>.tools-callout summary{list-style:none;display:flex;align-items:center;gap:7px;margin:0;cursor:pointer}
+.score-content>.tools-callout summary::-webkit-details-marker{display:none}
+.score-content>.tools-callout .tools-callout-chevron{width:7px;height:7px;margin-left:2px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform .2s ease}
+.score-content>.tools-callout[open] .tools-callout-chevron{transform:rotate(45deg)}
+.score-content>.tools-callout[open] summary{margin-bottom:6px}
+.score-content>.tools-callout p{font-size:12px;line-height:1.6}
+.score-content>.tools-callout a{color:var(--paper);font:600 12px/1.6 var(--ui-font)}
+@media(min-width:781px) and (orientation:landscape) and (min-height:681px){.clear-matrix-wrap{--clear-target-cell:clamp(16px,calc((100dvh - 500px)/9),36px)}}
+@media(min-width:781px) and (orientation:landscape){.score-metrics>div:last-child strong{line-height:calc(clamp(16px,1.7vw,23px)*1.5)}}

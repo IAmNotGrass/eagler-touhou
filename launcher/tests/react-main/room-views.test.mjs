@@ -249,17 +249,16 @@ test('Real join, stand, spectator, loadout and become-host button ports retain r
 
 test('Room settings remain synchronized while owner and phase change', async () => {
  const f=await fixture().live();await mountRoom(f);await click('#roomWorkspaceTab-game');
- const select=async(selector,value)=>act(()=>{const node=n(selector);node.value=value;node.dispatchEvent(new env.window.Event('change',{bubbles:true}));});
- await select('#mpRoomPlayerCount','3');assert.equal(f.service.getSnapshot().room.playerCount,3);assert.equal(n('#mpSeatStage').dataset.playerCount,'3');
+ await click('#mpRoomPlayerCount [data-mp-player-count="3"]');assert.equal(f.service.getSnapshot().room.playerCount,3);assert.equal(n('#mpSeatStage').dataset.playerCount,'3');
  await click('[data-mp-difficulty="3"]');assert.equal(n('#mpRoomDifficultyBadge').textContent,'Lunatic');
  for(const [selector,key,value] of [['#mpRoomVisibility','visibility','private'],['#mpRoomCheatToggle','disableCheatMovement',true],['#mpRoomChallengeToggle','challengeMode',true]]) {
-  if(key==='visibility')await select(selector,value);else await click(selector);
+  if(key==='visibility')await click(`${selector} [data-mp-visibility="${value}"]`);else await click(selector);
   assert.equal(f.socket.sent.at(-1).type,'settings');assert.equal(f.socket.sent.at(-1)[key],value);assert.notEqual(f.service.getSnapshot().room[key],value);
  }
- await f.receive({phase:'running'});assert.equal(n('#mpRoomVisibility').disabled,true);assert.equal(n('#mpRoomCheatToggle').disabled,true);
+ await f.receive({phase:'running'});assert.equal(n('#mpRoomVisibility button').disabled,true);assert.equal(n('#mpRoomCheatToggle').disabled,true);
  await f.receive({seats:[{clientId:'other12345',name:'O',loadout:1},{clientId:f.id,name:'A',loadout:0}]});
- assert.equal(n('#roomWorkspacePanel-game').hidden,false);assert.equal(n('#mpRoomPlayerCount').disabled,true);
- await f.receive();assert.equal(n('#mpRoomPlayerCount').disabled,false);await click('#roomWorkspaceTab-chat');assert.equal(f.service.getSnapshot().roomSettingsOpen,false);
+ assert.equal(n('#roomWorkspacePanel-game').hidden,false);assert.equal(n('#mpRoomPlayerCount button').disabled,true);
+ await f.receive();assert.equal(n('#mpRoomPlayerCount button').disabled,false);await click('#roomWorkspaceTab-chat');assert.equal(f.service.getSnapshot().roomSettingsOpen,false);
 });
 
 test('Ready/start gates use synchronized occupied seats and check-game calls real preparation/runtime port', async () => {

@@ -142,7 +142,7 @@ function RoomSeat({
   const base = resourceReady || resource?.stage === 'runtime' ? 100 : resource?.basePercent ?? resource?.percent;
   const loading = resourceReady ? 100 : resource?.stage === 'runtime' ? resource.runtimePercent ?? resource.percent : 0;
   const degrees = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.min(100, value)) * 3.6 : 0;
-  const appearance = !occupied ? 'empty' : seat?.offline || !resourceReady ? 'loading' : seat?.ready ? 'ready' : 'unready';
+  const appearance = !occupied ? 'empty' : local && context.editingSettings ? 'setting' : seat?.offline || !resourceReady ? 'loading' : seat?.ready ? 'ready' : 'unready';
   const name = <strong className="mp-seat-name" data-mp-seat-name={index} title={seat?.name || `P${index + 1}`}>
     {seat?.name || (state.seat === index ? state.displayName : '') || `P${index + 1}`}
   </strong>;
@@ -166,7 +166,7 @@ function RoomSeat({
       title={occupied ? seatLabel : ''}
     >
       {occupied && <span className="room-seat-decoration" aria-hidden="true">
-        {(['loading', 'unready', 'ready'] as const).map(status => <span key={status} className={`room-seat-watermark${appearance === status ? ' active' : ''}`}>
+        {(['loading', 'unready', 'ready', 'setting'] as const).map(status => <span key={status} className={`room-seat-watermark${appearance === status ? ' active' : ''}`}>
           {[...status.toUpperCase()].map((letter, glyph) => <span key={glyph} className="room-seat-letter" style={{'--glyph': glyph} as CSSProperties}>{letter}</span>)}
         </span>)}
       </span>}
