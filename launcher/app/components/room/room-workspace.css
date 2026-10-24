@@ -148,6 +148,7 @@ body:has(#player.room-workspace) .settings-room-backdrop{z-index:229}
 #player.room-workspace .room-workspace-roster .mp-seat[data-card-state=loading]{background:#b46424!important;border-color:transparent!important}
 #player.room-workspace .room-workspace-roster .mp-seat[data-card-state=unready]{background:var(--red)!important;border-color:transparent!important}
 #player.room-workspace .room-workspace-roster .mp-seat[data-card-state=ready]{background:#028a74!important;border-color:transparent!important}
+#player.room-workspace .room-workspace-roster .mp-seat[data-card-state=setting]{background:#56608f!important;border-color:transparent!important}
 .room-seat-watermark{position:absolute;z-index:-1;right:-9px;bottom:-15px;color:var(--ink,#141413);font:900 italic 60px/1.1 var(--ui-font);letter-spacing:-3px;white-space:nowrap;transform:translateY(65%) rotate(-6deg);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .4s cubic-bezier(.22,1,.36,1)}
 .room-seat-watermark.active{transform:translateY(0) rotate(-12deg);opacity:.36}
 .room-seat-letter{display:inline-block}

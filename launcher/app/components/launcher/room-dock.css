@@ -6,6 +6,12 @@ body.mp-room-active #player.room-workspace>.room-workspace-footer .site-footer{d
 #player.room-workspace>.room-workspace-footer .site-footer-divider{width:100%;margin:0 0 6px;background:linear-gradient(90deg,transparent,rgba(235,231,223,.2) 20%,rgba(235,231,223,.2) 80%,transparent)}
 #player.room-workspace>.room-workspace-footer .site-footer-inner{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 16px;font-size:11px;text-align:center}
 #player.room-workspace>.room-workspace-footer .site-footer p{text-align:center}
+/* Room panels share one corner radius (the Ready/Start buttons' 18px), so the
+   game view, chat, seats and spectator lounge meet with matching corners. */
+#player.room-workspace :is(#gameViewport,.room-workspace-sidebar,.room-workspace-spectators):not(:fullscreen,:-webkit-full-screen),
+#player.room-workspace .room-workspace-roster .mp-seat[data-mp-seat]{border-radius:18px!important}
+/* Spectator avatars stay circular; the generic 44px button minimum made them oval. */
+#player.room-workspace .room-spectator-preview-avatar{min-width:0!important;min-height:0!important;aspect-ratio:1}
 /* Lobby footer refresh icon needs the full button width. */
 .lobby-redesign-sheet .lobby-workspace .lobby-room-tools .lobby-actions .lobby-refresh{flex:0 0 48px;width:48px;height:48px;padding:0}
 
@@ -61,13 +67,13 @@ body.mp-room-active #player.room-workspace>.room-workspace-footer .site-footer{d
   body.redesign-room-docked #player.room-workspace .room-workspace-roster .mp-seat{height:100%!important}
   /* Upstream hides the footer behind its full-page room; the docked shell keeps it. */
   body.mp-room-active .redesign-sheet .workspace-column>.site-footer{display:grid!important}
-  /* The Ready/Start row keeps its height, so the chat never moves. When the
-     local member spectates (row hidden), the lounge grows down over that row
-     and shows the spectators' avatars in the added space. */
+  /* The Ready/Start row keeps its height, so the chat never moves. Whenever
+     that row is hidden (spectating, seatless, or a game in progress), the
+     lounge grows down over it and shows the spectators' avatars there. */
   body.redesign-room-docked #player.room-workspace{grid-template-rows:48px minmax(0,1fr) auto 60px!important}
   body.redesign-room-docked #player.room-workspace .room-workspace-spectators{position:relative;transition:margin-bottom .38s cubic-bezier(.22,1,.36,1),padding-bottom .38s cubic-bezier(.22,1,.36,1)}
-  body.redesign-room-docked #player.room-workspace:has(.room-workspace-actions[hidden]):has(.room-spectator-preview-avatar.mine) .room-workspace-spectators{margin-bottom:-72px;padding-bottom:80px;align-items:flex-start}
-  body.redesign-room-docked #player.room-workspace:has(.room-workspace-actions[hidden]):has(.room-spectator-preview-avatar.mine) .room-spectator-preview-avatars{position:absolute;left:12px;right:12px;bottom:12px;height:56px;align-items:center;overflow-x:auto;overflow-y:hidden}
+  body.redesign-room-docked #player.room-workspace:has(.room-workspace-actions[hidden]) .room-workspace-spectators{margin-bottom:-72px;padding-bottom:80px;align-items:flex-start}
+  body.redesign-room-docked #player.room-workspace:has(.room-workspace-actions[hidden]) .room-spectator-preview-avatars{position:absolute;left:12px;right:12px;bottom:12px;height:56px;align-items:center;overflow-x:auto;overflow-y:hidden}
   /* Room header: icon button like Back, title like the lobby heading, tabs that fit. */
   #mpRoomView .mp-room-head .room-directory-toggle{padding:0 12px!important;color:#ece4e9}
   #mpRoomView .mp-room-head .room-directory-toggle[aria-expanded=true]{background:var(--room-tonal,#2b2b28)!important}

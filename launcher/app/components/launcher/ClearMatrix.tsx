@@ -14,10 +14,11 @@ export function ClearMatrix({loadouts, report}: {loadouts: readonly string[]; re
     return()=>{document.removeEventListener('pointerdown',dismiss,true);document.removeEventListener('focusin',dismiss);};
   },[touchRevealed]);
   const label = (name:string) => locale === 'en' ? scoreText(name,locale) : name.replace(/^灵梦 ([ABC])$/,'梦$1').replace(/^魔理沙 ([ABC])$/,'魔$1').replace(/^咲夜 ([ABC])$/,'咲$1');
-  const verticalHeads = locale !== 'en' && loadouts.some(name => label(name).length > 2);
+  // Long English names read upward on one line rather than breaking mid-word.
+  const verticalHeads = loadouts.some(name => label(name).length > (locale === 'en' ? 5 : 2));
   return <div ref={wrap} className="clear-matrix-wrap" data-revealed={touchRevealed} style={{'--clear-columns':loadouts.length} as CSSProperties}
     onPointerDown={event=>{pressType.current=event.pointerType;}} onPointerCancel={()=>{pressType.current='';}} onClick={()=>{if(pressType.current==='touch'||pressType.current==='pen')setTouchRevealed(true);pressType.current='';}}>
-    <table className="clear-matrix" data-vertical-heads={verticalHeads} onPointerLeave={()=>setActive(null)} onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node|null))setActive(null);}}>
+    <table className="clear-matrix" data-vertical-heads={verticalHeads} data-head-script={locale === 'en' ? 'latin' : 'cjk'} onPointerLeave={()=>setActive(null)} onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node|null))setActive(null);}}>
       <caption className="visually-hidden">{t('scores.clearMatrix')}</caption>
       <colgroup><col className="clear-axis-column"/>{loadouts.map(name=><col key={name} className="clear-loadout-column"/>)}</colgroup>
       <thead><tr><th scope="col" className="clear-matrix-corner" aria-label={t('lobby.difficulty')}/>{loadouts.map((name,column)=><th key={name} scope="col" tabIndex={0} data-highlight={active?.column===column} data-short={label(name).length<=2} title={scoreText(name,locale)}

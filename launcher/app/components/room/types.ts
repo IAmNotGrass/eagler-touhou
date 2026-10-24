@@ -23,6 +23,8 @@ export interface RoomViewContext {
   launchStage: 'path' | 'preparing' | null;
   touchEnabled: boolean;
   touchMovementMode: TouchMovementMode;
+  /** This member has a settings card open; only the local seat can show it. */
+  editingSettings?: boolean;
 }
 export interface RoomViewProps {
   quickChat?: MultiplayerQuickChatModel;

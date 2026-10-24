@@ -12,12 +12,13 @@ export function RoomGameSettings({state, service, hidden}: {state: RoomOwnerSnap
   return <section className="mp-room-settings room-grouped-settings options-settings" id="mpRoomSettings" hidden={hidden} data-room-panel="game">
     <section className="room-settings-group"><h3>{t('room.basicSettings')}</h3>
       <div className="room-basic-fields">
-        <label>{t('room.visibility')}<MainSelect id="mpRoomVisibility" className="option-select" value={room.visibility || 'public'} disabled={disabled} onChange={event => service.setRoomSettings({visibility: event.target.value as 'public' | 'private'})}>
-          <option value="public">{t('room.public')}</option><option value="private">{t('room.private')}</option>
-        </MainSelect></label>
-        <label>{t('multiplayer.players')}<MainSelect id="mpRoomPlayerCount" className="option-select" value={room.playerCount} disabled={disabled || config.playerCounts.length < 2} onChange={event => service.setRoomSettings({playerCount: Number(event.target.value) as 2 | 3})}>
-          {config.playerCounts.map(count => <option key={count} value={count}>{count}P</option>)}
-        </MainSelect></label>
+        {/* Two-way choices use the same segmented control as difficulty. */}
+        <div className="room-basic-choice" id="mpRoomVisibility"><RoomChoiceGroup title={t('room.visibility')} name="visibility" valueAttribute="data-mp-visibility"
+          choices={(['public','private'] as const).map(value => ({value,label:t(value === 'public' ? 'room.public' : 'room.private'),selected:(room.visibility || 'public') === value,disabled}))}
+          onSelect={visibility => service.setRoomSettings({visibility})}/></div>
+        <div className="room-basic-choice" id="mpRoomPlayerCount"><RoomChoiceGroup title={t('multiplayer.players')} name="player-count" valueAttribute="data-mp-player-count"
+          choices={config.playerCounts.map(count => ({value:count,label:`${count}P`,selected:room.playerCount === count,disabled:disabled || config.playerCounts.length < 2}))}
+          onSelect={count => service.setRoomSettings({playerCount: count as 2 | 3})}/></div>
       </div>
       <p className="room-setting-description" hidden={room.visibility !== 'private'}>{t('room.privateHint')}</p>
       {config.inGameSelection ? <p className="room-setting-description">{t('room.inGameSelectionHint')}</p> : <RoomChoiceGroup title={<><span>{t('multiplayer.difficulty')}</span>{room.challengeMode && <span className="room-challenge-on">{t('room.challengeEnabled')}</span>}</>} name="difficulty" valueAttribute="data-mp-difficulty" choices={config.difficulties.map((label, index) => ({value:index,label,selected:room.difficulty === index,disabled}))} onSelect={difficulty => service.setRoomSettings({difficulty})}/>}
