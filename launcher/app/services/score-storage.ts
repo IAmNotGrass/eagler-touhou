@@ -8,7 +8,7 @@ export interface StoredScore {
   edition: 'chs' | 'jp' | null;
   sourceName?: string;
 }
-export const scoreGames = ['th06', 'th07', 'th08', 'th09', 'th10'] as const;
+export const scoreGames = ['th06', 'th07', 'th08', 'th09', 'th10', 'th11', 'th15', 'th20'] as const;
 export function supportsScore(product: ProductId) {
   return !isMultiplayerProductId(product) && (scoreGames as readonly string[]).includes(gameIdForProduct(product));
 }

@@ -18,6 +18,9 @@ const english: Record<string, string> = {
   '妖梦': 'Youmu', '魂魄妖梦': 'Youmu Konpaku', '紫': 'Yukari', '八云紫': 'Yukari Yakumo', '爱丽丝': 'Alice', '蕾米莉亚': 'Remilia',
   '幽幽子': 'Yuyuko', '西行寺幽幽子': 'Yuyuko Saigyouji', '铃仙': 'Reisen', '琪露诺': 'Cirno', '莉莉卡': 'Lyrica', '梅露兰': 'Merlin', '露娜萨': 'Lunasa',
   '米斯蒂娅': 'Mystia', '因幡帝': 'Tewi', '射命丸文': 'Aya Shameimaru', '梅蒂欣': 'Medicine', '风见幽香': 'Yuuka Kazami', '小野塚小町': 'Komachi Onozuka', '四季映姬': 'Eiki Shiki',
+  '早苗': 'Sanae', '萃香': 'Suika', '文': 'Aya', '荷取': 'Nitori', '无续关通关': 'Clears without continues',
+  '绯红恶魔': 'Scarlet Devil', '生物赤红': 'Creature Red', '冰雪花簇': 'Snow Blossom', '蓝色季节': 'Blue Season',
+  '黄色地心': 'Yellow Subterranean', '不朽明月': 'Imperishable Moon', '兽之冷硬': 'Beast Hardness', '神道之风': 'Shintoism Wind',
   '包含存档中的默认排行槽位，不代表实际游玩局数。': 'Includes default ranking slots; these are not a count of played games.',
   '合计块保留存档原值，不与各机体重复相加。': 'Totals retain the saved values and are not added to individual loadouts again.',
   '花映冢的游玩时间字段含义尚未确认，保留原值供参考。': 'The TH09 play-time field is not fully understood; its original value is shown for reference.',
@@ -30,6 +33,9 @@ export function scoreText(value: string, locale: string): string {
   if (duration) return `${duration[1]} h ${duration[2]} min`;
   const loadout = /^(.+) ([ABC])$/.exec(value);
   if (loadout && english[loadout[1]!]) return `${english[loadout[1]!]!} ${loadout[2]}`;
+  // Paired labels: TH11 partners, TH15 game modes, TH20 stones.
+  const pair = /^(.+) · (.+)$/.exec(value);
+  if (pair) return `${scoreText(pair[1]!, locale)} · ${scoreText(pair[2]!, locale)}`;
   const unknown = /^存在尚未解释的 (.+) 记录，未推测其内容。$/.exec(value);
   if (unknown) return `The ${unknown[1]} record is not yet interpreted.`;
   return value.replace(/^机体 /, 'Loadout ').replace(/^难度 /, 'Difficulty ').replace('附加标记 ', 'Additional flags ');

@@ -250,6 +250,7 @@ const entries = [
   ["scores.favorite", "最常用机体", "Most-played loadout"],
   ["scores.mostCleared", "通关最多机体", "Most-cleared loadout"],
   ["scores.widestCleared", "通关最广机体", "Widest clear coverage"],
+  ["scores.bestCleared", "最高通关", "Best clear"],
   ["scores.clearTimes", "次", "clears"],
   ["scores.oneClear", "次", "clear"],
   ["scores.difficultyCount", "档难度", "difficulties"],

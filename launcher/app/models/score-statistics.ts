@@ -54,6 +54,35 @@ export function featuredLoadout(report: Pick<ScoreReport, 'game' | 'sections' | 
   return {name, count, basis, portraits: characterArtForName(name)};
 }
 
+/** The loadout with the best clear record: highest main difficulty cleared,
+ * then the most difficulties cleared (Extra included), then the most clears
+ * without continues, then the most-played loadout. Null when nothing has been
+ * cleared or the leaders stay tied, so no arbitrary first loadout is chosen. */
+export function bestClearedLoadout(report: Pick<ScoreReport, 'game' | 'sections' | 'clears' | 'clearKinds'>) {
+  const names = scoreLoadouts(report.game), main = scoreDifficulties.length - 1;
+  const ranked = names.map((name, column) => {
+    const cleared = scoreDifficulties.map((_, row) => report.clears[row]?.[column] === true);
+    let top = -1;
+    for (let row = main - 1; row >= 0; row--) if (cleared[row]) {top = row; break;}
+    const breadth = cleared.filter(Boolean).length;
+    const clean = scoreDifficulties.filter((_, row) => report.clearKinds?.[row]?.[column] === 'no-continue').length;
+    return {name, top, breadth, clean};
+  }).filter(entry => entry.breadth > 0);
+  if (!ranked.length) return null;
+  const order = (a: (typeof ranked)[number], b: (typeof ranked)[number]) => b.top - a.top || b.breadth - a.breadth || b.clean - a.clean;
+  ranked.sort(order);
+  let leaders = ranked.filter(entry => !order(entry, ranked[0]!));
+  if (leaders.length > 1) {
+    const played = favoriteLoadout(report)?.name;
+    leaders = leaders.filter(entry => entry.name === played);
+  }
+  if (leaders.length !== 1) return null;
+  const best = leaders[0]!;
+  // Highest main difficulty reached; an Extra-only record names Extra.
+  const difficulty = best.top >= 0 ? scoreDifficulties[best.top]! : scoreDifficulties[main]!;
+  return {name: best.name, difficulty, portraits: characterArtForName(best.name)};
+}
+
 export function createScoreStatistics({read = readStoredScore}: {read?: typeof readStoredScore} = {}) {
   const listeners = new Set<() => void>();
   let snapshot: ScoreSnapshot = Object.freeze({product: null, phase: 'idle', report: null, favorite: null, edition: null, modified: null, multiplayer: false, sourceName: null});

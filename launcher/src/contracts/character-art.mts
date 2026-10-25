@@ -213,6 +213,8 @@ export const TH09_CHARACTER_ART: readonly CharacterArtId[] = ['reimu','marisa','
 export const CHARACTER_TEAMS: Readonly<Record<string, readonly CharacterArtId[]>> = {
   '结界组':['reimu','yukari'], '咏唱组':['marisa','alice'],
   '红魔组':['sakuya','remilia'], '幽冥组':['youmu','yuyuko'],
+  '灵梦 · 紫':['reimu','yukari'], '灵梦 · 萃香':['reimu','suika'], '灵梦 · 文':['reimu','aya'],
+  '魔理沙 · 爱丽丝':['marisa','alice'], '魔理沙 · 帕秋莉':['marisa','patchouli'], '魔理沙 · 荷取':['marisa','nitori'],
 };
 export function characterArtForName(name: string): CharacterArtId[] {
   if (CHARACTER_TEAMS[name]) return [...CHARACTER_TEAMS[name]!];

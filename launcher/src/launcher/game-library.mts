@@ -10,6 +10,42 @@ export function libraryIndexWidth(count: number, available: number, target = 44,
 // Sample each decoded cover once, sharing the result between solo and MP cards.
 // A light, restrained accent keeps a clear tonal outline on the dark surface.
 const coverAccents = new Map<string, string>();
+/** The cover's dominant hue as a light accent, or null while it cannot be sampled. */
+export function coverAccent(image: HTMLImageElement): string | null {
+  if (!image.naturalWidth) return null;
+  const source = image.currentSrc || image.src;
+  let accent = coverAccents.get(source);
+  if (!accent) {
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 32;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      if (!context) return null;
+      context.drawImage(image, 0, 0, 32, 32);
+      const pixels = context.getImageData(0, 0, 32, 32).data;
+      const bins = Array.from({ length: 24 }, () => ({ weight: 0, x: 0, y: 0 }));
+      for (let i = 0; i < pixels.length; i += 4) {
+        const r = pixels[i] / 255, g = pixels[i + 1] / 255, b = pixels[i + 2] / 255;
+        const high = Math.max(r, g, b), low = Math.min(r, g, b), chroma = high - low;
+        if (pixels[i + 3] < 128 || chroma < .12 || high < .18) continue;
+        let hue = high === r ? (g - b) / chroma : high === g ? (b - r) / chroma + 2 : (r - g) / chroma + 4;
+        hue = (hue * 60 + 360) % 360;
+        const bin = bins[Math.floor(hue / 15)], weight = chroma * Math.sqrt(high);
+        bin.weight += weight;
+        bin.x += Math.cos(hue * Math.PI / 180) * weight;
+        bin.y += Math.sin(hue * Math.PI / 180) * weight;
+      }
+      const dominant = bins.reduce((best, bin) => bin.weight > best.weight ? bin : best);
+      const hue = (Math.atan2(dominant.y, dominant.x) * 180 / Math.PI + 360) % 360;
+      accent = dominant.weight ? `hsl(${Math.round(hue)} 62% 78%)` : "#d0cbc3";
+      coverAccents.set(source, accent);
+    } catch {
+      // Missing or cross-origin artwork retains the accessible paper fallback.
+      return null;
+    }
+  }
+  return accent;
+}
 function applyCoverAccent(card: HTMLElement, cleanups: Array<() => void>) {
   const image = card.querySelector<HTMLImageElement>(".card-art .card-art-image");
   if (!image) return;
@@ -17,38 +53,8 @@ function applyCoverAccent(card: HTMLElement, cleanups: Array<() => void>) {
   image.addEventListener("error", failed);
   cleanups.push(() => image.removeEventListener("error", failed));
   const apply = () => {
-    if (!image.naturalWidth) return;
-    const source = image.currentSrc || image.src;
-    let accent = coverAccents.get(source);
-    if (!accent) {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = canvas.height = 32;
-        const context = canvas.getContext("2d", { willReadFrequently: true });
-        if (!context) return;
-        context.drawImage(image, 0, 0, 32, 32);
-        const pixels = context.getImageData(0, 0, 32, 32).data;
-        const bins = Array.from({ length: 24 }, () => ({ weight: 0, x: 0, y: 0 }));
-        for (let i = 0; i < pixels.length; i += 4) {
-          const r = pixels[i] / 255, g = pixels[i + 1] / 255, b = pixels[i + 2] / 255;
-          const high = Math.max(r, g, b), low = Math.min(r, g, b), chroma = high - low;
-          if (pixels[i + 3] < 128 || chroma < .12 || high < .18) continue;
-          let hue = high === r ? (g - b) / chroma : high === g ? (b - r) / chroma + 2 : (r - g) / chroma + 4;
-          hue = (hue * 60 + 360) % 360;
-          const bin = bins[Math.floor(hue / 15)], weight = chroma * Math.sqrt(high);
-          bin.weight += weight;
-          bin.x += Math.cos(hue * Math.PI / 180) * weight;
-          bin.y += Math.sin(hue * Math.PI / 180) * weight;
-        }
-        const dominant = bins.reduce((best, bin) => bin.weight > best.weight ? bin : best);
-        const hue = (Math.atan2(dominant.y, dominant.x) * 180 / Math.PI + 360) % 360;
-        accent = dominant.weight ? `hsl(${Math.round(hue)} 62% 78%)` : "#d0cbc3";
-        coverAccents.set(source, accent);
-      } catch {
-        // Missing or cross-origin artwork retains the accessible paper fallback.
-        return;
-      }
-    }
+    const accent = coverAccent(image);
+    if (!accent) return;
     card.style.setProperty("--cover-accent", accent);
   };
   image.addEventListener("load", apply);

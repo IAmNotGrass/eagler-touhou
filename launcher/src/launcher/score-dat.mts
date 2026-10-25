@@ -45,12 +45,19 @@ function unpack(data: Uint8Array, expected: number) {
   if(len!==expected) throw Error('DAT 长度校验失败');
   return out;
 }
+/** TH10+ saves share one pipeline: a header naming the game and total size,
+ * one cipher over the body, LZSS, then checksummed chapters. Only the header
+ * tag and length differ (TH20 adds chapter sizes to its header). */
+const modern: Record<number,{tag:string;header:number}> = {
+  10:{tag:'TH10',header:24}, 11:{tag:'TH11',header:24}, 15:{tag:'TH51',header:24}, 20:{tag:'TH02',header:0x2c},
+};
 function decode(game: number, original: Uint8Array) {
   if(original.length<24 || original.length>MAX) throw Error('DAT 文件大小无效');
   let d=new Uint8Array(original),r=new Reader(d);
-  if(game===10) {
-    if(ascii(d.subarray(0,4))!=='TH10'||r.u32(4)!==d.length) throw Error('不是风神录 DAT 文件');
-    return unpack(crypt(d.subarray(24),0xac,0x35,16,d.length-24),r.u32(20));
+  const m=modern[game];
+  if(m) {
+    if(d.length<m.header||ascii(d.subarray(0,4))!==m.tag||r.u32(4)!==d.length) throw Error('DAT 与当前作品不匹配');
+    return unpack(crypt(d.subarray(m.header),0xac,0x35,16,d.length-m.header),r.u32(m.header-4));
   }
   if(game===8)d=crypt(d,0x59,0x79,256,3072);
   if(game===9)d=crypt(d,0x3a,0xcd,256,3072);
@@ -70,22 +77,31 @@ const chars: Record<number,string[]>={
   8:['结界组','咏唱组','红魔组','幽冥组','灵梦','紫','魔理沙','爱丽丝','咲夜','蕾米莉亚','妖梦','幽幽子'],
   9:['灵梦','魔理沙','咲夜','妖梦','铃仙','琪露诺','莉莉卡','米斯蒂娅','帝','幽香','文','梅蒂欣','小町','映姬','梅露兰','露娜萨'],
   10:['灵梦 A','灵梦 B','灵梦 C','魔理沙 A','魔理沙 B','魔理沙 C'],
+  11:['灵梦 · 紫','灵梦 · 萃香','灵梦 · 文','魔理沙 · 爱丽丝','魔理沙 · 帕秋莉','魔理沙 · 荷取'],
+  15:['灵梦','魔理沙','早苗','铃仙'],
+  // TH20 records each character with each main stone (THBWiki's order).
+  20:['灵梦','魔理沙'].flatMap(name=>['绯红恶魔','生物赤红','冰雪花簇','蓝色季节','黄色地心','不朽明月','兽之冷硬','神道之风'].map(stone=>`${name} · ${stone}`)),
 };
+/** Exact CR chapter sizes; anything else is reported rather than misread. */
+const clearChapterSize: Record<number,number> = {10:0x437c,11:0x68d4,15:0xa4a0,20:0x7ae8};
 const character=(g:number,n:number)=>chars[g][n]??(n===chars[g].length?'合计':`机体 ${n}`);
 export const scoreDifficulties = Object.freeze(['Easy','Normal','Hard','Lunatic','Extra']);
 export const scoreLoadouts = (gameId:string):readonly string[] => [...(chars[Number(gameId.replace(/^th/,''))] ?? [])];
 const difficulty=(g:number,n:number)=>['Easy','Normal','Hard','Lunatic','Extra',g===8?'Last Word':'Phantasm','合计'][n]??`难度 ${n}`;
 const stage8=['1','2','3','4A','4B','5','6A','6B','Extra'];
 const stage=(g:number,n:number)=>g===8?(stage8[n]??String(n)):(['1','2','3','4','5','6','Extra','Phantasm'][n]??String(n));
-const progress=(g:number,n:number)=>n===(g===10?8:99)?'已通关':g===8?stage(g,n):n===0?'未记录':stage(g,n-1);
+const progress=(g:number,n:number)=>(g===10||g===11||g===15)&&n===8||g===15&&n===9?'已通关':g===8?stage(g,n):n===0?'未记录':stage(g,n-1);
 const flags8=(n:number)=>[...stage8.filter((_,i)=>n&(1<<i)),...(n&0x8000?['Final A / Extra 已通关']:[]),...(n&0x4000?['Final B 已通关']:[])].join(' / ')||'未开放';
 export const scoreDuration=(seconds:number)=>{const minutes=Math.max(0,Math.floor(seconds/60));return `${Math.floor(minutes/60)} 小时 ${minutes%60} 分钟`;};
 const timeSeconds=(r:Reader,o:number)=>r.u32(o)*3600+r.u32(o+4)*60+r.u32(o+8);
 const time=(r:Reader,o:number)=>scoreDuration(timeSeconds(r,o));
+const stamp=(n:number)=>n?new Date(n*1000).toISOString().replace('T',' ').slice(0,19)+' UTC':'未记录';
 export function parseScoreDat(gameId: string, bytes: Uint8Array): ScoreReport {
   const g=Number(gameId.replace(/^th/,''));if(!chars[g])throw Error('暂不支持此作品的 DAT 格式');
   const body=decode(g,bytes), report:ScoreReport={game:gameId,sections:[],highest:null,rankingCount:0,spells:0,notes:[],clears:scoreDifficulties.map(()=>chars[g].map(()=>false)),clearKinds:scoreDifficulties.map(()=>chars[g].map(()=> 'none')),playSeconds:null};
-  const frames10 = new Map<number,number>();
+  // Seconds per loadout; the saved total (index = loadout count) wins when present.
+  const playTime = new Map<number,number>();
+  const addTime=(c:number,seconds:number)=>playTime.set(c,(playTime.get(c)??0)+seconds);
   const clearRecords = new Map<string,ScoreClearKind>(), rankingClears = new Map<string,ScoreClearKind>();
   const strength:Record<ScoreClearKind,number>={none:0,unknown:1,continued:2,'no-continue':3};
   const recordClear=(c:number,d:number,kind:ScoreClearKind,authoritative=false)=>{
@@ -99,9 +115,9 @@ export function parseScoreDat(gameId: string, bytes: Uint8Array): ScoreReport {
   let pos=0, blocks=0;
   while(pos<body.length) {
     if(++blocks>4096)throw Error("DAT 记录数量异常");
-    const header=new Reader(body.subarray(pos)),sig=ascii(body.subarray(pos,pos+(g===10?2:4))),size=g===10?header.u32(8):header.u16(4),head=g===10?12:8;
+    const chaptered=!!modern[g],header=new Reader(body.subarray(pos)),sig=ascii(body.subarray(pos,pos+(chaptered?2:4))),size=chaptered?header.u32(8):header.u16(4),head=chaptered?12:8;
     if(size<head||pos+size>body.length)throw Error('DAT 记录块越界');
-    if(g===10&&body.subarray(pos+8,pos+size).reduce((a,b)=>a+b,0)!==header.u32(4))throw Error('DAT 记录块校验失败');
+    if(chaptered&&body.subarray(pos+8,pos+size).reduce((a,b)=>a+b,0)!==header.u32(4))throw Error('DAT 记录块校验失败');
     const r=new Reader(body.subarray(pos+head,pos+size));pos+=size;
     if(sig==='HSCR') {
       const c=r.u8(g===6?8:12),d=r.u8(g===6?9:13),cont=g===6?r.u32(4)%10:g===9?r.u8(35):r.u16(30);
@@ -156,31 +172,68 @@ export function parseScoreDat(gameId: string, bytes: Uint8Array): ScoreReport {
       if(g===6)add('主线',4,r.u16(52),r.u16(54));
       if(g===7)for(let c=0;c<7;c++)add('主线',c,r.u16(84+c*2),r.u16(98+c*2));
       if(g===8)for(const [mode,o] of [['主线',232],['符卡练习',388]] as const)for(let c=0;c<13;c++)add(mode,c,r.u32(o+52+c*4),r.u32(o+104+c*4));
-    } else if(sig==='CR'&&g===10) {
-      const c=r.u32(0);
-      for(let i=0;i<50;i++){const o=4+i*24,score=r.u32(o)*10+r.u8(o+5),stamp=r.u32(o+16);ranking([character(g,c),difficulty(g,Math.floor(i/10)),score,progress(g,r.u8(o+4)),r.str(o+6,10),stamp?new Date(stamp*1000).toISOString().replace('T',' ').slice(0,19)+' UTC':'未记录',r.u8(o+5),r.f32(o+20)],score);if(r.u8(o+4)===8)recordClear(c,Math.floor(i/10),r.u8(o+5)>0?'continued':'no-continue');}
-      section('各机体游玩统计',['机体','开局次数','游玩时间','游玩帧数'],'合计块保留存档原值，不与各机体重复相加。').push([character(g,c),r.u32(1204),scoreDuration(r.u32(1208)/60),r.u32(1208)]);
-      if(c<=chars[g].length)frames10.set(c,r.u32(1208));
-      for(let d=0;d<5;d++){const count=r.u32(1212+d*4);section('通关次数',['机体','难度','次数']).push([character(g,c),difficulty(g,d),count]);recordClear(c,d,count>0?(d===4?'no-continue':'unknown'):'none',true);}
-      for(let i=0;i<24;i++){const o=1232+i*8;section('单关练习',['机体','难度','关卡','最高分','通关','开放']).push([character(g,c),difficulty(g,Math.floor(i/6)),stage(g,i%6),r.u32(o)*10,r.u8(o+4)?'是':'否',r.u8(o+5)?'是':'否']);}
-      let trials=0,captures=0;for(let i=0;i<110;i++){const o=1424+i*144;captures+=r.u32(o+128);trials+=r.u32(o+132);}
-      section('符卡汇总',['模式','机体','挑战次数','取得次数']).push(['主线',character(g,c),trials,captures]);report.spells=110;
-    } else if(sig==='ST'&&g===10) {section('时间与存档',['项目','记录']).push(['最近名字',r.str(0,10)||'未填写']);bgm(r,26,18);}
+    } else if(sig==='CR'&&size!==clearChapterSize[g]) {
+      report.notes.push(`存在尚未解释的 ${sig} 记录，未推测其内容。`);
+    } else if(sig==='CR'&&(g===10||g===11)) {
+      // TH11 ranking entries carry one more word than TH10's.
+      const c=r.u32(0),entry=g===10?24:28,play=4+50*entry,cards=play+28+192,cardCount=g===10?110:175;
+      for(let i=0;i<50;i++){const o=4+i*entry,score=r.u32(o)*10+r.u8(o+5);ranking([character(g,c),difficulty(g,Math.floor(i/10)),score,progress(g,r.u8(o+4)),r.str(o+6,10),stamp(r.u32(o+16)),r.u8(o+5),r.f32(o+20)],score);if(r.u8(o+4)===8)recordClear(c,Math.floor(i/10),r.u8(o+5)>0?'continued':'no-continue');}
+      section('各机体游玩统计',['机体','开局次数','游玩时间','游玩帧数'],'合计块保留存档原值，不与各机体重复相加。').push([character(g,c),r.u32(play),scoreDuration(r.u32(play+4)/60),r.u32(play+4)]);
+      if(c<=chars[g].length)addTime(c,r.u32(play+4)/60);
+      for(let d=0;d<5;d++){const count=r.u32(play+8+d*4);section('通关次数',['机体','难度','次数']).push([character(g,c),difficulty(g,d),count]);recordClear(c,d,count>0?(d===4?'no-continue':'unknown'):'none',true);}
+      for(let i=0;i<24;i++){const o=play+28+i*8;section('单关练习',['机体','难度','关卡','最高分','通关','开放']).push([character(g,c),difficulty(g,Math.floor(i/6)),stage(g,i%6),r.u32(o)*10,r.u8(o+4)?'是':'否',r.u8(o+5)?'是':'否']);}
+      let trials=0,captures=0;for(let i=0;i<cardCount;i++){const o=cards+i*144;captures+=r.u32(o+128);trials+=r.u32(o+132);}
+      section('符卡汇总',['模式','机体','挑战次数','取得次数']).push(['主线',character(g,c),trials,captures]);report.spells=cardCount;
+    } else if(sig==='CR'&&g===15) {
+      // Pointdevice then Legacy: 6×10 rankings (the sixth is a total), spell
+      // cards, then play count, time (10 ms), clear counts and clear flags.
+      // Both modes are one loadout: stats and clears are summed per character.
+      const c=r.u32(0);let plays=0,seconds=0;const clears=[0,0,0,0,0];
+      for(const [m,mode] of ['Pointdevice','Legacy'].entries()) {
+        const base=4+m*20872,cards=base+2240,after=cards+119*156,who=`${character(g,c)} · ${mode}`;
+        for(let i=0;i<50;i++){const o=base+i*32,cont=r.u8(o+5),reached=r.u8(o+4),score=r.u32(o)*10+cont;ranking([who,difficulty(g,Math.floor(i/10)),score,progress(g,reached),r.str(o+6,10),stamp(r.u32(o+16)),cont,r.f32(o+24)],score);if(reached===8||reached===9)recordClear(c,Math.floor(i/10),cont>0?'continued':'no-continue');}
+        plays+=r.u32(after);seconds+=r.u32(after+4)/100;
+        for(let d=0;d<5;d++)clears[d]+=r.u32(after+12+d*4);
+        let trials=0,captures=0;for(let i=0;i<119;i++){const o=cards+i*156;captures+=r.u32(o+128);trials+=r.u32(o+136);}
+        section('符卡汇总',['模式','机体','挑战次数','取得次数']).push([mode,character(g,c),trials,captures]);
+      }
+      section('各机体游玩统计',['机体','开局次数','游玩时间'],'合计块保留存档原值，不与各机体重复相加。').push([character(g,c),plays,scoreDuration(seconds)]);
+      if(c<=chars[g].length)addTime(c,seconds);
+      clears.forEach((count,d)=>{section('通关次数',['机体','难度','次数']).push([character(g,c),difficulty(g,d),count]);recordClear(c,d,count>0?(d===4?'no-continue':'unknown'):'none',true);});
+      report.spells=119;
+    } else if(sig==='CR'&&g===20) {
+      // One chapter per character × main stone; stone 8 and character 2 are
+      // totals the game leaves empty. Rankings only record the stage reached,
+      // so clears come from the all-run and no-continue clear counters.
+      const c=r.u32(0),stone=r.u32(4),loadout=c<2&&stone<8?c*8+stone:-1;
+      if(loadout>=0) {
+        const who=chars[g][loadout]!;
+        for(let i=0;i<50;i++){const o=12+i*40,cont=r.u8(o+9),score=r.u32(o)*10+cont;ranking([who,difficulty(g,Math.floor(i/10)),score,progress(g,r.u8(o+8)),r.str(o+10,10),stamp(r.u32(o+24)),cont,r.f32(o+32)],score);}
+        // Play time is in frames: in centiseconds, recorded full clears would be impossibly short.
+        section('各机体游玩统计',['机体','开局次数','游玩时间','游玩帧数']).push([who,r.u32(30364),scoreDuration(r.u32(30372)/60),r.u32(30372)]);
+        addTime(loadout,r.u32(30372)/60);
+        for(let d=0;d<5;d++){
+          const all=r.u32(30380+d*4),clean=r.u32(30408+d*4);
+          section('通关次数',['机体','难度','通关','无续关通关']).push([who,difficulty(g,d),all,clean]);
+          recordClear(loadout,d,clean>0?'no-continue':all>0?'continued':'none',true);
+        }
+      }
+    } else if(sig==='ST'&&modern[g]) {section('时间与存档',['项目','记录']).push(['最近名字',r.str(0,10)||'未填写']);if(g===10)bgm(r,26,18);}
     else if(!/^TH\dK$/.test(sig))report.notes.push(`存在尚未解释的 ${sig} 记录，未推测其内容。`);
   }
   if (!blocks) throw Error('DAT 记录不完整');
   for(let d=0;d<scoreDifficulties.length;d++)for(let c=0;c<chars[g].length;c++){
     const key=`${c}:${d}`,dedicated=clearRecords.get(key),rank=rankingClears.get(key);
     // TH09's clear counters cannot be paired with a ranking's continue byte:
-    // its ranking has no per-run clear sentinel. TH10's explicit clear rows can.
-    // TH10 counters alone do not identify the continue history; they also
+    // its ranking has no per-run clear sentinel. TH10/11/15's explicit clear rows can.
+    // Their counters alone do not identify the continue history; they also
     // cannot negate a complete run explicitly saved in the ranking.
-    const kind=g===10&&rank&&dedicated!=='no-continue'?rank:dedicated??rank??'none';
+    const kind=(g===10||g===11||g===15)&&rank&&dedicated!=='no-continue'?rank:dedicated??rank??'none';
     report.clearKinds[d][c]=kind;report.clears[d][c]=kind!=='none';
   }
   // The saved total is authoritative. Without it, sum distinct loadouts once.
   // Early TH10 saves can carry an all-zero aggregate block beside real loadout frames.
-  if(g===10 && frames10.size)report.playSeconds=(frames10.get(chars[g].length) || [...frames10].reduce((total,[c,frames])=>c<chars[g].length?total+frames:total,0))/60;
+  if(modern[g] && playTime.size)report.playSeconds=playTime.get(chars[g].length) || [...playTime].reduce((total,[c,seconds])=>c<chars[g].length?total+seconds:total,0);
   if(!report.rankingCount)report.notes.push('此存档没有普通排行榜记录。');
   return report;
 }

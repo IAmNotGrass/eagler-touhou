@@ -49,6 +49,22 @@ function clearBlock(game,character,clean,allRuns=[]){const payload=Buffer.alloc(
 function score10Block(character,frames,difficulty,count=1){const payload=Buffer.alloc(17264);payload.writeUInt32LE(character,0);payload.writeUInt32LE(frames,1208);if(difficulty!==undefined)payload.writeUInt32LE(count,1212+difficulty*4);
  const body=Buffer.alloc(12+payload.length);body.write('CR');body.writeUInt32LE(body.length,8);payload.copy(body,12);body.writeUInt32LE(body.subarray(8).reduce((sum,b)=>sum+b,0),4);return body;
 }
+function modernEncode(tag,body,header=24){const compressed=literals(body),b=Buffer.alloc(header+compressed.length);b.write(tag);b.writeUInt32LE(b.length,4);b.writeUInt32LE(body.length,header-4);outerCipher(compressed,0xac,0x35,16,compressed.length).copy(b,header);return b;}
+function chapter(sig,version,payload){const b=Buffer.alloc(12+payload.length);b.write(sig);b.writeUInt16LE(version,2);b.writeUInt32LE(b.length,8);payload.copy(b,12);b.writeUInt32LE(b.subarray(8).reduce((sum,x)=>sum+x,0),4);return b;}
+function score11(character,{rank,clears=[],frames=0}={}){const p=Buffer.alloc(0x68d4-12);p.writeUInt32LE(character);
+ if(rank){const o=4+(rank.difficulty*10)*28;p.writeUInt32LE(rank.score,o);p[o+4]=rank.progress;p[o+5]=rank.continues;}
+ p.writeUInt32LE(frames,1408);clears.forEach((count,d)=>p.writeUInt32LE(count,1412+d*4));return modernEncode('TH11',chapter('CR',0,p));}
+function score15(entries){return modernEncode('TH51',Buffer.concat(Array.from({length:5},(_,c)=>{const p=Buffer.alloc(0xa4a0-12);p.writeUInt32LE(c);
+ for(const e of entries.filter(e=>e.character===c)){const base=4+e.mode*20872,after=base+2240+119*156;
+  if(e.rank){const o=base+e.rank.difficulty*10*32;p.writeUInt32LE(e.rank.score,o);p[o+4]=e.rank.progress;p[o+5]=e.rank.continues;}
+  p.writeUInt32LE(e.plays??0,after);p.writeUInt32LE(e.centiseconds??0,after+4);(e.clears??[]).forEach((count,d)=>p.writeUInt32LE(count,after+12+d*4));}
+ return chapter('CR',1,p);})));}
+function score20(entries){const chapters=[];for(let c=0;c<3;c++)for(let stone=0;stone<(c<2?9:1);stone++){const p=Buffer.alloc(0x7ae8-12);p.writeUInt32LE(c);p.writeUInt32LE(stone,4);
+ const e=entries.find(e=>e.character===c&&e.stone===stone);
+ if(e){p.writeUInt32LE(e.plays??0,30364);p.writeUInt32LE(e.frames??0,30372);(e.all??[]).forEach((n,d)=>p.writeUInt32LE(n,30380+d*4));(e.clean??[]).forEach((n,d)=>p.writeUInt32LE(n,30408+d*4));
+  if(e.rank){const o=12+e.rank.difficulty*10*40;p.writeUInt32LE(e.rank.score,o);p[o+8]=e.rank.stage;p[o+9]=e.rank.continues;}}
+ chapters.push(chapter('CR',1,p));}
+ chapters.push(chapter('ST',2,Buffer.alloc(504-12)));return modernEncode('TH02',Buffer.concat(chapters),0x2c);}
 const stored = (bytes,edition=null,modified=0) => ({bytes,edition,modified});
 async function seed(factory,root,records,store='FILE_DATA'){
  const db=await new Promise((resolve,reject)=>{const q=factory.open(root,21);q.onupgradeneeded=()=>q.result.createObjectStore(store);q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});
@@ -65,6 +81,44 @@ test('reused decoder checks TH06–TH10 data, bounds and immutable input',()=>{
  assert.equal(api.favoriteLoadout(api.parseScoreDat('th09',score9())),null);
  assert.throws(()=>api.parseScoreDat('th07',score6()));assert.throws(()=>api.parseScoreDat('th06',new Uint8Array(2_000_001)));
  const broken=score6();broken[28]^=128;assert.throws(()=>api.parseScoreDat('th06',broken),/校验/);
+});
+test('TH11 reuses the TH10 clear layout with wider ranking entries',()=>{
+ const report=api.parseScoreDat('th11',score11(3,{rank:{difficulty:3,score:12345678,progress:8,continues:2},clears:[1],frames:7200}));
+ assert.deepEqual(api.scoreLoadouts('th11'),['灵梦 · 紫','灵梦 · 萃香','灵梦 · 文','魔理沙 · 爱丽丝','魔理沙 · 帕秋莉','魔理沙 · 荷取']);
+ assert.equal(report.clearKinds[3][3],'continued','an explicit clear entry with continues');
+ assert.equal(report.clearKinds[0][3],'unknown','a counter alone cannot tell continues apart');
+ assert.equal(report.highest,123456782);assert.equal(report.playSeconds,120);
+ assert.deepEqual(api.bestClearedLoadout(report),{name:'魔理沙 · 爱丽丝',difficulty:'Lunatic',portraits:['marisa','alice']});
+});
+test('TH15 merges Pointdevice and Legacy records and reads play time in hundredths',()=>{
+ const report=api.parseScoreDat('th15',score15([
+  {character:0,mode:0,plays:19,centiseconds:540139,clears:[0,0,2]},
+  {character:2,mode:1,plays:3,centiseconds:60000,rank:{difficulty:1,score:5000000,progress:8,continues:0},clears:[0,1]},
+  {character:3,mode:0,rank:{difficulty:4,score:9000000,progress:9,continues:0},clears:[0,0,0,0,1]},
+ ]));
+ assert.deepEqual(api.scoreLoadouts('th15'),['灵梦','魔理沙','早苗','铃仙']);
+ assert.equal(report.clearKinds[2][0],'unknown');assert.equal(report.clearKinds[1][2],'no-continue');assert.equal(report.clearKinds[4][3],'no-continue');
+ assert.equal(report.clears.flat().filter(Boolean).length,3);assert.equal(report.playSeconds,6001.39);
+ assert.deepEqual(report.sections.find(s=>s.title==='各机体游玩统计').rows.map(row=>[row[0],row[1]]),[['灵梦',19],['魔理沙',0],['早苗',3],['铃仙',0],['合计',0]],'modes merge per character');
+ assert.deepEqual(api.favoriteLoadout(report),{name:'灵梦',count:19,portraits:['reimu']});
+ assert.ok(report.sections.find(s=>s.title==='排行榜').rows.some(row=>row[0]==='早苗 · Legacy'),'rankings keep their mode');
+});
+test('TH20 reads one loadout per character and main stone, with continue-aware clear counters',()=>{
+ const report=api.parseScoreDat('th20',score20([
+  {character:0,stone:5,plays:839,frames:100000,all:[1,3,0,0,1],clean:[1,0,0,0,1],rank:{difficulty:1,score:73390580,stage:6,continues:1}},
+  {character:1,stone:1,plays:45,frames:20000,all:[0,0,2],clean:[0,0,2]},
+ ]));
+ const names=api.scoreLoadouts('th20');
+ assert.equal(names.length,16);assert.equal(names[5],'灵梦 · 不朽明月');assert.equal(names[9],'魔理沙 · 生物赤红');
+ assert.deepEqual(report.clearKinds.map(row=>row[5]),['no-continue','continued','none','none','no-continue']);
+ assert.equal(report.clearKinds[2][9],'no-continue');assert.equal(report.clears.flat().filter(Boolean).length,4);
+ assert.equal(report.playSeconds,2000,'TH20 counts frames');assert.equal(report.highest,733905801,'the last digit carries the continue count');
+ assert.equal(report.sections.find(s=>s.title==='排行榜').rows.find(row=>row[2]===733905801)[3],'6','rankings record the stage reached, not a clear');
+ assert.deepEqual(api.bestClearedLoadout(report),{name:'魔理沙 · 生物赤红',difficulty:'Hard',portraits:['marisa']});
+});
+test('TH10+ saves are checked against their own header tag',()=>{
+ assert.throws(()=>api.parseScoreDat('th20',score15([])),/不匹配/);assert.throws(()=>api.parseScoreDat('th15',score11(0)),/不匹配/);
+ const bytes=score20([]);bytes[bytes.length-1]^=1;assert.throws(()=>api.parseScoreDat('th20',bytes));
 });
 test('favorites retain stable ties, exclude totals and never add difficulty counts twice',()=>{
  const report={sections:[{title:'各机体开局次数',rows:[['结界组','Easy',99],['结界组','合计',7],['咏唱组','合计',7]]}]};
@@ -87,6 +141,34 @@ test('clear fallback excludes totals, unknown/practice difficulties and repeated
  const report=coverageReport('th06',[2,1,0,0],[['灵梦 A','Easy',2],['灵梦 A','Normal',3],['灵梦 A','Normal',3],['灵梦 B','Normal',4],['合计','Normal',999],['未知机体','Normal',999],['魔理沙 A','练习',999],['魔理沙 B','Phantasm',999],['魔理沙 A','Easy',Infinity],['魔理沙 B','Extra',-1]]),copy=structuredClone(report);
  assert.deepEqual(api.featuredLoadout(report),{name:'灵梦 A',count:5,basis:'clears',portraits:['reimu']});assert.deepEqual(report,copy);
 });
+function clearReport(game,columns,{kinds=[],sections=[]}={}){
+ const names=api.scoreLoadouts(game),clears=api.scoreDifficulties.map((_,row)=>names.map((_,column)=>(columns[column]??[]).includes(row)));
+ const clearKinds=api.scoreDifficulties.map((_,row)=>names.map((_,column)=>kinds[column]?.[row]??(clears[row][column]?'continued':'none')));
+ return {game,clears,clearKinds,sections};
+}
+test('best cleared loadout ranks the highest main difficulty before breadth',()=>{
+ const report=clearReport('th06',[[0,1,2,4],[3]]),copy=structuredClone(report);
+ assert.deepEqual(api.bestClearedLoadout(report),{name:'灵梦 B',difficulty:'Lunatic',portraits:['reimu']});assert.deepEqual(report,copy);
+ assert.equal(api.bestClearedLoadout(clearReport('th06',[[2],[0,2]])).name,'灵梦 B','equal peaks prefer more cleared difficulties');
+ assert.deepEqual(api.bestClearedLoadout(clearReport('th06',[[1],[1,4]])),{name:'灵梦 B',difficulty:'Normal',portraits:['reimu']},'Extra widens coverage without raising the named peak');
+});
+test('best cleared loadout prefers no-continue clears, then play count, and never picks an arbitrary tie',()=>{
+ assert.equal(api.bestClearedLoadout(clearReport('th06',[[2],[],[2]],{kinds:[[],[],['none','none','no-continue']]})).name,'魔理沙 A');
+ assert.equal(api.bestClearedLoadout(clearReport('th06',[[2],[2]])),null,'equal records without play counts choose nobody');
+ const played=api.parseScoreDat('th08',plays(8,1,17));
+ Object.assign(played,clearReport('th08',[[1],[1]],{sections:played.sections}));
+ assert.deepEqual(api.bestClearedLoadout(played),{name:'咏唱组',difficulty:'Normal',portraits:['marisa','alice']});
+ Object.assign(played,clearReport('th08',[[1],[],[1]],{sections:played.sections}));
+ assert.equal(api.bestClearedLoadout(played),null,'a favourite outside the tied leaders does not break the tie');
+ assert.equal(api.bestClearedLoadout(clearReport('th06',[[1],[1],[1],[1]])),null,'a uniform record has no best loadout');
+});
+test('best cleared loadout names Extra for Extra-only records and is absent without clears',()=>{
+ assert.deepEqual(api.bestClearedLoadout(clearReport('th07',[[],[],[],[],[],[4]])),{name:'咲夜 B',difficulty:'Extra',portraits:['sakuya']});
+ assert.equal(api.bestClearedLoadout(clearReport('th07',[[],[],[],[],[1],[4]])).name,'咲夜 A','any main clear outranks Extra alone');
+ assert.equal(api.bestClearedLoadout(clearReport('th06',[])),null);
+ assert.equal(api.bestClearedLoadout(clearReport('th075',[])),null);
+ assert.equal(api.bestClearedLoadout({game:'th06',sections:[],clears:[]}),null,'missing rows are not clears');
+});
 test('coverage fallback needs a unique leader; tied, absent and uniformly comprehensive clears do not choose a loadout',()=>{
  assert.deepEqual(api.featuredLoadout(coverageReport('th06',[1,3,0,2])),{name:'灵梦 B',count:3,basis:'difficulties',portraits:['reimu']});
  assert.equal(api.featuredLoadout(coverageReport('th06',[3,3,0,0])),null);
@@ -96,7 +178,7 @@ test('coverage fallback needs a unique leader; tied, absent and uniformly compre
  const tiedCounts=coverageReport('th06',[1,2,0,0],[['灵梦 A','Easy',5],['灵梦 B','Easy',3],['灵梦 B','Normal',2]]);
  assert.deepEqual(api.featuredLoadout(tiedCounts),{name:'灵梦 B',count:2,basis:'difficulties',portraits:['reimu']});
  tiedCounts.clears[1][0]=true;assert.equal(api.featuredLoadout(tiedCounts),null,'equally strong counters and coverage cannot select an arbitrary first loadout');
- assert.equal(api.featuredLoadout(coverageReport('th11',[])),null);
+ assert.equal(api.featuredLoadout(coverageReport('th075',[])),null);
 });
 test('clear matrix uses explicit story clears and excludes practice, unlocks, aggregate rows and ranking defaults',()=>{
  const ranking=api.parseScoreDat('th06',score6());assert.equal(ranking.clears[1][2],true);assert.equal(ranking.clears.flat().filter(Boolean).length,1);assert.equal(ranking.playSeconds,null);
@@ -184,10 +266,11 @@ test('native signed-byte buffers and sliced views preserve their exact binary re
  assert.deepEqual((await api.readStoredScore('th06','ja',factory)).bytes,new Uint8Array([255,0,127,128]));
  await seed(factory,'/savesth06',[['/savesth06/score.dat',new DataView(new Uint8Array([9,8,7,6]).buffer,1,2)]]);
  assert.deepEqual((await api.readStoredScore('th06','ja',factory)).bytes,new Uint8Array([8,7]));
+ for(const game of ['th11','th15','th20']){await seed(factory,`/saves${game}`,[[`/saves${game}/score${game}.dat`,new Uint8Array([1,2,3])]]);assert.deepEqual((await api.readStoredScore(game,'ja',factory)).bytes,new Uint8Array([1,2,3]));}
 });
 test('unsupported products and multiplayer do not open solo saves',async()=>{
  let opens=0;const factory={open(){opens++;throw Error('Unexpected save access');}};
- for(const productof of ['th06mp','th10mp','th11','th15','th20'])assert.equal(await api.readStoredScore(productof,'ja',factory),null);
+ for(const productof of ['th06mp','th10mp','th11mp','th15mp','th075'])assert.equal(await api.readStoredScore(productof,'ja',factory),null);
  assert.equal(opens,0);
 });
 test('read errors, invalid records and timeouts stay distinct from no save, and late connections close',async()=>{
@@ -207,7 +290,7 @@ test('refreshes after suspended work, retaining bytes as read-only data and surf
  model.suspend(true);model.select('th06','ja');assert.equal(reads,0);model.suspend(false);await settled(model);assert.equal(model.getSnapshot().phase,'ready');
  value=null;model.invalidate('th07');assert.equal(reads,1);await model.refresh();assert.equal(model.getSnapshot().phase,'empty');
  value=stored(new Uint8Array([0]));await model.refresh();assert.equal(model.getSnapshot().phase,'unreadable');
- model.select('th11','ja');assert.equal(model.getSnapshot().phase,'unsupported');model.dispose();
+ model.select('th075','ja');assert.equal(model.getSnapshot().phase,'unsupported');model.dispose();
  const bad=api.createScoreStatistics({read:async()=>{throw Error('blocked');}});bad.select('th06','ja');await settled(bad);assert.equal(bad.getSnapshot().phase,'unavailable');bad.dispose();
 });
 async function mount(model,product='th08',locale='zh-CN'){
@@ -215,18 +298,24 @@ async function mount(model,product='th08',locale='zh-CN'){
  const p=api.createLibraryProducts([product],path=>'http://stats.local/'+path,id=>'/?game='+id)[0];
  await React.act(async()=>{root.render(React.createElement(api.LocaleProvider,{locale},React.createElement(api.ScorePanel,{model,product:p,language:'ja',assetUrl:path=>'http://stats.local/'+path})));await tick();});
 }
-for(const locale of ['zh-CN','en'])test(`matrix exposes separate continued/no-continue statuses and leaves empty cells unclassified: ${locale}`,async()=>{
+const pointer=(element,type,pointerType='mouse',relatedTarget=null)=>React.act(async()=>element.dispatchEvent(new env.window.PointerEvent(type,{bubbles:true,pointerType,relatedTarget})));
+for(const locale of ['zh-CN','en'])test(`radar exposes separate continued/no-continue statuses and leaves empty points unclassified: ${locale}`,async()=>{
  const data=encode(6,Buffer.concat([block('TH6K',Buffer.from([16,0,0,0])),clearBlock(6,0,[0,99],[99,99])]));
  const model=api.createScoreStatistics({read:async()=>stored(data)});await mount(model,'th06',locale);
- const matrix=env.document.querySelector('.clear-matrix'),continued=matrix.querySelector('td[data-clear-kind=continued]'),clean=matrix.querySelector('td[data-clear-kind=no-continue]');
- assert.ok(continued);assert.ok(clean);assert.equal(continued.dataset.cleared,'true');assert.equal(clean.dataset.cleared,'true');assert.equal(matrix.querySelectorAll('td[data-clear-kind=none]').length,18);
- assert.ok(continued.title.includes(locale==='en'?'with continues':'续关通关'));assert.ok(clean.title.includes(locale==='en'?'without continues':'无续关通关'));
- await React.act(async()=>continued.focus());assert.equal(continued.dataset.hovered,'true');assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,8);model.dispose();
+ const radar=env.document.querySelector('.clear-radar'),continued=radar.querySelector('.clear-radar-point[data-clear-kind=continued]'),clean=radar.querySelector('.clear-radar-point[data-clear-kind=no-continue]');
+ assert.ok(continued);assert.ok(clean);assert.equal(radar.querySelectorAll('[data-clear-kind=none]').length,18,'16 main points and 4 Extra segments, minus two clears');
+ assert.ok(continued.getAttribute('aria-label').includes(locale==='en'?'with continues':'续关通关'));assert.ok(clean.getAttribute('aria-label').includes(locale==='en'?'without continues':'无续关通关'));
+ assert.equal(continued.querySelector('title').textContent,continued.getAttribute('aria-label'));
+ await React.act(async()=>continued.focus());
+ assert.equal(continued.dataset.active,'true');assert.equal(radar.dataset.focused,'true');
+ assert.equal(radar.querySelectorAll(':is(.clear-radar-point,.clear-radar-extra-segment)[data-axis=true]').length,5,'the focused point lights its whole axis, Extra included');
+ assert.equal(env.document.querySelector('.clear-radar-detail').textContent,continued.getAttribute('aria-label'));model.dispose();
 });
 test('aggregate-only TH09 history keeps the original plain cleared label without extra messages',async()=>{
  const p=Buffer.alloc(500);p.writeUInt32LE(2,116+4);const bytes=encode(9,Buffer.concat([block('TH9K',Buffer.from([16,0,0,0])),block('PLST',p)]));
  const model=api.createScoreStatistics({read:async()=>stored(bytes)});await mount(model,'th09');
- const unknown=env.document.querySelector('td[data-clear-kind=unknown]');assert.ok(unknown);assert.equal(unknown.dataset.cleared,'true');assert.equal(unknown.title,'灵梦 · Normal · 已通关');assert.equal(env.document.querySelector('td[data-clear-kind=no-continue]'),null);model.dispose();
+ const unknown=env.document.querySelector('.clear-radar [data-clear-kind=unknown]');assert.ok(unknown);assert.equal(unknown.getAttribute('aria-label'),'灵梦 · Normal · 已通关');assert.equal(env.document.querySelector('.clear-radar [data-clear-kind=no-continue]'),null);
+ assert.equal(env.document.querySelectorAll('.clear-radar-label').length,api.scoreLoadouts('th09').length);model.dispose();
 });
 test('actual panel renders the compact game summary, TH08 pair and named missing-art states',async()=>{
  const model=api.createScoreStatistics({read:async()=>stored(plays(8,1,17))});await mount(model);
@@ -238,55 +327,76 @@ test('actual panel renders the compact game summary, TH08 pair and named missing
 });
 test('actual English summary labels coverage separately from plays and removes artwork for uniformly cleared saves',async()=>{
  let bytes=score6('<script>');const model=api.createScoreStatistics({read:async()=>stored(bytes)});await mount(model,'th06','en');
- assert.equal(env.document.querySelectorAll('.score-character').length,1);assert.equal(env.document.querySelector('.score-character').getAttribute('aria-label'),'Widest clear coverage');assert.equal(env.document.querySelectorAll('script').length,0);assert.equal(env.document.querySelector('.score-section'),null);
+ assert.equal(env.document.querySelectorAll('.score-character').length,1);assert.equal(env.document.querySelector('.score-character').getAttribute('aria-label'),'Best clear · Marisa A · Normal');assert.equal(env.document.querySelectorAll('script').length,0);assert.equal(env.document.querySelector('.score-section'),null);
  assert.equal(env.document.querySelector('.score-featured').dataset.basis,'difficulties');assert.equal(env.document.querySelector('.score-featured strong').textContent,'Marisa A · 1 difficulty');assert.equal(model.getSnapshot().favorite,null,'display fallback is not published as play frequency');
  bytes=encode(6,Buffer.concat([block('TH6K',Buffer.from([16,0,0,0])),...Array.from({length:4},(_,c)=>clearBlock(6,c,[99,99,99,99,99]))]));
  await React.act(async()=>model.refresh());assert.equal(env.document.querySelector('.score-featured strong').textContent,'—');assert.equal(env.document.querySelector('.score-character'),null);model.dispose();
 });
 test('actual clear-count summary names the evidence instead of labelling clears as plays',async()=>{
  const bytes=encode(10,Buffer.concat([score10Block(0,0,1,5),score10Block(1,0,2,2)])),model=api.createScoreStatistics({read:async()=>stored(bytes)});await mount(model,'th10','en');
- assert.equal(env.document.querySelector('.score-featured').dataset.basis,'clears');assert.equal(env.document.querySelector('.score-featured>span').textContent,'Most-cleared loadout');assert.equal(env.document.querySelector('.score-featured strong').textContent,'Reimu A · 5 clears');assert.equal(env.document.querySelector('.score-character').getAttribute('aria-label'),'Most-cleared loadout');model.dispose();
+ assert.equal(env.document.querySelector('.score-featured').dataset.basis,'clears');assert.equal(env.document.querySelector('.score-featured>span').textContent,'Most-cleared loadout');assert.equal(env.document.querySelector('.score-featured strong').textContent,'Reimu A · 5 clears');assert.equal(env.document.querySelector('.score-character').getAttribute('aria-label'),'Best clear · Reimu B · Hard','artwork follows the highest clear while the summary keeps the clear counter');model.dispose();
 });
 test('empty and unsupported games do not invent default character artwork',async()=>{
  const model=api.createScoreStatistics({read:async()=>null});await mount(model,'th06');assert.equal(env.document.querySelector('.score-character'),null);
- await mount(model,'th11');assert.equal(env.document.querySelector('.score-character'),null);assert.equal(env.document.querySelector('.score-featured strong').textContent,'—');model.dispose();
+ await mount(model,'th075');assert.equal(env.document.querySelector('.score-character'),null);assert.equal(env.document.querySelector('.score-featured strong').textContent,'—');model.dispose();
 });
-test('matrix renders loadouts as columns and five difficulty rows with green states and row/column focus highlighting',async()=>{
+test('radar draws one axis per loadout, Easy to Lunatic rings, an Extra band and the reached shape',async()=>{
  const model=api.createScoreStatistics({read:async()=>stored(score6())});await mount(model,'th06');
- const matrix=env.document.querySelector('.clear-matrix'),headers=[...matrix.querySelectorAll('thead th')].slice(1).map(e=>e.textContent);
- assert.deepEqual(headers,['梦A','梦B','魔A','魔B']);assert.deepEqual([...matrix.querySelectorAll('tbody th')].map(e=>e.textContent),['Easy','Normal','Hard','Lunatic','Extra']);
- assert.equal(matrix.querySelector('.clear-matrix-corner').textContent,'');assert.equal(matrix.querySelector('.clear-matrix-corner').getAttribute('aria-label'),'难度');
- assert.equal(matrix.querySelectorAll('td[data-cleared=true]').length,1);assert.ok(matrix.querySelector('td[data-cleared=true]').getAttribute('aria-label').includes('Normal'));
- const media=globalThis.matchMedia;globalThis.matchMedia=query=>({...media(query),matches:query.includes('(hover:hover)')});
- try{
-   const cell=matrix.querySelector('tbody tr:nth-child(3) td');
-   await React.act(async()=>cell.dispatchEvent(new env.window.PointerEvent('pointerover',{bubbles:true,pointerType:'touch'})));
-   assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,0,'touch does not produce hover highlighting');
-   await React.act(async()=>cell.dispatchEvent(new env.window.PointerEvent('pointerover',{bubbles:true,pointerType:'mouse'})));
-   assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,8,'mouse entry highlights its entire row and column without focus');
-   await React.act(async()=>cell.dispatchEvent(new env.window.PointerEvent('pointerout',{bubbles:true,pointerType:'mouse',relatedTarget:env.document.body})));
-   assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,0);
- }finally{globalThis.matchMedia=media;}
- await React.act(async()=>matrix.querySelector('td[data-cleared=true]').focus());
- assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,8);assert.equal(matrix.querySelectorAll('th[data-highlight=true]').length,2);
+ const radar=env.document.querySelector('.clear-radar');
+ assert.deepEqual([...radar.querySelectorAll('.clear-radar-label')].map(e=>e.textContent),api.scoreLoadouts('th06'));
+ assert.deepEqual([...radar.querySelectorAll('.clear-radar-levels text')].map(e=>e.textContent),['Easy','Normal','Hard','Lunatic','Extra']);
+ assert.equal(radar.querySelectorAll('.clear-radar-point').length,16);assert.equal(radar.querySelectorAll('.clear-radar-extra-segment').length,4);
+ assert.equal(radar.querySelectorAll('.clear-radar-sector').length,4);assert.equal(radar.querySelectorAll('.clear-radar-ring').length,4);
+ const cleared=radar.querySelectorAll('.clear-radar-point:not([data-clear-kind=none])');
+ assert.equal(cleared.length,1);assert.ok(cleared[0].getAttribute('aria-label').startsWith('魔理沙 A · Normal'));
+ assert.ok(radar.querySelector('.clear-radar-shape'),'a cleared axis draws the reached shape');
+ assert.equal(env.document.querySelectorAll('.clear-radar-key').length,2,'idle detail shows the colour legend');
  assert.equal(env.document.querySelector('.score-playtime'),null,'missing duration has no visible placeholder');model.dispose();
 });
-test('matrix names highlight just their own column or row, while cell entry restores both axes',async()=>{
+test('radar without clears draws no shape and still names every point',async()=>{
+ const model=api.createScoreStatistics({read:async()=>stored(encode(6,block('TH6K',Buffer.from([16,0,0,0]))))});await mount(model,'th06','en');
+ const radar=env.document.querySelector('.clear-radar');
+ assert.equal(radar.querySelector('.clear-radar-shape'),null);
+ assert.equal(radar.querySelectorAll('[data-clear-kind=none]').length,20);
+ assert.equal(radar.querySelector('.clear-radar-point').getAttribute('aria-label'),'Reimu A · Easy · Clear not recorded');model.dispose();
+});
+test('radar points, Extra segments and axis sectors share one highlight for mouse, touch and keyboard',async()=>{
  const model=api.createScoreStatistics({read:async()=>stored(score6())});await mount(model,'th06');
- const matrix=env.document.querySelector('.clear-matrix'),column=matrix.querySelector('thead th:nth-child(3)'),row=matrix.querySelector('tbody tr:nth-child(2) th'),cell=matrix.querySelector('tbody tr:nth-child(3) td');
- const media=globalThis.matchMedia;globalThis.matchMedia=query=>({...media(query),matches:query.includes('(hover:hover)')});
- const enter=async(element,pointerType='mouse')=>React.act(async()=>element.dispatchEvent(new env.window.PointerEvent('pointerover',{bubbles:true,pointerType})));
- const leave=async(element,target=matrix)=>React.act(async()=>element.dispatchEvent(new env.window.PointerEvent('pointerout',{bubbles:true,pointerType:'mouse',relatedTarget:target})));
- try{
-   await enter(column,'touch');assert.equal(matrix.querySelectorAll('[data-highlight=true]').length,0,'touch movement does not impersonate a mouse');
-   await enter(column);assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,5);assert.equal(matrix.querySelectorAll('thead th[data-highlight=true]').length,1);assert.equal(matrix.querySelectorAll('tbody th[data-highlight=true]').length,0);assert.equal(matrix.querySelectorAll('td[data-hovered=true]').length,0);
-   await leave(column);assert.equal(matrix.querySelectorAll('[data-highlight=true]').length,0,'moving off the name clears a header-only hover');
-   await enter(row);assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,4);assert.equal(matrix.querySelectorAll('thead th[data-highlight=true]').length,0);assert.equal(matrix.querySelectorAll('tbody th[data-highlight=true]').length,1);
-   await leave(row,cell);await enter(cell);assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,8);assert.equal(matrix.querySelectorAll('th[data-highlight=true]').length,2);assert.equal(matrix.querySelectorAll('td[data-hovered=true]').length,1);
-   await leave(cell,env.document.body);assert.equal(matrix.querySelectorAll('[data-highlight=true]').length,0);
- }finally{globalThis.matchMedia=media;}
- await React.act(async()=>column.focus());assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,5);assert.equal(matrix.querySelectorAll('tbody th[data-highlight=true]').length,0);
- await React.act(async()=>row.focus());assert.equal(matrix.querySelectorAll('td[data-highlight=true]').length,4);assert.equal(matrix.querySelectorAll('thead th[data-highlight=true]').length,0);model.dispose();
+ const radar=env.document.querySelector('.clear-radar'),detail=()=>env.document.querySelector('.clear-radar-detail').textContent;
+ const axisCount=()=>radar.querySelectorAll(':is(.clear-radar-point,.clear-radar-extra-segment)[data-axis=true]').length;
+ const activeCount=()=>radar.querySelectorAll('[data-active=true]').length;
+ const point=radar.querySelector('.clear-radar-point:not([data-clear-kind=none])'),sector=radar.querySelectorAll('.clear-radar-sector')[2];
+ await pointer(point,'pointerover');
+ assert.equal(point.dataset.active,'true');assert.equal(axisCount(),5);assert.equal(radar.dataset.focused,'true');assert.equal(detail(),point.getAttribute('aria-label'));
+ assert.equal(radar.querySelectorAll('.clear-radar-label[data-active=true]').length,1,'the axis name lights with its point');
+ await pointer(point,'pointerout','mouse',sector);await pointer(sector,'pointerover');
+ assert.equal(radar.querySelectorAll(':is(.clear-radar-point,.clear-radar-extra-segment)[data-active=true]').length,0,'a sector selects the axis, not one difficulty');
+ assert.equal(axisCount(),5);assert.equal(detail(),'魔理沙 A · 1/5');
+ await pointer(sector,'pointerout','mouse',env.document.body);
+ assert.equal(activeCount(),0);assert.equal(radar.dataset.focused,'false');assert.equal(env.document.querySelectorAll('.clear-radar-key').length,2,'leaving restores the legend');
+ const extra=radar.querySelectorAll('.clear-radar-extra-segment')[1];
+ await pointer(extra,'pointerdown','touch');
+ assert.equal(extra.dataset.active,'true');assert.equal(detail(),'灵梦 B · Extra · 未记录通关','a tap selects without hover');
+ const label=radar.querySelectorAll('.clear-radar-label')[0];
+ await React.act(async()=>label.focus());
+ assert.equal(label.dataset.active,'true');assert.equal(extra.dataset.active,'false');assert.equal(detail(),'灵梦 A · 0/5');
+ await React.act(async()=>label.blur());
+ assert.equal(activeCount(),0,'keyboard departure clears the highlight');model.dispose();
+});
+for(const locale of ['zh-CN','en'])test(`paired loadouts split the radar into captioned character halves with short axis names: ${locale}`,async()=>{
+ const model=api.createScoreStatistics({read:async()=>stored(score20([{character:0,stone:5,plays:1,all:[0,0,0,1],clean:[0,0,0,1]}]))});await mount(model,'th20',locale);
+ const radar=env.document.querySelector('.clear-radar'),labels=[...radar.querySelectorAll('.clear-radar-label')];
+ assert.deepEqual([...radar.querySelectorAll('.clear-radar-groups text')].map(e=>e.textContent),locale==='en'?['Reimu','Marisa']:['灵梦','魔理沙']);
+ assert.equal(labels.length,16);
+ if(locale==='en'){assert.deepEqual([...labels[5].querySelectorAll('tspan')].map(e=>e.textContent),['Imperishable','Moon'],'long English names wrap');assert.equal(labels[5].getAttribute('aria-label'),'Reimu · Imperishable Moon · 1/5');}
+ else{assert.equal(labels[5].textContent,'不朽明月');assert.equal(labels[13].textContent,'不朽明月');assert.equal(labels[5].getAttribute('aria-label'),'灵梦 · 不朽明月 · 1/5','the full loadout stays in the accessible name');}
+ const [x0]=labels[0].getAttribute('x').split(' ').map(Number),[x8]=labels[8].getAttribute('x').split(' ').map(Number);
+ assert.ok(x0>260&&x8<260,'the first character takes the right half and the second the left');model.dispose();
+});
+test('unpaired loadouts keep full axis names, an upright first axis and no group captions',async()=>{
+ const model=api.createScoreStatistics({read:async()=>stored(score6())});await mount(model,'th06');
+ const radar=env.document.querySelector('.clear-radar');
+ assert.equal(radar.querySelector('.clear-radar-groups'),null);assert.equal(Number(radar.querySelector('.clear-radar-label').getAttribute('x')),260);model.dispose();
 });
 test('play-time text separates larger numbers from units and keeps a recorded zero distinct from missing time',async()=>{
  let bytes=plays(7,0,1);const model=api.createScoreStatistics({read:async()=>stored(bytes)});await mount(model,'th07');
@@ -304,38 +414,4 @@ test('play-time text separates larger numbers from units and keeps a recorded ze
  assert.equal(env.document.querySelector('.score-playtime time').dateTime,'PT169079S');
  bytes=encode(7,block('TH7K',Buffer.from([16,0,0,0])));await React.act(async()=>model.refresh());
  assert.equal(env.document.querySelector('.score-playtime'),null,'changing to a save without time removes prior duration');model.dispose();
-});
-test('touch reveals all matrix columns until an outside interaction, while movement and mouse presses do not latch reveal',async()=>{
- const model=api.createScoreStatistics({read:async()=>stored(score9())});await mount(model,'th09');
- const wrap=env.document.querySelector('.clear-matrix-wrap'),cells=wrap.querySelectorAll('td'),outside=env.document.querySelector('#gameTitle');
- assert.equal(cells.length,api.scoreLoadouts('th09').length*5);
- assert.equal(wrap.dataset.revealed,'false');
- await React.act(async()=>cells[0].dispatchEvent(new env.window.PointerEvent('pointerdown',{bubbles:true,pointerType:'mouse'})));
- assert.equal(wrap.dataset.revealed,'false','mouse reveal belongs to proximity, not a latched press');
- await React.act(async()=>cells[0].dispatchEvent(new env.window.PointerEvent('pointerover',{bubbles:true,pointerType:'touch'})));
- assert.equal(wrap.dataset.revealed,'false','scrolling over the matrix does not reveal it');
- await React.act(async()=>cells[0].dispatchEvent(new env.window.PointerEvent('pointerdown',{bubbles:true,pointerType:'touch'})));
- assert.equal(wrap.dataset.revealed,'false','a press awaiting scroll/tap resolution does not latch reveal');
- await React.act(async()=>cells[0].dispatchEvent(new env.window.PointerEvent('pointercancel',{bubbles:true,pointerType:'touch'})));
- await React.act(async()=>cells[0].dispatchEvent(new env.window.MouseEvent('click',{bubbles:true})));
- assert.equal(wrap.dataset.revealed,'false','a cancelled scrolling gesture is not a tap');
- await React.act(async()=>{
-   cells[0].dispatchEvent(new env.window.PointerEvent('pointerdown',{bubbles:true,pointerType:'touch'}));
-   cells[0].dispatchEvent(new env.window.MouseEvent('click',{bubbles:true}));
- });
- assert.equal(wrap.dataset.revealed,'true');
- await React.act(async()=>{
-   cells[cells.length-1].dispatchEvent(new env.window.PointerEvent('pointerdown',{bubbles:true,pointerType:'touch'}));
-   cells[cells.length-1].dispatchEvent(new env.window.MouseEvent('click',{bubbles:true}));
- });
- assert.equal(wrap.dataset.revealed,'true','a second cell is still inside the matrix');
- await React.act(async()=>outside.dispatchEvent(new env.window.PointerEvent('pointerdown',{bubbles:true,pointerType:'touch'})));
- assert.equal(wrap.dataset.revealed,'false');
- await React.act(async()=>{
-   cells[0].dispatchEvent(new env.window.PointerEvent('pointerdown',{bubbles:true,pointerType:'pen'}));
-   cells[0].dispatchEvent(new env.window.MouseEvent('click',{bubbles:true}));
- });
- assert.equal(wrap.dataset.revealed,'true');
- await React.act(async()=>outside.dispatchEvent(new env.window.FocusEvent('focusin',{bubbles:true})));
- assert.equal(wrap.dataset.revealed,'false','keyboard departure also clears a latched touch reveal');model.dispose();
 });

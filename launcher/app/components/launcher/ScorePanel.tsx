@@ -1,11 +1,11 @@
 import {useEffect, useSyncExternalStore, type ReactNode} from 'react';
 import {useLocale} from '../../i18n';
-import {featuredLoadout, type ScoreStatistics} from '../../models/score-statistics';
+import {bestClearedLoadout, featuredLoadout, type ScoreStatistics} from '../../models/score-statistics';
 import type {LibraryProduct} from './products';
 import {CharacterPortraits} from './CharacterPortraits';
 import {scoreText} from './score-copy';
 import {scoreLoadouts} from '../../../src/launcher/score-dat.mts';
-import {ClearMatrix} from './ClearMatrix';
+import {ClearRadar} from './ClearRadar';
 
 export function ScorePanel({model, product, language, assetUrl, notice}: {model: ScoreStatistics; product: LibraryProduct; language: string; assetUrl(path: string): string; notice?: ReactNode}) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot, model.getSnapshot);
@@ -14,6 +14,10 @@ export function ScorePanel({model, product, language, assetUrl, notice}: {model:
   // The new product label must never accompany the prior product's report.
   const current = state.product === product.id, report = current ? state.report : null;
   const favorite = report ? featuredLoadout(report) : null;
+  // The portrait shows the best-cleared loadout; with no clears it falls back to the favourite.
+  const best = report ? bestClearedLoadout(report) : null;
+  const portrait = best?.portraits.length ? {key: best.name, portraits: best.portraits, label: `${t('scores.bestCleared')} · ${scoreText(best.name, locale)} · ${best.difficulty}`}
+    : favorite?.portraits.length ? {key: favorite.name, portraits: favorite.portraits, label: undefined as string | undefined} : null;
   const phase = current ? state.phase : 'loading';
   const numbers = new Intl.NumberFormat(locale);
   const favoriteLabel = t(favorite?.basis === 'clears' ? 'scores.mostCleared' : favorite?.basis === 'difficulties' ? 'scores.widestCleared' : 'scores.favorite');
@@ -27,7 +31,7 @@ export function ScorePanel({model, product, language, assetUrl, notice}: {model:
     <div className="score-content"><div className="score-stage">
       {loadouts.length && !product.multiplayer ? <div className="score-clear-area">
         <div className="score-matrix-region">
-          <ClearMatrix key={product.id} loadouts={loadouts} report={report}/>
+          <ClearRadar key={product.id} loadouts={loadouts} report={report}/>
           <p className={`score-status${phase==='empty'||phase==='loading'?' visually-hidden':''}`} role="status">{status}</p>
         </div>
       </div> : <p className={report ? 'score-status' : 'score-empty'} role="status">{status}</p>}
@@ -36,7 +40,7 @@ export function ScorePanel({model, product, language, assetUrl, notice}: {model:
       <span className="score-time-number">{Math.floor(playMinutes / 60)}</span><span className="score-time-unit">{t('scores.hourUnit')}</span><span className="score-time-number">{playMinutes % 60}</span><span className="score-time-unit">{t('scores.minuteUnit')}</span>
     </time></p>}
       {notice}
-      {phase !== 'loading' && !product.multiplayer && !!favorite?.portraits.length && <CharacterPortraits key={`${product.id}:${favorite.name}`} characters={favorite.portraits} label={favorite.basis === 'plays' ? undefined : favoriteLabel} assetUrl={assetUrl}/>}
+      {phase !== 'loading' && !product.multiplayer && portrait && <CharacterPortraits key={`${product.id}:${portrait.key}`} characters={portrait.portraits} label={portrait.label ?? (favorite?.basis === 'plays' ? undefined : favoriteLabel)} assetUrl={assetUrl}/>}
     </div>
   </section>;
 }
