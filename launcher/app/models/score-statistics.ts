@@ -1,7 +1,7 @@
 import {gameIdForProduct, isMultiplayerProductId, type ProductId} from '../../src/contracts/product-catalog.mts';
 import {characterArtForName} from '../../src/contracts/character-art.mts';
 import {parseScoreDat, scoreDifficulties, scoreLoadouts, type ScoreReport} from '../../src/launcher/score-dat.mts';
-import {readStoredScore, supportsScore, type StoredScore} from '../services/score-storage';
+import {readStoredScore, supportsScoreStatistics, type StoredScore} from '../services/score-storage';
 
 export type ScorePhase = 'idle' | 'loading' | 'empty' | 'ready' | 'unavailable' | 'unreadable' | 'unsupported';
 export interface ScoreSnapshot {
@@ -90,7 +90,7 @@ export function createScoreStatistics({read = readStoredScore}: {read?: typeof r
   const publish = (next: ScoreSnapshot) => {if (disposed) return; snapshot = Object.freeze(next); listeners.forEach(listener => listener());};
   async function refresh() {
     const product = snapshot.product;
-    if (disposed || !product || !supportsScore(product)) return;
+    if (disposed || !product || !supportsScoreStatistics(product)) return;
     const request = ++serial;
     publish({...snapshot, phase: 'loading', report: null, favorite: null, sourceName: null});
     if (suspended) return;
@@ -110,7 +110,7 @@ export function createScoreStatistics({read = readStoredScore}: {read?: typeof r
     select(product: ProductId, preferredLanguage: string) {
       if (disposed || snapshot.product === product && language === preferredLanguage) return;
       serial++; language = preferredLanguage;
-      publish({product, phase: supportsScore(product) ? 'loading' : 'unsupported', report: null, favorite: null, edition: null, modified: null, multiplayer: isMultiplayerProductId(product), sourceName: null});
+      publish({product, phase: supportsScoreStatistics(product) ? 'loading' : 'unsupported', report: null, favorite: null, edition: null, modified: null, multiplayer: isMultiplayerProductId(product), sourceName: null});
       void refresh();
     },
     refresh,

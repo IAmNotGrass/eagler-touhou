@@ -8,9 +8,15 @@ export interface StoredScore {
   edition: 'chs' | 'jp' | null;
   sourceName?: string;
 }
-export const scoreGames = ['th06', 'th07', 'th08', 'th09', 'th10', 'th11', 'th15', 'th20'] as const;
+/** Titles whose save the archive, slot and save-choice features manage. */
+export const scoreGames = ['th06', 'th07', 'th08', 'th09', 'th10'] as const;
 export function supportsScore(product: ProductId) {
   return !isMultiplayerProductId(product) && (scoreGames as readonly string[]).includes(gameIdForProduct(product));
+}
+/** Titles whose save the statistics panel can decode. Reading is all it does. */
+export const scoreStatisticsGames = [...scoreGames, 'th11', 'th15', 'th20'] as const;
+export function supportsScoreStatistics(product: ProductId) {
+  return !isMultiplayerProductId(product) && (scoreStatisticsGames as readonly string[]).includes(gameIdForProduct(product));
 }
 
 /** Read the Runtime's published IDBFS layout without booting it or owning writes.
@@ -19,7 +25,7 @@ export function supportsScore(product: ProductId) {
  * breaks equal timestamps. Its source edition remains visible in the UI.
  */
 export async function readStoredScore(product: ProductId, language: string, factory: IDBFactory | undefined = globalThis.indexedDB, timeoutMs = 8000, exactEdition?: 'chs' | 'jp'): Promise<StoredScore | null> {
-  if (!supportsScore(product)) return null;
+  if (!supportsScoreStatistics(product)) return null;
   if (!factory) throw new Error('Browser save storage is unavailable');
   const game = gameIdForProduct(product), {saveRoot: root, scoreFile} = PRODUCT_GAMES[game].storage;
   const preferred = language === 'lang_zh-hans' ? 'chs' : 'jp';

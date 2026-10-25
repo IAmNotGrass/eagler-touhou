@@ -271,6 +271,7 @@ test('native signed-byte buffers and sliced views preserve their exact binary re
 test('unsupported products and multiplayer do not open solo saves',async()=>{
  let opens=0;const factory={open(){opens++;throw Error('Unexpected save access');}};
  for(const productof of ['th06mp','th10mp','th11mp','th15mp','th075'])assert.equal(await api.readStoredScore(productof,'ja',factory),null);
+ for(const game of ['th11','th15','th20']){assert.equal(api.supportsScoreStatistics(game),true);assert.equal(api.supportsScore(game),false,'statistics reading does not enable save archives or slots');}
  assert.equal(opens,0);
 });
 test('read errors, invalid records and timeouts stay distinct from no save, and late connections close',async()=>{
