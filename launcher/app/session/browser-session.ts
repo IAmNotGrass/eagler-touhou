@@ -13,7 +13,8 @@ import type {SiteManifest} from '../../src/contracts/site-manifest.mts';
 import {detectUiLocale, isUiMessageKey, UI_LOCALE_STORAGE_KEY, type UiLocale} from '../../src/launcher/i18n.mts';
 import {replayImportAccept} from '../../src/launcher/replay-files.mts';
 import {discouragedBrowserId} from '../../src/launcher/browser-support.mts';
-import {createMultiplayerIdentityStore, multiplayerMemberId} from '../../src/launcher/multiplayer-identity.mts';
+import {parseAvatarChoice, type ProfileAvatarChoice} from '../models/profile-avatars';
+import {createMultiplayerIdentityStore, multiplayerDisplayNameStorageKey, multiplayerMemberId, type MultiplayerIdentityStore} from '../../src/launcher/multiplayer-identity.mts';
 import {createMultiplayerRoomSessionStore} from '../../src/launcher/multiplayer-room-session.mts';
 import {buildMultiplayerDiagnosticRelayUrl} from '../../src/launcher/multiplayer-relay-url.mts';
 import {createNetworkDiagnosticsModel} from '../components/directory/network-diagnostics-model';
@@ -111,6 +112,8 @@ export interface BrowserSessionSnapshot {
 }
 /** One document owner. Construction is browser-only and intentionally separate
  * from React render. The permanent iframe is attached once by its callback ref. */
+export const PROFILE_AVATAR_STORAGE_KEY = 'eagler-touhou-profile-avatar-v1';
+export interface ProfileSnapshot {name: string; avatar: ProfileAvatarChoice | null}
 export function createBrowserSession({document, window, baseUrl: configuredBaseUrl, appShellDeployment}: {document: Document; window: Window; baseUrl?: string; appShellDeployment?: AppShellOptions['deployment']}) {
   const baseUrl = configuredBaseUrl ?? launcherBaseUrl(window.location.href);
   let storage: Storage | null = null;
@@ -351,7 +354,36 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
     testBuild: entryUrl.searchParams.has('test'),
     requestPersistence: async () => {try {await window.navigator.storage?.persist?.();} catch {}}});
   let sessionStorage: Storage | null = null; try {sessionStorage = window.sessionStorage;} catch {}
-  const identity = createMultiplayerIdentityStore({persistentStorage: storage, sessionStorage});
+  const storedIdentity = createMultiplayerIdentityStore({persistentStorage: storage, sessionStorage});
+  // The header's profile follows the nickname wherever it changes (rooms,
+  // the lobby, another tab) and keeps the chosen avatar preset locally.
+  const profileListeners = new Set<() => void>();
+  const loadAvatar = () => {try {return parseAvatarChoice(JSON.parse(storage?.getItem(PROFILE_AVATAR_STORAGE_KEY) ?? 'null'));} catch {return null;}};
+  let profileSnapshot: ProfileSnapshot = Object.freeze({name: storedIdentity.loadDisplayName(), avatar: loadAvatar()});
+  const publishProfile = (next: ProfileSnapshot) => {
+    if (next.name === profileSnapshot.name && next.avatar?.character === profileSnapshot.avatar?.character && next.avatar?.expression === profileSnapshot.avatar?.expression) return;
+    profileSnapshot = Object.freeze(next);
+    profileListeners.forEach(listener => listener());
+  };
+  const refreshProfile = () => publishProfile({name: storedIdentity.loadDisplayName(), avatar: loadAvatar()});
+  const identity: MultiplayerIdentityStore = Object.freeze({...storedIdentity, updateDisplayName(value: unknown, fallbackName?: string) {
+    const result = storedIdentity.updateDisplayName(value, fallbackName);
+    refreshProfile();
+    return result;
+  }});
+  window.addEventListener('storage', event => {if (event.key === multiplayerDisplayNameStorageKey || event.key === PROFILE_AVATAR_STORAGE_KEY) refreshProfile();});
+  const profile = Object.freeze({
+    subscribe(listener: () => void) {profileListeners.add(listener); return () => {profileListeners.delete(listener);};},
+    getSnapshot: () => profileSnapshot,
+    /** Returns the name now in effect; an empty edit keeps the previous one. */
+    setName(value: string) {return identity.updateDisplayName(value, profileSnapshot.name).name;},
+    setAvatar(choice: ProfileAvatarChoice) {
+      const avatar = parseAvatarChoice(choice);
+      if (!avatar) return;
+      try {storage?.setItem(PROFILE_AVATAR_STORAGE_KEY, JSON.stringify(avatar));} catch {}
+      publishProfile({...profileSnapshot, avatar});
+    },
+  });
   const sessions = createMultiplayerRoomSessionStore({storage: sessionStorage});
   const directory = createLobbyDirectory({
     testBuild: entryUrl.searchParams.has('test'),
@@ -1224,7 +1256,7 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
       const command = spectatorPlaybackCommand(state, action, frame);
       if (command) await owner.send('spectator-playback', command);
     },
-    saveLibrary, scores, room, titleNetwork, calibration, networkDiagnostics, appShell: appShellOwner, baseUrl, storage, mobile, metadata, settingsContext, acquisition, directory, gameData, transfer, startupError, startup, settings, gamepad, keyboardPreferences, th09LocalInput, touchLayout, preferences, feedback, decisions, nativeTouch, settingsActions,
+    saveLibrary, scores, profile, room, titleNetwork, calibration, networkDiagnostics, appShell: appShellOwner, baseUrl, storage, mobile, metadata, settingsContext, acquisition, directory, gameData, transfer, startupError, startup, settings, gamepad, keyboardPreferences, th09LocalInput, touchLayout, preferences, feedback, decisions, nativeTouch, settingsActions,
     subscribe(listener: () => void) {listeners.add(listener); return () => {listeners.delete(listener);};}, getSnapshot: () => snapshot,
     initialize, attachFrame, requestRuntimeClose, launch, openReplayViewer, exitRoomPlayerFullscreen,
     restoreRoomFromUrl,

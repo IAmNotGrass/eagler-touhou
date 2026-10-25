@@ -18,7 +18,8 @@ import {LauncherMasthead, MainSelect, SiteFooter, createLibraryProducts} from '.
 import {LobbyDirectoryView} from './components/directory/LobbyDirectoryView';
 import {NetworkDiagnosticsDialog, type NetworkDiagnosticsHandle} from './components/directory/NetworkDiagnosticsDialog';
 import {DirectoryRoomDialog} from './components/directory/DirectoryRoomDialog';
-import {FirstUseNotice, SiteNotice, DonationDialog, AppleRefreshDialog, MultiplayerGuideDialog, ReplayDialog,
+import {avatarSource} from './models/profile-avatars';
+import {FirstUseNotice, SiteNotice, DonationDialog, AppleRefreshDialog, MultiplayerGuideDialog, ReplayDialog, ProfileDialog,
   type FirstUseNoticeHandle, type SiteNoticeHandle} from './components/notices';
 import {GameDataImportWindows} from './components/player/GameDataImportWindows';
 import {MultiplayerQuickChat} from './components/player/MultiplayerQuickChat';
@@ -140,8 +141,9 @@ function Header({session, firstUse, notice, donationAvailable}: {
   const diagnostics = session.getDiagnostics();
   const diagnosticState = useSyncExternalStore(diagnostics?.subscribe ?? emptySubscribe, diagnostics?.getSnapshot ?? noDiagnostics, noDiagnostics);
   const updatedAge = useSyncExternalStore(session.appShell.brandAge.subscribe, session.appShell.brandAge.getSnapshot, session.appShell.brandAge.getSnapshot);
+  const profile = useSyncExternalStore(session.profile.subscribe, session.profile.getSnapshot, session.profile.getSnapshot);
   const [menuOpen, setMenuOpen] = useState(false), url = (path: string) => new URL(path, session.baseUrl).href;
-  return <LauncherMasthead updatedAge={updatedAge} variant={navigation.context} assetUrl={url} launcherHref={url(locale === 'en' ? 'en.html' : './')}
+  return <LauncherMasthead profileName={profile.name} profileAvatar={avatarSource(profile.avatar)} onProfile={() => navigation.openInfoDialog('profileDialog')} updatedAge={updatedAge} variant={navigation.context} assetUrl={url} launcherHref={url(locale === 'en' ? 'en.html' : './')}
     faqHref={url('faq.html')} aboutHref={url('about.html')} migrationPolicyKnown={metadata.siteManifest !== null} migrationHref={metadata.siteManifest && siteOriginMigrationAvailable(metadata.siteManifest, window.location.protocol) ? url('migrate.html') : undefined}
     menuOpen={menuOpen} onMenuOpenChange={setMenuOpen} lessMotion={prefs.lessMotion} onToggleMotion={session.preferences.toggleMotion}
     noticeEnabled={prefs.noticeEnabled} onToggleNotice={session.preferences.toggleNotice}
@@ -152,6 +154,11 @@ function Header({session, firstUse, notice, donationAvailable}: {
 function ServerStatusNote({session}: {session: BrowserSession}) {
   const {status} = useSyncExternalStore(session.appShell.subscribe, session.appShell.getSnapshot, session.appShell.getSnapshot);
   return <div className="server-status-note" id="serverStatusNote" role="status" aria-live="polite" hidden={!status.text} data-kind={status.text ? status.kind : undefined}>{status.text}</div>;
+}
+function Profile({session}: {session: BrowserSession}) {
+  const navigation = useSurfaceNavigation(), profile = useSyncExternalStore(session.profile.subscribe, session.profile.getSnapshot, session.profile.getSnapshot);
+  return <ProfileDialog open={navigation.infoDialogOpen('profileDialog')} onCloseRequest={() => navigation.closeInfoDialog('profileDialog')}
+    name={profile.name} avatar={profile.avatar} assetUrl={path => new URL(path, session.baseUrl).href} onName={session.profile.setName} onAvatar={session.profile.setAvatar}/>;
 }
 function Footer({donationAvailable}: {donationAvailable: boolean}) {const navigation = useSurfaceNavigation(); return <SiteFooter donationAvailable={donationAvailable} onDonation={() => navigation.openInfoDialog('donationDialog')}/>;}
 function Directory({session, network, ...props}: LobbySurfaceProps & {session: BrowserSession; network: React.RefObject<NetworkDiagnosticsHandle | null>}) {
@@ -246,6 +253,7 @@ function SessionOverlays({session, onNoticeLines, firstUse, notice, assetUrl, on
     <SiteNotice onContentChanged={onNoticeLines} ref={notice} preferences={session.preferences} assetUrl={assetUrl} visible={navigation.context === 'library' && navigation.surface === 'library' && !state.playerOpen} edgeGestures={navigation.context === 'library' && navigation.surface === 'library'} onOptOut={session.feedback.toast}/>
     <DonationDialog open={navigation.infoDialogOpen('donationDialog')} onCloseRequest={() => navigation.closeInfoDialog('donationDialog')} closeDurationMs={navigation.context === 'lobby' ? 0 : 220} assetUrl={assetUrl} onArtworkUnavailable={onDonationUnavailable}/>
     <AppleRefreshDialog open={navigation.infoDialogOpen('appleRefreshDialog')} onCloseRequest={() => navigation.closeInfoDialog('appleRefreshDialog')}/>
+    <Profile session={session}/>
     <MultiplayerGuideDialog open={navigation.infoDialogOpen('mpGuideDialog')} onCloseRequest={() => navigation.closeInfoDialog('mpGuideDialog')} gameId={guideProduct ? gameIdForProduct(guideProduct) : 'th06'} contentUrl={assetUrl('content/MULTIPLAYER.html')}/>
 
   </>;

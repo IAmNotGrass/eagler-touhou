@@ -22,7 +22,7 @@ export type Surface = 'library' | 'options' | 'touch' | 'room';
 export type SurfaceContext = 'library' | 'lobby';
 export type RoomPanelKind = 'personal' | 'network' | 'spectators' | 'game';
 export type DirectoryFormMode = 'create' | 'join';
-export const INFORMATION_DIALOG_IDS = ['mpGuideDialog', 'firstUseNoticeDialog', 'donationDialog', 'appleRefreshDialog', 'replayDialog', 'lobbyNetworkDialog', 'globalSettingsDialog', 'scoreFilesDialog'] as const;
+export const INFORMATION_DIALOG_IDS = ['mpGuideDialog', 'firstUseNoticeDialog', 'donationDialog', 'appleRefreshDialog', 'replayDialog', 'lobbyNetworkDialog', 'globalSettingsDialog', 'scoreFilesDialog', 'profileDialog'] as const;
 export type InformationDialogId = typeof INFORMATION_DIALOG_IDS[number];
 export interface SurfaceAddress {
   surface: Surface;

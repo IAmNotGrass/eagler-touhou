@@ -5,3 +5,4 @@ export {DonationDialog, type DonationDialogProps} from './DonationDialog';
 export {SiteNotice, type SiteNoticeProps, type SiteNoticeHandle} from './SiteNotice';
 export {type MainDialogProps} from './use-main-dialog';
 export {ReplayDialog, type ReplayDialogProps} from './ReplayDialog';
+export {ProfileDialog, ProfileAvatar, type ProfileDialogProps} from './ProfileDialog';

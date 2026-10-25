@@ -3,6 +3,7 @@ import {useLocale} from '../../i18n';
 import {mastheadIcons} from './masthead-icons';
 import {closeMainSelectMenus, MainSelectPrefix} from './MainSelect';
 import {MastheadBrand} from './MastheadBrand';
+import {ProfileAvatar} from '../notices/ProfileDialog';
 
 export interface LauncherMastheadProps {
   /** Published pre-session markup has native links and no menu owner. */
@@ -27,6 +28,11 @@ export interface LauncherMastheadProps {
   donationAvailable?: boolean;
   onFirstUse: () => void;
   onSettings?: () => void;
+  /** The stored nickname shown as the header avatar; empty before one is chosen. */
+  profileName?: string;
+  /** The chosen avatar preset's asset path, if any. */
+  profileAvatar?: string | null;
+  onProfile?: () => void;
   /** The shared MainSelect, with the original uiLanguageSelect native props. */
   languageControl: ReactNode;
 }
@@ -63,6 +69,10 @@ export function LauncherMasthead(props: LauncherMastheadProps) {
       <a className="masthead-link" id="originMigrationOpen" href={props.migrationHref ?? 'migrate.html'} hidden={!props.migrationHref} data-policy={props.migrationPolicyKnown ? 'host-manifest-origin-migration-policy/1' : undefined}><span className="masthead-label"><span>{t('nav.oldSitePart1')}</span><wbr/><span>{t('nav.migrationPart2')}</span></span></a>
       <button className="masthead-link" id="donationOpenTop" type="button" hidden={props.donationAvailable === false} onClick={props.onDonation}><span className="masthead-label">{t('nav.donate')}</span></button>
       <a className="masthead-link" href={props.faqHref}><span className="masthead-label"><span>{t('nav.faqFirst')}</span><wbr/><span>{t('nav.faqSecond')}</span></span></a>
+      <button className="masthead-link masthead-profile" id="profileOpen" type="button" aria-controls="profileDialog" disabled={!interactive || !props.onProfile}
+        aria-label={props.profileName ? `${t('profile.title')}：${props.profileName}` : t('profile.title')} title={props.profileName || t('profile.title')} onClick={props.onProfile}>
+        <ProfileAvatar name={props.profileName ?? ''} src={props.profileAvatar} assetUrl={props.assetUrl}/>
+      </button>
       <a className="masthead-link masthead-github" href="https://github.com/YomotsuHisami/eagler-touhou" target="_blank" rel="noopener noreferrer" aria-label="GitHub" dangerouslySetInnerHTML={{__html: mastheadIcons.github}}/>
       <div ref={menu} className="masthead-menu" id="mastheadMenu" onKeyDown={event => {
         if (event.key !== 'Escape') return;

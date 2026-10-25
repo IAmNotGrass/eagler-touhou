@@ -9,6 +9,54 @@ html:has(.directory-layout):not(:has(.player.active)){overflow-y:auto!important}
 .redesign-sheet .masthead-github,.redesign-sheet .masthead-menu-toggle{padding-inline:0}
 .redesign-sheet .masthead-github svg{width:26px;height:26px;flex:none}
 .redesign-sheet .masthead-menu-toggle svg{width:24px;height:24px;flex:none}
+.redesign-sheet .masthead-profile{padding-inline:0;width:42px}
+/* Header avatar: the nickname's first character, sized with the GitHub mark. */
+.profile-avatar{display:inline-grid;place-items:center;width:28px;height:28px;flex:none;box-sizing:border-box;border:1.5px solid currentColor;border-radius:50%;
+  background:#2b2b28;color:#ece4e9;font:800 13px/1 var(--ui-font);letter-spacing:0;overflow:hidden;transition:border-color .16s ease,background-color .16s ease}
+.profile-avatar svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.masthead-profile:hover .profile-avatar,.masthead-profile:focus-visible .profile-avatar{border-color:var(--red-bright);background:#3a2b2a}
+.profile-avatar img{width:100%;height:100%;display:block;object-fit:cover}
+/* Profile window: character wheel and nickname on the left, expressions on the right. */
+#profileDialog.informational-dialog{width:min(960px,calc(100vw - 32px));max-height:min(92dvh,800px);overflow:auto}
+/* A fixed height keeps the window still while the dial changes how many expressions show. */
+.profile-editor{--wheel-scale:1;display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px;height:min(560px,calc(92dvh - 72px));padding:20px;box-sizing:border-box}
+.profile-identity-panel{display:grid;justify-items:center;align-content:center;gap:18px;min-height:0}
+.profile-dial{position:relative;width:calc(380px*var(--wheel-scale));height:calc(380px*var(--wheel-scale));touch-action:pan-y;user-select:none;cursor:grab}
+.profile-dial:active{cursor:grabbing}
+.profile-dial::before{content:"";position:absolute;inset:calc(40px*var(--wheel-scale));border:1px dashed #ffffff14;border-radius:50%}
+.profile-dial-center.profile-avatar{position:absolute;left:50%;top:50%;width:calc(166px*var(--wheel-scale));height:calc(166px*var(--wheel-scale));translate:-50% -50%;
+  border:3px solid var(--red-bright);font-size:calc(62px*var(--wheel-scale));box-shadow:0 0 0 5px #191a17,0 12px 30px #0008}
+.profile-dial-center svg{width:62%;height:62%}
+/* The top slot is the focused character; a small pointer marks it. */
+.profile-dial-marker{position:absolute;left:50%;top:calc(2px*var(--wheel-scale));width:0;height:0;translate:-50% 0;border:7px solid transparent;border-top-color:var(--red-bright)}
+/* Position lives in translate, so a hover scale grows the item in place. */
+.profile-dial-item{--size:calc((46px + 14px*var(--dial-near))*var(--wheel-scale));position:absolute;left:50%;top:50%;width:var(--size);height:var(--size);
+  translate:calc(-50% + var(--dial-x)*var(--wheel-scale)) calc(-50% + var(--dial-y)*var(--wheel-scale));padding:0;border:2px solid #ffffff26;border-radius:50%;
+  background:#2b2b28;overflow:hidden;opacity:var(--dial-fade);cursor:pointer;transition:scale .16s ease,border-color .16s ease,box-shadow .16s ease}
+.profile-dial-item[hidden]{display:none}
+.profile-dial-item img{width:100%;height:100%;display:block;object-fit:cover;pointer-events:none}
+.profile-dial-item:hover,.profile-dial-item:focus-visible{z-index:1;scale:1.1;border-color:var(--paper);outline:none}
+.profile-dial-item[data-focused=true]{border-color:var(--paper)}
+.profile-dial-item[aria-pressed=true]{border-color:var(--red-bright);box-shadow:0 0 0 2px #191a17,0 0 0 4px var(--red-bright)}
+.profile-dial-hint{margin:-8px 0 0;color:var(--muted,#8d887f);font-size:12px}
+.profile-name-field{display:grid;gap:6px;width:min(320px,100%)}
+.profile-name-field span{color:var(--muted,#8d887f);font:600 12px/1.2 var(--ui-font);letter-spacing:.04em}
+.profile-name-field input{box-sizing:border-box;width:100%;height:44px;padding:0 14px;border:1px solid #ffffff22;border-radius:12px;background:#222320;color:var(--paper,#ebe7df);
+  font:700 16px/1 var(--ui-font);text-align:center;transition:border-color .16s ease}
+.profile-name-field input:focus{outline:none;border-color:var(--red-bright)}
+.profile-expression-panel{display:grid;grid-template-rows:auto minmax(0,1fr);gap:14px;min-width:0;min-height:0;padding:18px;border:1px solid #ffffff12;border-radius:16px;background:#20211e}
+.profile-expression-panel h2{margin:0;color:var(--paper,#ebe7df);font:800 18px/1.3 var(--ui-font)}
+.profile-expression-panel h2 span{margin-left:10px;color:var(--muted,#8d887f);font-size:13px;font-weight:600}
+.profile-expression-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));align-content:start;gap:10px;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.profile-expression{display:grid;place-items:center;aspect-ratio:1;padding:8px;border:2px solid transparent;border-radius:14px;background:#262723;color:#c6c0b7;
+  font:600 13px/1.2 var(--ui-font);cursor:pointer;transition:border-color .16s ease,background-color .16s ease}
+.profile-expression img{width:100%;height:100%;max-width:84px;max-height:84px;border-radius:50%;object-fit:cover;background:#2b2b28}
+.profile-expression:hover,.profile-expression:focus-visible{outline:none;background:#2d2e2a}
+.profile-expression[aria-pressed=true]{border-color:var(--red-bright);color:var(--paper,#ebe7df)}
+.profile-expression-note{margin:0;color:var(--muted,#8d887f);font-size:12px;line-height:1.5}
+@media(max-width:760px){
+ .profile-editor{--wheel-scale:.74;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 300px;height:auto;padding:14px}
+}
 .redesign-sheet .brand{display:flex;flex-direction:column;align-items:flex-start;justify-self:start;gap:3px;padding:0;min-width:0;max-width:100%}
 .brand-logo{display:inline-flex;align-items:center;min-height:26px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--paper);font:400 14px/1 "touhou98",monospace;letter-spacing:.08em;cursor:pointer}
 .brand-logo:focus-visible{outline:2px solid var(--red-bright);outline-offset:4px}
@@ -26,6 +74,8 @@ html:has(.directory-layout):not(:has(.player.active)){overflow-y:auto!important}
  .redesign-sheet .masthead-links{gap:2px}
  .redesign-sheet .masthead-link{min-height:40px;padding-inline:5px;font-size:11px;letter-spacing:0}
  .redesign-sheet .masthead-github svg{width:23px;height:23px}
+ .redesign-sheet .masthead-profile{width:34px}
+ .profile-avatar{width:24px;height:24px;font-size:11px}
 }
 @media(max-width:360px){
  .redesign-sheet>.masthead{column-gap:6px}
