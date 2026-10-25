@@ -17,6 +17,7 @@ before(async()=>{
  await build({absWorkingDir:project,stdin:{resolveDir:project,loader:'tsx',contents:`
   export * from './app/components/notices/ProfileDialog.tsx';
   export * from './app/models/profile-avatars.ts';
+  export * from './app/models/profile-avatar-characters.ts';
   export * from './app/i18n.tsx';
  `},outfile:output,bundle:true,platform:'node',format:'esm',jsx:'automatic',packages:'external',logLevel:'silent',plugins:[authoredSourcesPlugin(project)]});
  api=await import(pathToFileURL(output).href);
@@ -25,27 +26,42 @@ afterEach(async()=>{if(root)await React.act(()=>root.unmount());root=null;env.do
 after(async()=>{env.close();await rm(work,{recursive:true,force:true});});
 const node=selector=>env.document.querySelector(selector);
 
-test('every avatar expression is a published head crop from a recorded package',async()=>{
- const manifest=JSON.parse(await readFile(resolve(project,'public/assets/dairi/manifest.json'),'utf8'));
- const crops=JSON.parse(await readFile(resolve(project,'../docs/dairi-art/avatar-crops.json'),'utf8')).crops;
- assert.deepEqual([...api.PROFILE_AVATAR_CHARACTERS],manifest.characters);assert.deepEqual(Object.keys(crops),manifest.characters);
- const published=STATIC_FRONTEND_PACKAGE_FILES.filter(file=>file.startsWith('assets/dairi/avatars/'));let total=0;
+test('every character has published face crops of its recorded outfits',async()=>{
+ const dairi=JSON.parse(await readFile(resolve(project,'../docs/dairi-art/avatar-sources.json'),'utf8')).characters;
+ const tpdp=JSON.parse(await readFile(resolve(project,'../docs/tpdp-art/avatar-sources.json'),'utf8')).characters;
+ const sources={...dairi,...Object.fromEntries(Object.entries(tpdp).map(([id,outfits])=>[`tpdp-${id}`,outfits]))};
+ assert.deepEqual([...api.PROFILE_AVATAR_CHARACTERS],api.AVATAR_CHARACTERS.map(character=>character.id),'every registered character has presets, in registry order');
+ assert.deepEqual(Object.keys(sources).sort(),[...api.PROFILE_AVATAR_CHARACTERS].sort());
+ const published=STATIC_FRONTEND_PACKAGE_FILES.filter(file=>/^assets\/(dairi|tpdp)\/avatars\//.test(file));let total=0;
+ assert.ok(api.PROFILE_AVATAR_CHARACTERS.indexOf('tpdp-reimu')>api.PROFILE_AVATAR_CHARACTERS.lastIndexOf('tsumibukuro'),'the 人形演舞 set follows the DAIRI one');
+ assert.equal(api.avatarArt('tpdp-reimu'),'tpdp');assert.equal(api.avatarArt('reimu'),'dairi');
+ assert.ok(api.avatarExpressions('tpdp-reimu')[0].src.startsWith('assets/tpdp/avatars/reimu/'));
  for(const character of api.PROFILE_AVATAR_CHARACTERS){
-  const expressions=api.avatarExpressions(character);assert.ok(expressions.length>=10,`${character} has its package expressions`);
-  assert.equal(expressions.filter(entry=>!entry.blush).length>0&&expressions.filter(entry=>entry.blush).length>0,true);
-  for(const {src} of expressions){total++;assert.ok(existsSync(resolve(project,'public',src)),src);assert.ok(published.includes(src),`${src} is published`);}
+  const outfits=api.avatarCostumes(character);
+  assert.equal(outfits[0].costume,'',`${character} lists its default outfit first`);
+  assert.deepEqual(outfits.map(outfit=>outfit.costume),sources[character].map(outfit=>outfit.costume));
+  for(const outfit of outfits){
+   assert.ok(outfit.expressions.length>0,`${character}/${outfit.costume} has expressions`);
+   for(const {src} of outfit.expressions){total++;assert.ok(existsSync(resolve(project,'public',src)),src);assert.ok(published.includes(src),`${src} is published`);}
+  }
  }
  assert.equal(total,published.length,'no unlisted or stale avatar files');
 });
 test('stored avatar choices are validated against the presets',()=>{
  assert.deepEqual(api.parseAvatarChoice({character:'cirno',expression:'confident'}),{character:'cirno',expression:'confident'});
  assert.deepEqual(api.parseAvatarChoice({character:'cirno',expression:'blush-cry'}),{character:'cirno',expression:'blush-cry'});
- assert.deepEqual(api.parseAvatarChoice({character:'cirno',expression:'yawning'}),{character:'cirno',expression:'confident'},'an unknown expression falls back to the bundled one');
- assert.equal(api.avatarExpressions('cirno')[0].id,'confident','the bundled portrait\'s expression comes first');
- assert.deepEqual(api.expressionLabelParts('blush-angry-shade'),{emotion:'angry',shaded:true});
- for(const value of [null,'reimu',{character:'flandre',expression:'smile'},{character:'toString'}])assert.equal(api.parseAvatarChoice(value),null);
+ assert.deepEqual(api.parseAvatarChoice({character:'cirno',expression:'yawning'}),{character:'cirno',expression:'confident'},'an unknown expression falls back to the default');
+ assert.equal(api.avatarExpressions('cirno')[0].id,'confident','the portrait\'s own expression comes first');
+ const swimsuit=api.avatarExpressions('remilia').find(entry=>entry.costume==='swimsuit');
+ assert.equal(swimsuit.id,`swimsuit/${swimsuit.expression}`);assert.equal(swimsuit.src,`assets/dairi/avatars/remilia/swimsuit/${swimsuit.expression}.webp`);
+ assert.deepEqual(api.parseAvatarChoice({character:'remilia',expression:swimsuit.id}),{character:'remilia',expression:swimsuit.id},'outfit expressions are stored with their outfit');
+ assert.deepEqual(api.expressionLabelParts('swimsuit/blush-angry-shade'),{emotion:'angry',shaded:true,blush:true,number:null,original:null});
+ assert.equal(api.expressionLabelParts('cry-3').number,'3');
+ for(const value of [null,'reimu',{character:'nobody',expression:'smile'},{character:'toString'}])assert.equal(api.parseAvatarChoice(value),null);
  assert.equal(api.avatarSource(null),null);assert.equal(api.avatarSource({character:'reimu',expression:'smile'}),'assets/dairi/avatars/reimu/smile.webp');
  assert.equal(api.avatarCharacterName('reimu','zh-CN'),'博丽灵梦');assert.equal(api.avatarCharacterName('reimu','en'),'Reimu Hakurei');
+ assert.equal(api.avatarCharacterName('remilia','zh-CN'),'蕾米莉亚·斯卡蕾特','western names read given·family');
+ assert.equal(api.avatarCharacterName('nina','zh-CN'),'渡里','a partial Chinese name shows what is known');
 });
 async function mount(props={}){
  const calls={names:[],avatars:[]},container=env.document.createElement('main');env.document.body.append(container);root=createRoot(container);
@@ -54,32 +70,96 @@ async function mount(props={}){
  await React.act(async()=>root.render(element()));
  return {calls,rerender:extra=>React.act(async()=>root.render(element(extra)))};
 }
+const nameOf=id=>api.avatarCharacterName(id,'zh-CN');
 test('the dial shows a window of characters with the focused one on top and turns with the wheel',async()=>{
  const {calls,rerender}=await mount();
  const items=()=>[...env.document.querySelectorAll('.profile-dial-item')],visible=()=>items().filter(item=>!item.hidden),focused=()=>node('.profile-dial-item[data-focused=true]');
- assert.equal(items().length,30);assert.equal(visible().length,13,'one ring of thirteen slots');
+ assert.equal(items().length,api.PROFILE_AVATAR_CHARACTERS.length);assert.equal(visible().length,11,'one ring; its two bottom slots hold the search');
  assert.equal(focused().title,'博丽灵梦');assert.equal(Number(focused().style.getPropertyValue('--dial-x').replace('px','')),0);
+ assert.equal(items().filter(item=>item.querySelector('img')).length,11,'only shown characters load their image');
  assert.ok(node('.profile-dial-center svg'),'no avatar yet shows the person glyph');
  const wheel=deltaY=>React.act(async()=>{node('.profile-dial').dispatchEvent(new env.window.WheelEvent('wheel',{deltaY,bubbles:true,cancelable:true}));await new Promise(resolve=>setTimeout(resolve,400));});
  await wheel(30);assert.equal(focused().title,'博丽灵梦','small trackpad deltas accumulate');
  await wheel(30);assert.equal(focused().title,'雾雨魔理沙');
  assert.equal(node('#profileExpressionTitle').firstChild.textContent,'雾雨魔理沙','expressions follow the focused character');
- await wheel(-110);assert.equal(focused().title,'渡里ニナ','the dial wraps past the first character');
+ assert.equal(items()[1].style.getPropertyValue('--avatar-color'),'#f2c94c','each character carries its own colour');
+ await wheel(-110);assert.equal(focused().title,`${nameOf(api.PROFILE_AVATAR_CHARACTERS.at(-1))} · 人形演舞`,'the dial wraps past the first character to the 人形演舞 set');
  await wheel(100);assert.deepEqual(calls.avatars,[],'turning only browses');
- const remilia=items()[6];assert.equal(remilia.hidden,false);
- await React.act(async()=>{remilia.click();await new Promise(resolve=>setTimeout(resolve,400));});
- assert.deepEqual(calls.avatars,[{character:'remilia',expression:'smile'}],'picking stores the bundled expression');assert.equal(focused(),remilia,'a pick turns to the top');
- await rerender({avatar:{character:'remilia',expression:'smile'}});
- assert.equal(remilia.getAttribute('aria-pressed'),'true');
- assert.equal(node('.profile-dial-center img').getAttribute('src'),'http://profile.local/assets/dairi/avatars/remilia/smile.webp');
- const grids=env.document.querySelectorAll('.profile-expression-grid');
- assert.equal(grids.length,1,'normal and blush expressions share one grid');
- const buttons=[...grids[0].querySelectorAll('.profile-expression')];
- assert.equal(buttons.length,api.avatarExpressions('remilia').length);assert.equal(grids[0].querySelector('span'),null,'expressions carry no captions');
- assert.equal(grids[0].querySelector('[aria-pressed=true]').getAttribute('aria-label'),'微笑','the name stays available to assistive technology');
- const blush=buttons.find(button=>button.getAttribute('aria-label')==='大笑'&&buttons.indexOf(button)>buttons.findIndex(other=>other.getAttribute('aria-label')==='大笑'));
- await React.act(async()=>blush.click());
- assert.equal(calls.avatars.at(-1).expression,'blush-laugh','blush variants are their own choices');
+ const target=items()[4],id=target.dataset.character,first=api.avatarExpressions(id)[0];assert.equal(target.hidden,false);
+ await React.act(async()=>{target.click();await new Promise(resolve=>setTimeout(resolve,400));});
+ assert.deepEqual(calls.avatars,[{character:id,expression:first.id}],'picking stores the default expression');assert.equal(focused(),target,'a pick turns to the top');
+ await rerender({avatar:{character:id,expression:first.id}});
+ assert.equal(target.getAttribute('aria-pressed'),'true');
+ assert.equal(node('.profile-dial-center img').getAttribute('src'),'http://profile.local/'+first.src);
+ const grid=node('.profile-expression-grid'),buttons=[...grid.querySelectorAll('.profile-expression')];
+ assert.equal(grid.querySelector('span'),null,'expressions carry no captions');assert.ok(grid.querySelector('[aria-pressed=true]').getAttribute('aria-label'),'the name stays available to assistive technology');
+ await React.act(async()=>buttons.at(-1).click());
+ assert.equal(calls.avatars.at(-1).expression,api.avatarCostumes(id)[0].expressions.at(-1).id,'every expression is its own choice');
+});
+test('arrow keys anywhere in the window turn the dial, except in the nickname field',async()=>{
+ await mount();await React.act(async()=>{await new Promise(resolve=>setTimeout(resolve,100));});
+ const focused=()=>node('.profile-dial-item[data-focused=true]');
+ assert.equal(env.document.activeElement,focused(),'opening the window focuses the dial');
+ const press=async(target,key)=>React.act(async()=>{target.dispatchEvent(new env.window.KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));await new Promise(resolve=>setTimeout(resolve,400));});
+ const expression=node('.profile-expression');expression.focus();
+ await press(expression,'ArrowRight');
+ assert.equal(focused().dataset.character,api.PROFILE_AVATAR_CHARACTERS[1],'an expression button does not keep the arrow keys');
+ assert.equal(env.document.activeElement,focused(),'focus returns to the dial');
+ await press(node('.profile-costumes button')??node('.profile-expression'),'ArrowLeft');
+ assert.equal(focused().dataset.character,api.PROFILE_AVATAR_CHARACTERS[0]);
+ await press(node('#profileClose'),'ArrowRight');
+ assert.equal(focused().dataset.character,api.PROFILE_AVATAR_CHARACTERS[1],'the window header passes arrows to the dial too');
+ await press(node('#profileClose'),'ArrowLeft');
+ const name=node('#profileNameInput');name.focus();
+ await press(name,'ArrowRight');
+ assert.equal(focused().dataset.character,api.PROFILE_AVATAR_CHARACTERS[0],'arrows move the caret while editing the nickname');
+ assert.equal(env.document.activeElement,name);
+});
+test('outfits switch the expression grid and are stored with their expressions',async()=>{
+ const {calls}=await mount({avatar:{character:'remilia',expression:'smile'}});
+ await new Promise(resolve=>setTimeout(resolve,400));
+ const chips=()=>[...env.document.querySelectorAll('.profile-costumes button')];
+ assert.deepEqual(chips().map(chip=>chip.getAttribute('aria-pressed')),api.avatarCostumes('remilia').map((_,index)=>String(index===0)));
+ assert.equal(chips()[0].textContent,'默认');
+ const swimsuit=chips().find(chip=>chip.textContent==='泳装');
+ await React.act(async()=>swimsuit.click());
+ const expected=api.avatarCostumes('remilia').find(outfit=>outfit.costume==='swimsuit').expressions;
+ assert.equal(env.document.querySelectorAll('.profile-expression').length,expected.length);
+ await React.act(async()=>node('.profile-expression').click());
+ assert.deepEqual(calls.avatars,[{character:'remilia',expression:expected[0].id}]);
+});
+test('character search matches Chinese, English, Japanese and pinyin names or name parts',()=>{
+ const first=query=>api.searchAvatarCharacters(query)[0];
+ for(const [query,character] of [['灵梦','reimu'],['博丽','reimu'],['博丽灵梦','reimu'],['lingmeng','reimu'],['bolilingmeng','reimu'],['bllm','reimu'],['Reimu','reimu'],['hakurei','reimu'],
+  ['魔理沙','marisa'],['mls','marisa'],['Kirisame','marisa'],['帕秋莉','patchouli'],['pql','patchouli'],['knowledge','patchouli'],['チルノ','cirno'],['qln','cirno'],['渡里','nina'],['Watari','nina'],['ari ya','ariya'],
+  ['古明地恋','koishi'],['koishi','koishi'],['こいし','koishi'],['八云蓝','ran'],['hakureireimu','reimu'],['蓬莱山辉夜','kaguya'],['plshy','kaguya']])
+  assert.equal(first(query),character,query);
+ assert.deepEqual(api.searchAvatarCharacters('prismriver'),['lunasa','merlin','lyrica','tpdp-lyrica','tpdp-merlin','tpdp-lunasa'],'a shared family name finds every sister, DAIRI art first');
+ assert.deepEqual(api.searchAvatarCharacters('古明地'),['satori','koishi','tpdp-satori','tpdp-koishi']);
+ assert.deepEqual(api.searchAvatarCharacters('  '),[]);assert.deepEqual(api.searchAvatarCharacters('zzzz'),[]);
+});
+test('search narrows the dial to the matching characters without changing the avatar, and Enter picks the top one',async()=>{
+ const {calls}=await mount();
+ assert.equal(node('.profile-search-open').getAttribute('aria-label'),'搜索角色');assert.equal(node('.profile-search-open').textContent,'','the closed control is an icon');
+ await React.act(async()=>node('.profile-search-open').click());
+ assert.equal(env.document.activeElement,node('.profile-search input'));assert.equal(node('.profile-search').dataset.open,'true');
+ const type=async value=>React.act(async()=>{const field=node('.profile-search input'),setter=Object.getOwnPropertyDescriptor(env.window.HTMLInputElement.prototype,'value').set;setter.call(field,value);field.dispatchEvent(new env.window.Event('input',{bubbles:true}));await new Promise(resolve=>setTimeout(resolve,400));});
+ const shown=()=>[...env.document.querySelectorAll('.profile-dial-item')].filter(item=>!item.hidden).map(item=>item.dataset.character);
+ await type('prismriver');
+ assert.deepEqual(shown().sort(),api.searchAvatarCharacters('prismriver').sort(),'only matches stay on the dial');
+ assert.equal(node('.profile-dial-item[data-focused=true]').dataset.character,'lunasa','the best match is on top');
+ assert.equal(node('#profileExpressionTitle').firstChild.textContent,nameOf('lunasa'));assert.equal(node('.profile-search-results'),null,'no separate result list');
+ await React.act(async()=>{node('.profile-search input').dispatchEvent(new env.window.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));await new Promise(resolve=>setTimeout(resolve,400));});
+ assert.equal(node('.profile-dial-item[data-focused=true]').dataset.character,'merlin','arrow keys turn through the matches');
+ assert.deepEqual(calls.avatars,[]);
+ await React.act(async()=>node('.profile-search input').dispatchEvent(new env.window.KeyboardEvent('keydown',{key:'Enter',bubbles:true})));
+ assert.deepEqual(calls.avatars,[{character:'merlin',expression:api.avatarExpressions('merlin')[0].id}]);
+ await type('zzzz');
+ assert.equal(shown().length,0);assert.equal(node('.profile-dial-empty').textContent,'没有匹配的角色');
+ assert.equal(node('#profileExpressionTitle').firstChild.textContent,nameOf('merlin'),'the panel keeps the last character');
+ await React.act(async()=>node('.profile-search input').dispatchEvent(new env.window.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true})));
+ assert.ok(node('.profile-search-open'),'Escape closes only the search');assert.equal(shown().length,11,'the full dial returns');
+ assert.equal(node('.profile-dial-item[data-focused=true]').dataset.character,'merlin','closing keeps the focused character on top');
 });
 test('the nickname commits on Enter or blur and shows the name in effect',async()=>{
  const {calls}=await mount({name:'魔法使'});
@@ -91,8 +171,8 @@ test('the nickname commits on Enter or blur and shows the name in effect',async(
 });
 test('the header avatar prefers the preset, then the nickname initial',async()=>{
  const container=env.document.createElement('div');env.document.body.append(container);root=createRoot(container);
- await React.act(async()=>root.render(React.createElement(api.ProfileAvatar,{name:'琪露诺',src:'assets/dairi/avatars/cirno.webp',assetUrl:path=>'/'+path})));
- assert.equal(container.querySelector('img').getAttribute('src'),'/assets/dairi/avatars/cirno.webp');
+ await React.act(async()=>root.render(React.createElement(api.ProfileAvatar,{name:'琪露诺',src:'assets/dairi/avatars/cirno/confident.webp',assetUrl:path=>'/'+path})));
+ assert.equal(container.querySelector('img').getAttribute('src'),'/assets/dairi/avatars/cirno/confident.webp');
  await React.act(async()=>root.render(React.createElement(api.ProfileAvatar,{name:'琪露诺'})));
  assert.equal(container.textContent,'琪');
 });

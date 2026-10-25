@@ -12,15 +12,21 @@ the distribution folder: Sanae, Nitori, Patchouli, Suika and six TH20 characters
 Their selected PNGs are also unchanged originals, recorded in `selection.json`. The additional
 expressions and costumes in the packages are not included in the application.
 
-`public/assets/dairi/avatars/<character>/<expression>.webp` holds 256px head
-crops used as profile avatar presets: every expression in each package's own
-通常 (normal) and 赤面 (blush) folders, 470 in all. Props, companion dolls and
-alternate costumes are not used. `launcher/scripts/make-dairi-avatars.py` cuts
-them from the original packages with the per-character face square in
-`avatar-crops.json` (expressions share their character's pose) and regenerates
-the expression catalog and the published file list. The package notices permit
-editing (加工) for non-commercial use; the crops stay credited to DAIRI / はるか
-and are not offered as separate downloads.
+`public/assets/dairi/avatars/` holds the profile avatar presets: 256px face
+crops of every character in the distribution folder, each with all of its
+expressions (normal and blush) and its alternate outfits. Each character
+appears once; a package that repeats a character in different clothes — an
+older design, a swimsuit, a PC-98 look — becomes another outfit of that
+character. Pose variants (やられ, バトルっぽい and similar) and chibi versions are
+not used.
+
+`avatar-sources.json` records, per character and outfit, the source archive,
+the folder inside it and the face square. `launcher/scripts/make-profile-avatars.py`
+cuts the crops from the original packages with it and regenerates the catalog
+and the published file list. The character names, search spellings and
+signature colours live in `launcher/app/models/profile-avatar-characters.ts`.
+The package notices permit editing (加工) for non-commercial use; the crops stay
+credited to DAIRI / はるか and are not offered as separate downloads.
 
 Additional characters and the author's root usage notice are available in the
 [author's distribution folder](https://drive.google.com/drive/folders/0B34TvJayojX_SU44YUtISFVRTnM?resourcekey=0-mhlyeSSR6Pctax9CSF6FRg).

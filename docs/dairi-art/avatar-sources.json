@@ -1,0 +1,2925 @@
+{
+ "note": "Each outfit: archive under the packages folder, the folder inside it, outfit id (\"\" is the default), face square [centre x, centre y, side] in source pixels and optionally the first expression. Squares were located from the pixels that change between expressions, then reviewed by eye and corrected where needed.",
+ "characters": {
+  "reimu": [
+   {
+    "archive": "主人公/博麗霊夢.zip",
+    "folder": "博麗霊夢",
+    "costume": "",
+    "crop": [
+     321,
+     182,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "靈異伝/博麗靈夢.zip",
+    "folder": "博麗靈夢",
+    "costume": "pc98",
+    "crop": [
+     369,
+     230,
+     264
+    ]
+   },
+   {
+    "archive": "主人公/博麗霊夢(水着).zip",
+    "folder": "博麗霊夢(水着)",
+    "costume": "swimsuit",
+    "crop": [
+     323,
+     197,
+     264
+    ]
+   },
+   {
+    "archive": "主人公/博麗霊夢(鈴奈庵冬服).zip",
+    "folder": "博麗霊夢(鈴奈庵冬服)",
+    "costume": "winter",
+    "crop": [
+     361,
+     235,
+     264
+    ]
+   }
+  ],
+  "marisa": [
+   {
+    "archive": "主人公/霧雨魔理沙.zip",
+    "folder": "霧雨魔理沙",
+    "costume": "",
+    "crop": [
+     307,
+     302,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "封魔録/霧雨魔理沙(旧作).zip",
+    "folder": "霧雨魔理沙(旧作)",
+    "costume": "pc98",
+    "crop": [
+     373,
+     301,
+     276
+    ]
+   },
+   {
+    "archive": "主人公/霧雨魔理沙(水着).zip",
+    "folder": "霧雨魔理沙(水着)",
+    "costume": "swimsuit",
+    "crop": [
+     351,
+     259,
+     288
+    ]
+   },
+   {
+    "archive": "主人公/霧雨魔理沙(獣王園).zip",
+    "folder": "霧雨魔理沙(獣王園)",
+    "costume": "th19",
+    "crop": [
+     438,
+     291,
+     276
+    ]
+   },
+   {
+    "archive": "主人公/霧雨魔理沙(鈴奈庵冬服).zip",
+    "folder": "霧雨魔理沙(鈴奈庵冬服)",
+    "costume": "winter",
+    "crop": [
+     366,
+     355,
+     276
+    ]
+   }
+  ],
+  "mima": [
+   {
+    "archive": "靈異伝/魅魔.zip",
+    "folder": "魅魔",
+    "costume": "",
+    "crop": [
+     795,
+     341,
+     288
+    ]
+   }
+  ],
+  "singyoku": [
+   {
+    "archive": "靈異伝/SinGyoku.zip",
+    "folder": "SinGyoku",
+    "costume": "",
+    "crop": [
+     240,
+     207,
+     240
+    ]
+   }
+  ],
+  "yuugenmagan": [
+   {
+    "archive": "靈異伝/YuugenMagan.zip",
+    "folder": "YuugenMagan",
+    "costume": "",
+    "crop": [
+     497,
+     351,
+     240
+    ]
+   }
+  ],
+  "elis": [
+   {
+    "archive": "靈異伝/Elis.zip",
+    "folder": "Elis",
+    "costume": "",
+    "crop": [
+     599,
+     251,
+     264
+    ]
+   }
+  ],
+  "kikuri": [
+   {
+    "archive": "靈異伝/kikuri.zip",
+    "folder": "kikuri",
+    "costume": "",
+    "crop": [
+     459,
+     289,
+     240
+    ]
+   }
+  ],
+  "sariel": [
+   {
+    "archive": "靈異伝/sariel.zip",
+    "folder": "sariel",
+    "costume": "",
+    "crop": [
+     939,
+     380,
+     300
+    ]
+   }
+  ],
+  "konngara": [
+   {
+    "archive": "靈異伝/Konngara.zip",
+    "folder": "Konngara",
+    "costume": "",
+    "crop": [
+     507,
+     208,
+     264
+    ]
+   }
+  ],
+  "genjii": [
+   {
+    "archive": "封魔録/玄爺.zip",
+    "folder": "玄爺",
+    "costume": "",
+    "crop": [
+     176,
+     145,
+     240
+    ]
+   }
+  ],
+  "rika": [
+   {
+    "archive": "封魔録/里香.zip",
+    "folder": "里香",
+    "costume": "",
+    "crop": [
+     313,
+     208,
+     240
+    ]
+   }
+  ],
+  "meira": [
+   {
+    "archive": "封魔録/明羅.zip",
+    "folder": "明羅",
+    "costume": "",
+    "crop": [
+     463,
+     219,
+     252
+    ]
+   }
+  ],
+  "ellen": [
+   {
+    "archive": "夢時空/エレン.zip",
+    "folder": "エレン",
+    "costume": "",
+    "crop": [
+     410,
+     273,
+     288
+    ]
+   }
+  ],
+  "kotohime": [
+   {
+    "archive": "夢時空/小兎姫.zip",
+    "folder": "小兎姫",
+    "costume": "",
+    "crop": [
+     357,
+     194,
+     264
+    ]
+   }
+  ],
+  "kana": [
+   {
+    "archive": "夢時空/カナ・アナベラル.zip",
+    "folder": "カナ・アナベラル",
+    "costume": "",
+    "crop": [
+     331,
+     223,
+     276
+    ]
+   }
+  ],
+  "rikako": [
+   {
+    "archive": "夢時空/朝倉理香子.zip",
+    "folder": "朝倉理香子",
+    "costume": "",
+    "crop": [
+     226,
+     226,
+     240
+    ]
+   }
+  ],
+  "chiyuri": [
+   {
+    "archive": "夢時空/北白河ちゆり.zip",
+    "folder": "北白河ちゆり",
+    "costume": "",
+    "crop": [
+     315,
+     264,
+     240
+    ]
+   }
+  ],
+  "yumemi": [
+   {
+    "archive": "夢時空/岡崎夢美.zip",
+    "folder": "岡崎夢美",
+    "costume": "",
+    "crop": [
+     741,
+     183,
+     312
+    ]
+   }
+  ],
+  "rukoto": [
+   {
+    "archive": "夢時空/る～こと.zip",
+    "folder": "る～こと",
+    "costume": "",
+    "crop": [
+     415,
+     212,
+     240
+    ]
+   }
+  ],
+  "orange": [
+   {
+    "archive": "幻想郷/オレンジ.zip",
+    "folder": "オレンジ",
+    "costume": "",
+    "crop": [
+     357,
+     209,
+     240
+    ]
+   }
+  ],
+  "kurumi": [
+   {
+    "archive": "幻想郷/くるみ.zip",
+    "folder": "くるみ",
+    "costume": "",
+    "crop": [
+     621,
+     353,
+     276
+    ]
+   }
+  ],
+  "elly": [
+   {
+    "archive": "幻想郷/エリー.zip",
+    "folder": "エリー",
+    "costume": "",
+    "crop": [
+     486,
+     244,
+     264
+    ]
+   }
+  ],
+  "yuuka": [
+   {
+    "archive": "花映塚、文花帖/風見幽香.zip",
+    "folder": "風見幽香",
+    "costume": "",
+    "crop": [
+     332,
+     329,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "幻想郷/幽香.zip",
+    "folder": "幽香",
+    "costume": "pc98",
+    "crop": [
+     229,
+     209,
+     264
+    ]
+   }
+  ],
+  "mugetsu": [
+   {
+    "archive": "幻想郷/夢月.zip",
+    "folder": "夢月",
+    "costume": "",
+    "crop": [
+     312,
+     187,
+     240
+    ]
+   }
+  ],
+  "gengetsu": [
+   {
+    "archive": "幻想郷/幻月.zip",
+    "folder": "幻月",
+    "costume": "",
+    "crop": [
+     289,
+     316,
+     276
+    ]
+   }
+  ],
+  "sara": [
+   {
+    "archive": "怪綺談/サラ.zip",
+    "folder": "サラ",
+    "costume": "",
+    "crop": [
+     215,
+     202,
+     240
+    ]
+   }
+  ],
+  "luize": [
+   {
+    "archive": "怪綺談/ルイズ.zip",
+    "folder": "ルイズ",
+    "costume": "",
+    "crop": [
+     400,
+     227,
+     300
+    ]
+   }
+  ],
+  "alice": [
+   {
+    "archive": "妖々夢/アリス・マーガトロイド＆上海蓬莱.zip",
+    "folder": "アリス・マーガトロイド＆上海蓬莱",
+    "costume": "",
+    "crop": [
+     368,
+     181,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "怪綺談/アリス旧作.zip",
+    "folder": "アリス旧作",
+    "costume": "pc98",
+    "crop": [
+     285,
+     212,
+     264
+    ]
+   }
+  ],
+  "yuki": [
+   {
+    "archive": "怪綺談/ユキ.zip",
+    "folder": "ユキ",
+    "costume": "",
+    "crop": [
+     303,
+     254,
+     240
+    ]
+   }
+  ],
+  "mai": [
+   {
+    "archive": "怪綺談/マイ.zip",
+    "folder": "マイ",
+    "costume": "",
+    "crop": [
+     510,
+     267,
+     240
+    ]
+   }
+  ],
+  "yumeko": [
+   {
+    "archive": "怪綺談/夢子.zip",
+    "folder": "夢子",
+    "costume": "",
+    "crop": [
+     407,
+     225,
+     288
+    ]
+   }
+  ],
+  "shinki": [
+   {
+    "archive": "怪綺談/神綺.zip",
+    "folder": "神綺",
+    "costume": "",
+    "crop": [
+     959,
+     271,
+     240
+    ]
+   }
+  ],
+  "rumia": [
+   {
+    "archive": "紅魔郷/ルーミア.zip",
+    "folder": "ルーミア",
+    "costume": "",
+    "crop": [
+     369,
+     180,
+     288
+    ]
+   }
+  ],
+  "ex-rumia": [
+   {
+    "archive": "紅魔郷/EXルーミア.zip",
+    "folder": "EXルーミア",
+    "costume": "",
+    "crop": [
+     537,
+     240,
+     288
+    ]
+   }
+  ],
+  "daiyousei": [
+   {
+    "archive": "紅魔郷/大妖精.zip",
+    "folder": "大妖精",
+    "costume": "",
+    "crop": [
+     319,
+     187,
+     276
+    ]
+   },
+   {
+    "archive": "三月精/青大妖精.zip",
+    "folder": "青大妖精",
+    "costume": "blue",
+    "crop": [
+     424,
+     266,
+     252
+    ]
+   },
+   {
+    "archive": "三月精/ピンク大妖精.zip",
+    "folder": "ピンク大妖精",
+    "costume": "pink",
+    "crop": [
+     438,
+     306,
+     288
+    ]
+   }
+  ],
+  "cirno": [
+   {
+    "archive": "紅魔郷/チルノ.zip",
+    "folder": "チルノ",
+    "costume": "",
+    "crop": [
+     333,
+     146,
+     280
+    ],
+    "first": "confident"
+   }
+  ],
+  "meiling": [
+   {
+    "archive": "紅魔郷/紅美鈴.zip",
+    "folder": "紅美鈴",
+    "costume": "",
+    "crop": [
+     359,
+     235,
+     264
+    ]
+   }
+  ],
+  "koakuma": [
+   {
+    "archive": "紅魔郷/小悪魔.zip",
+    "folder": "小悪魔",
+    "costume": "",
+    "crop": [
+     328,
+     146,
+     252
+    ]
+   }
+  ],
+  "patchouli": [
+   {
+    "archive": "紅魔郷/パチュリー・ノーレッジ.zip",
+    "folder": "パチュリー・ノーレッジ",
+    "costume": "",
+    "crop": [
+     356,
+     199,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "紅魔郷/パチュリー・ノーレッジ(水着).zip",
+    "folder": "パチュリー・ノーレッジ(水着)",
+    "costume": "swimsuit",
+    "crop": [
+     324,
+     244,
+     264
+    ]
+   }
+  ],
+  "sakuya": [
+   {
+    "archive": "紅魔郷/十六夜咲夜.zip",
+    "folder": "十六夜咲夜",
+    "costume": "",
+    "crop": [
+     334,
+     181,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "紅魔郷/十六夜咲夜(私服).zip",
+    "folder": "十六夜咲夜(私服)",
+    "costume": "casual",
+    "crop": [
+     428,
+     197,
+     288
+    ]
+   },
+   {
+    "archive": "紅魔郷/十六夜咲夜(香霖堂ver).zip",
+    "folder": "十六夜咲夜(香霖堂ver)",
+    "costume": "kourindou",
+    "crop": [
+     408,
+     220,
+     276
+    ]
+   }
+  ],
+  "remilia": [
+   {
+    "archive": "紅魔郷/レミリア・スカーレット.zip",
+    "folder": "レミリア・スカーレット",
+    "costume": "",
+    "crop": [
+     392,
+     206,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "紅魔郷/レミリア・スカーレット(外來韋編ver).zip",
+    "folder": "レミリア・スカーレット(外來韋編ver)/ノーマル",
+    "costume": "gairaiihen",
+    "crop": [
+     390,
+     248,
+     252
+    ]
+   },
+   {
+    "archive": "紅魔郷/レミリア・スカーレット(香霖堂ver).zip",
+    "folder": "レミリア・スカーレット(香霖堂ver)",
+    "costume": "kourindou",
+    "crop": [
+     404,
+     311,
+     276
+    ]
+   },
+   {
+    "archive": "紅魔郷/レミリア・スカーレット(パジャマ).zip",
+    "folder": "レミリア・スカーレット(パジャマ)",
+    "costume": "pajamas",
+    "crop": [
+     400,
+     253,
+     264
+    ]
+   },
+   {
+    "archive": "紅魔郷/レミリア・スカーレット(水着).zip",
+    "folder": "レミリア・スカーレット(水着)",
+    "costume": "swimsuit",
+    "crop": [
+     385,
+     191,
+     240
+    ]
+   }
+  ],
+  "flandre": [
+   {
+    "archive": "紅魔郷/フランドール・スカーレット.zip",
+    "folder": "フランドール・スカーレット",
+    "costume": "",
+    "crop": [
+     425,
+     222,
+     252
+    ]
+   }
+  ],
+  "sdm-personified": [
+   {
+    "archive": "紅魔郷/紅魔館擬人化.zip",
+    "folder": "紅魔館擬人化",
+    "costume": "",
+    "crop": [
+     390,
+     240,
+     288
+    ]
+   }
+  ],
+  "library-personified": [
+   {
+    "archive": "紅魔郷/大図書館擬人化.zip",
+    "folder": "大図書館擬人化",
+    "costume": "",
+    "crop": [
+     465,
+     261,
+     288
+    ]
+   }
+  ],
+  "letty": [
+   {
+    "archive": "妖々夢/レティ・ホワイトロック.zip",
+    "folder": "レティ・ホワイトロック",
+    "costume": "",
+    "crop": [
+     434,
+     296,
+     276
+    ]
+   }
+  ],
+  "chen": [
+   {
+    "archive": "妖々夢/橙.zip",
+    "folder": "橙",
+    "costume": "",
+    "crop": [
+     257,
+     164,
+     252
+    ]
+   },
+   {
+    "archive": "妖々夢/橙(大人).zip",
+    "folder": "橙(大人)",
+    "costume": "adult",
+    "crop": [
+     421,
+     197,
+     276
+    ]
+   }
+  ],
+  "lunasa": [
+   {
+    "archive": "妖々夢/ルナサ・プリズムリバー.zip",
+    "folder": "ルナサ・プリズムリバー",
+    "costume": "",
+    "crop": [
+     264,
+     238,
+     280
+    ],
+    "first": "neutral"
+   }
+  ],
+  "merlin": [
+   {
+    "archive": "妖々夢/メルラン・プリズムリバー.zip",
+    "folder": "メルラン・プリズムリバー",
+    "costume": "",
+    "crop": [
+     262,
+     291,
+     280
+    ],
+    "first": "smile"
+   }
+  ],
+  "lyrica": [
+   {
+    "archive": "妖々夢/リリカ・プリズムリバー.zip",
+    "folder": "リリカ・プリズムリバー",
+    "costume": "",
+    "crop": [
+     361,
+     311,
+     280
+    ],
+    "first": "smile"
+   }
+  ],
+  "lily-white": [
+   {
+    "archive": "妖々夢/リリーホワイト(天空璋衣装).zip",
+    "folder": "リリーホワイト(天空璋衣装)",
+    "costume": "",
+    "crop": [
+     398,
+     301,
+     288
+    ]
+   },
+   {
+    "archive": "妖々夢/リリーホワイト＆ブラック.zip",
+    "folder": "リリーホワイト＆ブラック",
+    "costume": "with-black",
+    "crop": [
+     396,
+     211,
+     276
+    ]
+   }
+  ],
+  "youmu": [
+   {
+    "archive": "妖々夢/魂魄妖夢.zip",
+    "folder": "魂魄妖夢",
+    "costume": "",
+    "crop": [
+     407,
+     179,
+     280
+    ],
+    "first": "smile"
+   }
+  ],
+  "youki": [
+   {
+    "archive": "妖々夢/魂魄妖忌.zip",
+    "folder": "魂魄妖忌",
+    "costume": "",
+    "crop": [
+     556,
+     197,
+     276
+    ]
+   }
+  ],
+  "yuyuko": [
+   {
+    "archive": "妖々夢/西行寺幽々子(1).zip",
+    "folder": "西行寺幽々子(1)",
+    "costume": "",
+    "crop": [
+     386,
+     191,
+     280
+    ],
+    "first": "x1"
+   },
+   {
+    "archive": "妖々夢/西行寺幽々子(2).zip",
+    "folder": "西行寺幽々子(2)",
+    "costume": "v2",
+    "crop": [
+     352,
+     217,
+     240
+    ]
+   }
+  ],
+  "ran": [
+   {
+    "archive": "妖々夢/八雲藍.zip",
+    "folder": "八雲藍",
+    "costume": "",
+    "crop": [
+     390,
+     207,
+     252
+    ]
+   }
+  ],
+  "yukari": [
+   {
+    "archive": "妖々夢/八雲紫(1).zip",
+    "folder": "八雲紫(1)",
+    "costume": "",
+    "crop": [
+     292,
+     206,
+     280
+    ],
+    "first": "x1"
+   },
+   {
+    "archive": "妖々夢/八雲紫(2)(妖々夢衣装).zip",
+    "folder": "八雲紫(2)(妖々夢衣装)",
+    "costume": "th07",
+    "crop": [
+     425,
+     377,
+     240
+    ]
+   },
+   {
+    "archive": "妖々夢/八雲紫(2).zip",
+    "folder": "八雲紫(2)",
+    "costume": "v2",
+    "crop": [
+     294,
+     224,
+     240
+    ]
+   }
+  ],
+  "suika": [
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/伊吹萃香.zip",
+    "folder": "伊吹萃香",
+    "costume": "",
+    "crop": [
+     362,
+     281,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/伊吹萃香(茨歌仙衣装).zip",
+    "folder": "伊吹萃香(茨歌仙衣装)",
+    "costume": "wild-and-horned",
+    "crop": [
+     289,
+     245,
+     288
+    ]
+   }
+  ],
+  "iku": [
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/永江衣玖.zip",
+    "folder": "永江衣玖",
+    "costume": "",
+    "crop": [
+     443,
+     381,
+     240
+    ]
+   }
+  ],
+  "tenshi": [
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/比那名居天子.zip",
+    "folder": "比那名居天子",
+    "costume": "",
+    "crop": [
+     320,
+     219,
+     288
+    ]
+   }
+  ],
+  "hisoutensoku": [
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/ヒソウテンソク.zip",
+    "folder": "ヒソウテンソク",
+    "costume": "",
+    "crop": [
+     400,
+     215,
+     340
+    ]
+   }
+  ],
+  "kokoro": [
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/秦こころ.zip",
+    "folder": "秦こころ/ポーカーフェイスver",
+    "costume": "",
+    "crop": [
+     655,
+     300,
+     300
+    ]
+   },
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/秦こころ.zip",
+    "folder": "秦こころ/表情豊かver",
+    "costume": "expressive",
+    "crop": [
+     655,
+     300,
+     300
+    ]
+   },
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/秦こころ(巫女服).zip",
+    "folder": "秦こころ(巫女服)",
+    "costume": "shrine-maiden",
+    "crop": [
+     413,
+     168,
+     252
+    ]
+   }
+  ],
+  "sumireko": [
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/宇佐見菫子.zip",
+    "folder": "宇佐見菫子",
+    "costume": "",
+    "crop": [
+     471,
+     229,
+     264
+    ]
+   }
+  ],
+  "joon": [
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/依神女苑.zip",
+    "folder": "依神女苑",
+    "costume": "",
+    "crop": [
+     393,
+     248,
+     276
+    ]
+   }
+  ],
+  "shion": [
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/依神紫苑.zip",
+    "folder": "依神紫苑",
+    "costume": "",
+    "crop": [
+     426,
+     243,
+     288
+    ]
+   }
+  ],
+  "yuuma": [
+   {
+    "archive": "萃夢想、緋想天、心綺楼、深秘録、憑依華、剛欲異聞/饕餮尤魔.zip",
+    "folder": "饕餮尤魔",
+    "costume": "",
+    "crop": [
+     462,
+     269,
+     252
+    ]
+   }
+  ],
+  "wriggle": [
+   {
+    "archive": "永夜抄/リグル・ナイトバグ.zip",
+    "folder": "リグル・ナイトバグ",
+    "costume": "",
+    "crop": [
+     340,
+     220,
+     276
+    ]
+   }
+  ],
+  "mystia": [
+   {
+    "archive": "永夜抄/ミスティア・ローレライ.zip",
+    "folder": "ミスティア・ローレライ/通常衣装",
+    "costume": "",
+    "crop": [
+     473,
+     209,
+     280
+    ],
+    "first": "neutral"
+   },
+   {
+    "archive": "永夜抄/ミスティア・ローレライ.zip",
+    "folder": "ミスティア・ローレライ/おかみすちー",
+    "costume": "okami",
+    "crop": [
+     469,
+     223,
+     264
+    ]
+   }
+  ],
+  "keine": [
+   {
+    "archive": "永夜抄/上白沢慧音.zip",
+    "folder": "上白沢慧音/人間モード",
+    "costume": "",
+    "crop": [
+     375,
+     311,
+     276
+    ]
+   },
+   {
+    "archive": "永夜抄/上白沢慧音.zip",
+    "folder": "上白沢慧音/ワーハクタク",
+    "costume": "hakutaku",
+    "crop": [
+     376,
+     311,
+     276
+    ]
+   }
+  ],
+  "tewi": [
+   {
+    "archive": "永夜抄/因幡てゐ.zip",
+    "folder": "因幡てゐ",
+    "costume": "",
+    "crop": [
+     237,
+     210,
+     280
+    ],
+    "first": "smile"
+   }
+  ],
+  "reisen": [
+   {
+    "archive": "永夜抄/鈴仙・優曇華院・イナバ.zip",
+    "folder": "鈴仙・優曇華院・イナバ",
+    "costume": "",
+    "crop": [
+     330,
+     334,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "永夜抄/鈴仙・優曇華院・イナバ(深秘録ver).zip",
+    "folder": "鈴仙・優曇華院・イナバ(深秘録ver)",
+    "costume": "th145",
+    "crop": [
+     442,
+     294,
+     276
+    ]
+   }
+  ],
+  "eirin": [
+   {
+    "archive": "永夜抄/八意永琳.zip",
+    "folder": "八意永琳",
+    "costume": "",
+    "crop": [
+     229,
+     169,
+     240
+    ]
+   }
+  ],
+  "kaguya": [
+   {
+    "archive": "永夜抄/蓬莱山輝夜.zip",
+    "folder": "蓬莱山輝夜",
+    "costume": "",
+    "crop": [
+     462,
+     191,
+     276
+    ]
+   }
+  ],
+  "mokou": [
+   {
+    "archive": "永夜抄/藤原妹紅.zip",
+    "folder": "藤原妹紅",
+    "costume": "",
+    "crop": [
+     366,
+     190,
+     240
+    ]
+   }
+  ],
+  "aya": [
+   {
+    "archive": "花映塚、文花帖/射命丸文.zip",
+    "folder": "射命丸文",
+    "costume": "",
+    "crop": [
+     263,
+     141,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "花映塚、文花帖/射命丸文(ルポライター衣装).zip",
+    "folder": "射命丸文(ルポライター衣装)",
+    "costume": "reporter",
+    "crop": [
+     437,
+     225,
+     240
+    ]
+   },
+   {
+    "archive": "花映塚、文花帖/射命丸文(水着).zip",
+    "folder": "射命丸文(水着)",
+    "costume": "swimsuit",
+    "crop": [
+     319,
+     210,
+     276
+    ]
+   },
+   {
+    "archive": "花映塚、文花帖/射命丸文(天狗衣装).zip",
+    "folder": "射命丸文(天狗衣装)",
+    "costume": "tengu",
+    "crop": [
+     533,
+     237,
+     288
+    ]
+   }
+  ],
+  "hatate": [
+   {
+    "archive": "花映塚、文花帖/姫海棠はたて.zip",
+    "folder": "姫海棠はたて",
+    "costume": "",
+    "crop": [
+     340,
+     249,
+     288
+    ]
+   },
+   {
+    "archive": "花映塚、文花帖/姫海棠はたて(天狗衣装).zip",
+    "folder": "姫海棠はたて(天狗衣装)",
+    "costume": "tengu",
+    "crop": [
+     504,
+     239,
+     312
+    ]
+   }
+  ],
+  "medicine": [
+   {
+    "archive": "花映塚、文花帖/メディスン・メランコリー.zip",
+    "folder": "メディスン・メランコリー",
+    "costume": "",
+    "crop": [
+     289,
+     203,
+     280
+    ],
+    "first": "smile"
+   }
+  ],
+  "komachi": [
+   {
+    "archive": "花映塚、文花帖/小野塚小町.zip",
+    "folder": "小野塚小町",
+    "costume": "",
+    "crop": [
+     379,
+     172,
+     280
+    ],
+    "first": "smile"
+   }
+  ],
+  "eiki": [
+   {
+    "archive": "花映塚、文花帖/四季映姫・ヤマザナドゥ.zip",
+    "folder": "四季映姫・ヤマザナドゥ",
+    "costume": "",
+    "crop": [
+     333,
+     235,
+     280
+    ],
+    "first": "neutral"
+   }
+  ],
+  "shizuha": [
+   {
+    "archive": "風神録/秋静葉.zip",
+    "folder": "秋静葉",
+    "costume": "",
+    "crop": [
+     425,
+     187,
+     288
+    ]
+   }
+  ],
+  "minoriko": [
+   {
+    "archive": "風神録/秋穣子.zip",
+    "folder": "秋穣子",
+    "costume": "",
+    "crop": [
+     296,
+     193,
+     264
+    ]
+   }
+  ],
+  "hina": [
+   {
+    "archive": "風神録/鍵山雛.zip",
+    "folder": "鍵山雛",
+    "costume": "",
+    "crop": [
+     359,
+     242,
+     240
+    ]
+   }
+  ],
+  "nitori": [
+   {
+    "archive": "風神録/河城にとり.zip",
+    "folder": "河城にとり",
+    "costume": "",
+    "crop": [
+     360,
+     316,
+     280
+    ],
+    "first": "smile"
+   },
+   {
+    "archive": "風神録/河城にとり(長ズボン).zip",
+    "folder": "河城にとり(長ズボン)",
+    "costume": "trousers",
+    "crop": [
+     364,
+     231,
+     276
+    ]
+   }
+  ],
+  "momiji": [
+   {
+    "archive": "風神録/犬走椛.zip",
+    "folder": "犬走椛",
+    "costume": "",
+    "crop": [
+     610,
+     198,
+     276
+    ]
+   }
+  ],
+  "sanae": [
+   {
+    "archive": "風神録/東風谷早苗.zip",
+    "folder": "東風谷早苗",
+    "costume": "",
+    "crop": [
+     441,
+     150,
+     280
+    ],
+    "first": "smile"
+   }
+  ],
+  "kanako": [
+   {
+    "archive": "風神録/八坂神奈子.zip",
+    "folder": "八坂神奈子",
+    "costume": "",
+    "crop": [
+     390,
+     337,
+     264
+    ]
+   }
+  ],
+  "suwako": [
+   {
+    "archive": "風神録/洩矢諏訪子.zip",
+    "folder": "洩矢諏訪子",
+    "costume": "",
+    "crop": [
+     365,
+     252,
+     300
+    ]
+   }
+  ],
+  "kisume": [
+   {
+    "archive": "地霊殿/キスメ.zip",
+    "folder": "キスメ",
+    "costume": "",
+    "crop": [
+     267,
+     483,
+     288
+    ]
+   },
+   {
+    "archive": "地霊殿/キスメ(大人).zip",
+    "folder": "キスメ(大人)",
+    "costume": "adult",
+    "crop": [
+     465,
+     240,
+     240
+    ]
+   }
+  ],
+  "yamame": [
+   {
+    "archive": "地霊殿/黒谷ヤマメ.zip",
+    "folder": "黒谷ヤマメ",
+    "costume": "",
+    "crop": [
+     290,
+     202,
+     264
+    ]
+   }
+  ],
+  "parsee": [
+   {
+    "archive": "地霊殿/水橋パルスィ.zip",
+    "folder": "水橋パルスィ",
+    "costume": "",
+    "crop": [
+     265,
+     159,
+     276
+    ]
+   }
+  ],
+  "yuugi": [
+   {
+    "archive": "地霊殿/星熊勇儀.zip",
+    "folder": "星熊勇儀",
+    "costume": "",
+    "crop": [
+     320,
+     203,
+     264
+    ]
+   },
+   {
+    "archive": "地霊殿/星熊勇儀(着物衣装).zip",
+    "folder": "星熊勇儀(着物衣装)",
+    "costume": "kimono",
+    "crop": [
+     336,
+     239,
+     276
+    ]
+   }
+  ],
+  "satori": [
+   {
+    "archive": "地霊殿/古明地さとり.zip",
+    "folder": "古明地さとり",
+    "costume": "",
+    "crop": [
+     299,
+     187,
+     276
+    ]
+   }
+  ],
+  "rin": [
+   {
+    "archive": "地霊殿/火焔猫燐.zip",
+    "folder": "火焔猫燐",
+    "costume": "",
+    "crop": [
+     316,
+     282,
+     264
+    ]
+   }
+  ],
+  "utsuho": [
+   {
+    "archive": "地霊殿/霊烏路空.zip",
+    "folder": "霊烏路空",
+    "costume": "",
+    "crop": [
+     716,
+     195,
+     288
+    ]
+   }
+  ],
+  "koishi": [
+   {
+    "archive": "地霊殿/古明地こいし.zip",
+    "folder": "古明地こいし",
+    "costume": "",
+    "crop": [
+     343,
+     196,
+     288
+    ]
+   },
+   {
+    "archive": "地霊殿/古明地こいし(パジャマ).zip",
+    "folder": "古明地こいし(パジャマ)",
+    "costume": "pajamas",
+    "crop": [
+     457,
+     250,
+     288
+    ]
+   }
+  ],
+  "nazrin": [
+   {
+    "archive": "星蓮船/ナズーリン.zip",
+    "folder": "ナズーリン",
+    "costume": "",
+    "crop": [
+     477,
+     162,
+     264
+    ]
+   }
+  ],
+  "kogasa": [
+   {
+    "archive": "星蓮船/多々良小傘.zip",
+    "folder": "多々良小傘",
+    "costume": "",
+    "crop": [
+     496,
+     428,
+     240
+    ]
+   },
+   {
+    "archive": "星蓮船/多々良小傘(冬服).zip",
+    "folder": "多々良小傘(冬服)",
+    "costume": "winter",
+    "crop": [
+     392,
+     386,
+     252
+    ]
+   }
+  ],
+  "ichirin": [
+   {
+    "archive": "星蓮船/雲居一輪＆雲山.zip",
+    "folder": "雲居一輪＆雲山",
+    "costume": "",
+    "crop": [
+     544,
+     190,
+     240
+    ]
+   }
+  ],
+  "unzan": [
+   {
+    "archive": "星蓮船/雲山.zip",
+    "folder": "雲山",
+    "costume": "",
+    "crop": [
+     596,
+     360,
+     640
+    ]
+   }
+  ],
+  "minamitsu": [
+   {
+    "archive": "星蓮船/村紗水蜜.zip",
+    "folder": "村紗水蜜",
+    "costume": "",
+    "crop": [
+     376,
+     308,
+     264
+    ]
+   }
+  ],
+  "shou": [
+   {
+    "archive": "星蓮船/寅丸星.zip",
+    "folder": "寅丸星",
+    "costume": "",
+    "crop": [
+     465,
+     273,
+     240
+    ]
+   }
+  ],
+  "byakuren": [
+   {
+    "archive": "星蓮船/聖白蓮.zip",
+    "folder": "聖白蓮",
+    "costume": "",
+    "crop": [
+     468,
+     235,
+     276
+    ]
+   }
+  ],
+  "nue": [
+   {
+    "archive": "星蓮船/封獣ぬえ.zip",
+    "folder": "封獣ぬえ",
+    "costume": "",
+    "crop": [
+     459,
+     212,
+     252
+    ]
+   }
+  ],
+  "kyouko": [
+   {
+    "archive": "神霊廟/幽谷響子.zip",
+    "folder": "幽谷響子",
+    "costume": "",
+    "crop": [
+     545,
+     190,
+     300
+    ]
+   }
+  ],
+  "yoshika": [
+   {
+    "archive": "神霊廟/宮古芳香.zip",
+    "folder": "宮古芳香",
+    "costume": "",
+    "crop": [
+     507,
+     227,
+     240
+    ]
+   }
+  ],
+  "seiga": [
+   {
+    "archive": "神霊廟/霍青娥.zip",
+    "folder": "霍青娥",
+    "costume": "",
+    "crop": [
+     349,
+     219,
+     264
+    ]
+   }
+  ],
+  "tojiko": [
+   {
+    "archive": "神霊廟/蘇我屠自古.zip",
+    "folder": "蘇我屠自古",
+    "costume": "",
+    "crop": [
+     398,
+     275,
+     300
+    ]
+   }
+  ],
+  "futo": [
+   {
+    "archive": "神霊廟/物部布都.zip",
+    "folder": "物部布都",
+    "costume": "",
+    "crop": [
+     406,
+     281,
+     288
+    ]
+   }
+  ],
+  "miko": [
+   {
+    "archive": "神霊廟/豊聡耳神子.zip",
+    "folder": "豊聡耳神子",
+    "costume": "",
+    "crop": [
+     602,
+     309,
+     288
+    ]
+   }
+  ],
+  "mamizou": [
+   {
+    "archive": "神霊廟/二ッ岩マミゾウ.zip",
+    "folder": "二ッ岩マミゾウ",
+    "costume": "",
+    "crop": [
+     395,
+     212,
+     276
+    ]
+   },
+   {
+    "archive": "神霊廟/二ッ岩マミゾウ(鈴奈庵人間ver).zip",
+    "folder": "二ッ岩マミゾウ(鈴奈庵人間ver)",
+    "costume": "human",
+    "crop": [
+     326,
+     193,
+     264
+    ]
+   }
+  ],
+  "wakasagihime": [
+   {
+    "archive": "輝針城/わかさぎ姫.zip",
+    "folder": "わかさぎ姫",
+    "costume": "",
+    "crop": [
+     245,
+     184,
+     264
+    ]
+   }
+  ],
+  "sekibanki": [
+   {
+    "archive": "輝針城/赤蛮奇.zip",
+    "folder": "赤蛮奇",
+    "costume": "",
+    "crop": [
+     225,
+     191,
+     288
+    ]
+   }
+  ],
+  "kagerou": [
+   {
+    "archive": "輝針城/今泉影狼.zip",
+    "folder": "今泉影狼",
+    "costume": "",
+    "crop": [
+     428,
+     210,
+     264
+    ]
+   }
+  ],
+  "benben": [
+   {
+    "archive": "輝針城/九十九弁々.zip",
+    "folder": "九十九弁々",
+    "costume": "",
+    "crop": [
+     354,
+     179,
+     264
+    ]
+   }
+  ],
+  "yatsuhashi": [
+   {
+    "archive": "輝針城/九十九八橋.zip",
+    "folder": "九十九八橋",
+    "costume": "",
+    "crop": [
+     409,
+     187,
+     300
+    ]
+   }
+  ],
+  "seija": [
+   {
+    "archive": "輝針城/鬼人正邪.zip",
+    "folder": "鬼人正邪",
+    "costume": "",
+    "crop": [
+     274,
+     173,
+     288
+    ]
+   }
+  ],
+  "shinmyoumaru": [
+   {
+    "archive": "輝針城/少名針妙丸.zip",
+    "folder": "少名針妙丸",
+    "costume": "",
+    "crop": [
+     301,
+     216,
+     288
+    ]
+   }
+  ],
+  "raiko": [
+   {
+    "archive": "輝針城/堀川雷鼓.zip",
+    "folder": "堀川雷鼓",
+    "costume": "",
+    "crop": [
+     541,
+     219,
+     300
+    ]
+   }
+  ],
+  "seiran": [
+   {
+    "archive": "紺珠伝/清蘭.zip",
+    "folder": "清蘭",
+    "costume": "",
+    "crop": [
+     355,
+     318,
+     240
+    ]
+   }
+  ],
+  "ringo": [
+   {
+    "archive": "紺珠伝/鈴瑚.zip",
+    "folder": "鈴瑚",
+    "costume": "",
+    "crop": [
+     377,
+     222,
+     252
+    ]
+   }
+  ],
+  "doremy": [
+   {
+    "archive": "紺珠伝/ドレミー・スイート.zip",
+    "folder": "ドレミー・スイート",
+    "costume": "",
+    "crop": [
+     378,
+     222,
+     276
+    ]
+   }
+  ],
+  "sagume": [
+   {
+    "archive": "紺珠伝/稀神サグメ.zip",
+    "folder": "稀神サグメ",
+    "costume": "",
+    "crop": [
+     462,
+     205,
+     276
+    ]
+   }
+  ],
+  "clownpiece": [
+   {
+    "archive": "紺珠伝/クラウンピース.zip",
+    "folder": "クラウンピース",
+    "costume": "",
+    "crop": [
+     442,
+     354,
+     264
+    ]
+   }
+  ],
+  "junko": [
+   {
+    "archive": "紺珠伝/純狐.zip",
+    "folder": "純狐",
+    "costume": "",
+    "crop": [
+     781,
+     564,
+     276
+    ]
+   }
+  ],
+  "hecatia": [
+   {
+    "archive": "紺珠伝/ヘカーティア・ラピスラズリ.zip",
+    "folder": "ヘカーティア・ラピスラズリ",
+    "costume": "",
+    "crop": [
+     358,
+     315,
+     276
+    ]
+   },
+   {
+    "archive": "紺珠伝/ヘカーティア・ラピスラズリ(三月精青ヘカーティア).zip",
+    "folder": "ヘカーティア・ラピスラズリ(三月精青ヘカーティア)",
+    "costume": "blue",
+    "crop": [
+     475,
+     278,
+     276
+    ]
+   }
+  ],
+  "larva": [
+   {
+    "archive": "天空璋/エタニティラルバ.zip",
+    "folder": "エタニティラルバ",
+    "costume": "",
+    "crop": [
+     534,
+     221,
+     300
+    ]
+   }
+  ],
+  "nemuno": [
+   {
+    "archive": "天空璋/坂田ネムノ.zip",
+    "folder": "坂田ネムノ",
+    "costume": "",
+    "crop": [
+     386,
+     183,
+     300
+    ]
+   }
+  ],
+  "aunn": [
+   {
+    "archive": "天空璋/高麗野あうん.zip",
+    "folder": "高麗野あうん",
+    "costume": "",
+    "crop": [
+     310,
+     219,
+     264
+    ]
+   }
+  ],
+  "narumi": [
+   {
+    "archive": "天空璋/矢田寺成美.zip",
+    "folder": "矢田寺成美",
+    "costume": "",
+    "crop": [
+     338,
+     257,
+     252
+    ]
+   }
+  ],
+  "mai-teireida": [
+   {
+    "archive": "天空璋/丁礼田舞.zip",
+    "folder": "丁礼田舞",
+    "costume": "",
+    "crop": [
+     363,
+     265,
+     300
+    ]
+   }
+  ],
+  "satono": [
+   {
+    "archive": "天空璋/爾子田里乃.zip",
+    "folder": "爾子田里乃",
+    "costume": "",
+    "crop": [
+     340,
+     229,
+     288
+    ]
+   }
+  ],
+  "okina": [
+   {
+    "archive": "天空璋/摩多羅隠岐奈.zip",
+    "folder": "摩多羅隠岐奈",
+    "costume": "",
+    "crop": [
+     607,
+     477,
+     276
+    ]
+   }
+  ],
+  "eika": [
+   {
+    "archive": "鬼形獣/戎櫻花.zip",
+    "folder": "戎櫻花",
+    "costume": "",
+    "crop": [
+     342,
+     197,
+     276
+    ]
+   }
+  ],
+  "urumi": [
+   {
+    "archive": "鬼形獣/牛崎潤美.zip",
+    "folder": "牛崎潤美",
+    "costume": "",
+    "crop": [
+     349,
+     207,
+     240
+    ]
+   }
+  ],
+  "kutaka": [
+   {
+    "archive": "鬼形獣/庭渡久侘歌.zip",
+    "folder": "庭渡久侘歌",
+    "costume": "",
+    "crop": [
+     491,
+     233,
+     300
+    ]
+   }
+  ],
+  "yachie": [
+   {
+    "archive": "鬼形獣/吉弔八千慧.zip",
+    "folder": "吉弔八千慧",
+    "costume": "",
+    "crop": [
+     436,
+     241,
+     276
+    ]
+   }
+  ],
+  "mayumi": [
+   {
+    "archive": "鬼形獣/杖刀偶磨弓.zip",
+    "folder": "杖刀偶磨弓",
+    "costume": "",
+    "crop": [
+     421,
+     215,
+     280
+    ]
+   }
+  ],
+  "keiki": [
+   {
+    "archive": "鬼形獣/埴安神袿姫.zip",
+    "folder": "埴安神袿姫",
+    "costume": "",
+    "crop": [
+     546,
+     258,
+     276
+    ]
+   }
+  ],
+  "saki": [
+   {
+    "archive": "鬼形獣/驪駒早鬼.zip",
+    "folder": "驪駒早鬼",
+    "costume": "",
+    "crop": [
+     304,
+     288,
+     276
+    ]
+   }
+  ],
+  "mike": [
+   {
+    "archive": "虹龍洞/豪徳寺ミケ.zip",
+    "folder": "豪徳寺ミケ",
+    "costume": "",
+    "crop": [
+     301,
+     222,
+     264
+    ]
+   }
+  ],
+  "takane": [
+   {
+    "archive": "虹龍洞/山城たかね.zip",
+    "folder": "山城たかね",
+    "costume": "",
+    "crop": [
+     275,
+     225,
+     264
+    ]
+   }
+  ],
+  "sannyo": [
+   {
+    "archive": "虹龍洞/駒草山如.zip",
+    "folder": "駒草山如",
+    "costume": "",
+    "crop": [
+     365,
+     186,
+     276
+    ]
+   }
+  ],
+  "misumaru": [
+   {
+    "archive": "虹龍洞/玉造魅須丸.zip",
+    "folder": "玉造魅須丸",
+    "costume": "",
+    "crop": [
+     273,
+     206,
+     276
+    ]
+   }
+  ],
+  "tsukasa": [
+   {
+    "archive": "虹龍洞/菅牧典.zip",
+    "folder": "菅牧典",
+    "costume": "",
+    "crop": [
+     312,
+     241,
+     252
+    ]
+   }
+  ],
+  "megumu": [
+   {
+    "archive": "虹龍洞/飯綱丸龍.zip",
+    "folder": "飯綱丸龍",
+    "costume": "",
+    "crop": [
+     387,
+     201,
+     252
+    ]
+   }
+  ],
+  "chimata": [
+   {
+    "archive": "虹龍洞/天弓千亦.zip",
+    "folder": "天弓千亦",
+    "costume": "",
+    "crop": [
+     444,
+     228,
+     264
+    ]
+   }
+  ],
+  "momoyo": [
+   {
+    "archive": "虹龍洞/姫虫百々世.zip",
+    "folder": "姫虫百々世",
+    "costume": "",
+    "crop": [
+     307,
+     202,
+     240
+    ]
+   }
+  ],
+  "biten": [
+   {
+    "archive": "獣王園/孫美天.zip",
+    "folder": "孫美天",
+    "costume": "",
+    "crop": [
+     437,
+     212,
+     252
+    ]
+   }
+  ],
+  "enoko": [
+   {
+    "archive": "獣王園/三頭慧ノ子.zip",
+    "folder": "三頭慧ノ子",
+    "costume": "",
+    "crop": [
+     334,
+     242,
+     252
+    ]
+   }
+  ],
+  "chiyari": [
+   {
+    "archive": "獣王園/天火人ちやり.zip",
+    "folder": "天火人ちやり",
+    "costume": "",
+    "crop": [
+     334,
+     278,
+     240
+    ]
+   }
+  ],
+  "hisami": [
+   {
+    "archive": "獣王園/豫母都日狭美.zip",
+    "folder": "豫母都日狭美",
+    "costume": "",
+    "crop": [
+     325,
+     264,
+     240
+    ]
+   }
+  ],
+  "zanmu": [
+   {
+    "archive": "獣王園/日白残無.zip",
+    "folder": "日白残無",
+    "costume": "",
+    "crop": [
+     402,
+     177,
+     288
+    ]
+   }
+  ],
+  "ubame": [
+   {
+    "archive": "錦上京/塵塚ウバメ.zip",
+    "folder": "塵塚ウバメ",
+    "costume": "",
+    "crop": [
+     358,
+     206,
+     280
+    ],
+    "first": "smile"
+   }
+  ],
+  "chimi": [
+   {
+    "archive": "錦上京/封獣チミ.zip",
+    "folder": "封獣チミ",
+    "costume": "",
+    "crop": [
+     303,
+     217,
+     280
+    ],
+    "first": "confident"
+   }
+  ],
+  "naruko": [
+   {
+    "archive": "錦上京/道神馴子.zip",
+    "folder": "道神馴子",
+    "costume": "",
+    "crop": [
+     315,
+     225,
+     280
+    ],
+    "first": "laugh"
+   },
+   {
+    "archive": "錦上京/道神馴子(子供).zip",
+    "folder": "道神馴子(子供)",
+    "costume": "child",
+    "crop": [
+     426,
+     430,
+     288
+    ]
+   }
+  ],
+  "yuiman": [
+   {
+    "archive": "錦上京/ユイマン・浅間.zip",
+    "folder": "ユイマン・浅間",
+    "costume": "",
+    "crop": [
+     400,
+     303,
+     280
+    ],
+    "first": "smile"
+   }
+  ],
+  "ariya": [
+   {
+    "archive": "錦上京/磐永阿梨夜.zip",
+    "folder": "磐永阿梨夜",
+    "costume": "",
+    "crop": [
+     734,
+     263,
+     280
+    ],
+    "first": "smile"
+   }
+  ],
+  "nina": [
+   {
+    "archive": "錦上京/渡里ニナ.zip",
+    "folder": "渡里ニナ",
+    "costume": "",
+    "crop": [
+     529,
+     307,
+     300
+    ],
+    "first": "smile"
+   }
+  ],
+  "reisen-ii": [
+   {
+    "archive": "儚月抄/レイセン.zip",
+    "folder": "レイセン",
+    "costume": "",
+    "crop": [
+     224,
+     199,
+     288
+    ]
+   }
+  ],
+  "yorihime": [
+   {
+    "archive": "儚月抄/綿月依姫.zip",
+    "folder": "綿月依姫",
+    "costume": "",
+    "crop": [
+     745,
+     190,
+     288
+    ]
+   }
+  ],
+  "toyohime": [
+   {
+    "archive": "儚月抄/綿月豊姫.zip",
+    "folder": "綿月豊姫",
+    "costume": "",
+    "crop": [
+     285,
+     220,
+     276
+    ]
+   }
+  ],
+  "rain-fairy": [
+   {
+    "archive": "儚月抄/雨の妖精.zip",
+    "folder": "雨の妖精",
+    "costume": "",
+    "crop": [
+     429,
+     372,
+     264
+    ]
+   }
+  ],
+  "moon-rabbit": [
+   {
+    "archive": "儚月抄/モブ玉兎.zip",
+    "folder": "モブ玉兎/ゆるふわ",
+    "costume": "",
+    "crop": [
+     343,
+     339,
+     240
+    ]
+   },
+   {
+    "archive": "儚月抄/モブ玉兎.zip",
+    "folder": "モブ玉兎/メガネ",
+    "costume": "glasses",
+    "crop": [
+     343,
+     339,
+     240
+    ]
+   },
+   {
+    "archive": "儚月抄/モブ玉兎.zip",
+    "folder": "モブ玉兎/ベリショ",
+    "costume": "short-hair",
+    "crop": [
+     344,
+     334,
+     240
+    ]
+   }
+  ],
+  "sunny": [
+   {
+    "archive": "三月精/サニーミルク.zip",
+    "folder": "サニーミルク",
+    "costume": "",
+    "crop": [
+     431,
+     184,
+     252
+    ]
+   }
+  ],
+  "luna": [
+   {
+    "archive": "三月精/ルナチャイルド.zip",
+    "folder": "ルナチャイルド",
+    "costume": "",
+    "crop": [
+     361,
+     267,
+     240
+    ]
+   }
+  ],
+  "star": [
+   {
+    "archive": "三月精/スターサファイア.zip",
+    "folder": "スターサファイア",
+    "costume": "",
+    "crop": [
+     395,
+     188,
+     252
+    ]
+   }
+  ],
+  "kosuzu": [
+   {
+    "archive": "鈴奈庵/本居小鈴(1).zip",
+    "folder": "本居小鈴(1)",
+    "costume": "",
+    "crop": [
+     318,
+     183,
+     288
+    ]
+   },
+   {
+    "archive": "鈴奈庵/本居小鈴(2).zip",
+    "folder": "本居小鈴(2)",
+    "costume": "v2",
+    "crop": [
+     389,
+     202,
+     240
+    ]
+   },
+   {
+    "archive": "鈴奈庵/本居小鈴(3).zip",
+    "folder": "本居小鈴(3)",
+    "costume": "v3",
+    "crop": [
+     387,
+     190,
+     240
+    ]
+   }
+  ],
+  "akyuu": [
+   {
+    "archive": "鈴奈庵/稗田阿求.zip",
+    "folder": "稗田阿求",
+    "costume": "",
+    "crop": [
+     344,
+     179,
+     300
+    ]
+   },
+   {
+    "archive": "鈴奈庵/稗田阿求(鈴奈庵ver1).zip",
+    "folder": "稗田阿求(鈴奈庵ver1)",
+    "costume": "suzunaan-1",
+    "crop": [
+     369,
+     200,
+     276
+    ]
+   },
+   {
+    "archive": "鈴奈庵/稗田阿求(鈴奈庵ver2).zip",
+    "folder": "稗田阿求(鈴奈庵ver2)",
+    "costume": "suzunaan-2",
+    "crop": [
+     338,
+     198,
+     240
+    ]
+   },
+   {
+    "archive": "鈴奈庵/稗田阿求(鈴奈庵ver3).zip",
+    "folder": "稗田阿求(鈴奈庵ver3)",
+    "costume": "suzunaan-3",
+    "crop": [
+     400,
+     193,
+     240
+    ]
+   }
+  ],
+  "fortune-teller": [
+   {
+    "archive": "鈴奈庵/易者.zip",
+    "folder": "易者",
+    "costume": "",
+    "crop": [
+     580,
+     214,
+     240
+    ]
+   }
+  ],
+  "renko": [
+   {
+    "archive": "秘封倶楽部/宇佐見蓮子(1).zip",
+    "folder": "宇佐見蓮子(1)",
+    "costume": "",
+    "crop": [
+     286,
+     208,
+     252
+    ]
+   },
+   {
+    "archive": "秘封倶楽部/宇佐見蓮子(旧約酒場ver).zip",
+    "folder": "宇佐見蓮子(旧約酒場ver)",
+    "costume": "bar",
+    "crop": [
+     426,
+     210,
+     240
+    ]
+   },
+   {
+    "archive": "秘封倶楽部/宇佐見蓮子(燕石博物誌ver).zip",
+    "folder": "宇佐見蓮子(燕石博物誌ver)",
+    "costume": "ensekiihakubutsushi",
+    "crop": [
+     437,
+     208,
+     252
+    ]
+   },
+   {
+    "archive": "秘封倶楽部/宇佐見蓮子(2).zip",
+    "folder": "宇佐見蓮子(2)",
+    "costume": "v2",
+    "crop": [
+     436,
+     254,
+     276
+    ]
+   },
+   {
+    "archive": "秘封倶楽部/宇佐見蓮子(3).zip",
+    "folder": "宇佐見蓮子(3)",
+    "costume": "v3",
+    "crop": [
+     388,
+     206,
+     240
+    ]
+   }
+  ],
+  "maribel": [
+   {
+    "archive": "秘封倶楽部/マエリベリー・ハーン(1).zip",
+    "folder": "マエリベリー・ハーン(1)",
+    "costume": "",
+    "crop": [
+     383,
+     193,
+     276
+    ]
+   },
+   {
+    "archive": "秘封倶楽部/マエリベリー・ハーン(2).zip",
+    "folder": "マエリベリー・ハーン(2)",
+    "costume": "v2",
+    "crop": [
+     417,
+     192,
+     240
+    ]
+   },
+   {
+    "archive": "秘封倶楽部/マエリベリー・ハーン(3).zip",
+    "folder": "マエリベリー・ハーン(3)",
+    "costume": "v3",
+    "crop": [
+     397,
+     208,
+     240
+    ]
+   }
+  ],
+  "kasen": [
+   {
+    "archive": "未分類/茨木華扇.zip",
+    "folder": "茨木華扇",
+    "costume": "",
+    "crop": [
+     349,
+     192,
+     276
+    ]
+   },
+   {
+    "archive": "未分類/茨木華扇(鬼華扇).zip",
+    "folder": "茨木華扇(鬼華扇)",
+    "costume": "oni",
+    "crop": [
+     437,
+     196,
+     312
+    ]
+   },
+   {
+    "archive": "未分類/茨木華扇(影華扇).zip",
+    "folder": "茨木華扇(影華扇)",
+    "costume": "shadow",
+    "crop": [
+     374,
+     198,
+     288
+    ]
+   }
+  ],
+  "rinnosuke": [
+   {
+    "archive": "未分類/森近霖之助.zip",
+    "folder": "森近霖之助",
+    "costume": "",
+    "crop": [
+     481,
+     189,
+     240
+    ]
+   }
+  ],
+  "miyoi": [
+   {
+    "archive": "未分類/奥野田美宵.zip",
+    "folder": "奥野田美宵",
+    "costume": "",
+    "crop": [
+     320,
+     234,
+     276
+    ]
+   },
+   {
+    "archive": "未分類/奥野田美宵(2).zip",
+    "folder": "奥野田美宵(2)",
+    "costume": "v2",
+    "crop": [
+     278,
+     223,
+     240
+    ]
+   },
+   {
+    "archive": "未分類/奥野田美宵(3).zip",
+    "folder": "奥野田美宵(3)",
+    "costume": "v3",
+    "crop": [
+     351,
+     216,
+     240
+    ]
+   }
+  ],
+  "mizuchi": [
+   {
+    "archive": "未分類/宮出口瑞霊.zip",
+    "folder": "宮出口瑞霊",
+    "costume": "",
+    "crop": [
+     372,
+     237,
+     276
+    ]
+   }
+  ],
+  "rin-satsuki": [
+   {
+    "archive": "未分類/冴月麟.zip",
+    "folder": "冴月麟",
+    "costume": "",
+    "crop": [
+     421,
+     225,
+     276
+    ]
+   }
+  ],
+  "mitori": [
+   {
+    "archive": "未分類/河城みとり.zip",
+    "folder": "河城みとり",
+    "costume": "",
+    "crop": [
+     435,
+     220,
+     300
+    ]
+   }
+  ],
+  "book-reader": [
+   {
+    "archive": "未分類/名無しの本読み妖怪.zip",
+    "folder": "名無しの本読み妖怪",
+    "costume": "",
+    "crop": [
+     316,
+     228,
+     240
+    ]
+   }
+  ],
+  "kokoa": [
+   {
+    "archive": "未分類/ここぁ.zip",
+    "folder": "ここぁ",
+    "costume": "",
+    "crop": [
+     433,
+     298,
+     276
+    ]
+   }
+  ],
+  "seoiha": [
+   {
+    "archive": "未分類/瀬笈葉.zip",
+    "folder": "瀬笈葉",
+    "costume": "",
+    "crop": [
+     402,
+     258,
+     276
+    ]
+   }
+  ],
+  "vincawars": [
+   {
+    "archive": "未分類/ヴィンカワーズ.zip",
+    "folder": "ヴィンカワーズ",
+    "costume": "",
+    "crop": [
+     397,
+     278,
+     252
+    ]
+   }
+  ],
+  "zashiki-warashi": [
+   {
+    "archive": "未分類/テレワーク座敷童.zip",
+    "folder": "テレワーク座敷童",
+    "costume": "",
+    "crop": [
+     389,
+     189,
+     264
+    ]
+   }
+  ],
+  "fairy-maid": [
+   {
+    "archive": "未分類/妖精メイド.zip",
+    "folder": "妖精メイド/ぱっつん",
+    "costume": "",
+    "crop": [
+     455,
+     241,
+     264
+    ]
+   },
+   {
+    "archive": "未分類/妖精メイド.zip",
+    "folder": "妖精メイド/メガネ",
+    "costume": "glasses",
+    "crop": [
+     457,
+     248,
+     252
+    ]
+   },
+   {
+    "archive": "未分類/妖精メイド.zip",
+    "folder": "妖精メイド/ショート",
+    "costume": "short-hair",
+    "crop": [
+     457,
+     240,
+     264
+    ]
+   }
+  ],
+  "mob-inaba": [
+   {
+    "archive": "未分類/モブイナバ.zip",
+    "folder": "モブイナバ/おさげ",
+    "costume": "",
+    "crop": [
+     375,
+     251,
+     276
+    ]
+   },
+   {
+    "archive": "未分類/モブイナバ.zip",
+    "folder": "モブイナバ/ロング",
+    "costume": "long-hair",
+    "crop": [
+     376,
+     248,
+     264
+    ]
+   },
+   {
+    "archive": "未分類/モブイナバ.zip",
+    "folder": "モブイナバ/ショート",
+    "costume": "short-hair",
+    "crop": [
+     375,
+     247,
+     276
+    ]
+   }
+  ],
+  "mob-kappa": [
+   {
+    "archive": "未分類/モブ河童.zip",
+    "folder": "モブ河童/おかっぱ",
+    "costume": "",
+    "crop": [
+     353,
+     266,
+     264
+    ]
+   },
+   {
+    "archive": "未分類/モブ河童.zip",
+    "folder": "モブ河童/メガネ",
+    "costume": "glasses",
+    "crop": [
+     351,
+     264,
+     288
+    ]
+   },
+   {
+    "archive": "未分類/モブ河童.zip",
+    "folder": "モブ河童/ヘアピン",
+    "costume": "hairpin",
+    "crop": [
+     349,
+     265,
+     288
+    ]
+   }
+  ],
+  "mob-tanuki": [
+   {
+    "archive": "未分類/モブ狸.zip",
+    "folder": "モブ狸/おさげちゃん",
+    "costume": "",
+    "crop": [
+     322,
+     256,
+     288
+    ]
+   },
+   {
+    "archive": "未分類/モブ狸.zip",
+    "folder": "モブ狸/ジト目そばかすちゃん",
+    "costume": "freckles",
+    "crop": [
+     322,
+     257,
+     264
+    ]
+   },
+   {
+    "archive": "未分類/モブ狸.zip",
+    "folder": "モブ狸/糸目ロングちゃん",
+    "costume": "narrow-eyes",
+    "crop": [
+     321,
+     259,
+     264
+    ]
+   },
+   {
+    "archive": "未分類/モブ狸.zip",
+    "folder": "モブ狸/前髪上げちゃん",
+    "costume": "swept-bangs",
+    "crop": [
+     323,
+     253,
+     264
+    ]
+   }
+  ],
+  "tsumibukuro": [
+   {
+    "archive": "未分類/罪袋.zip",
+    "folder": "罪袋",
+    "costume": "",
+    "crop": [
+     350,
+     165,
+     300
+    ]
+   }
+  ]
+ }
+}
