@@ -804,7 +804,9 @@ body:has(.lobby-redesign-sheet) #roomDialog .lobby-submit{background:var(--red);
 .clear-radar-axis[data-active=true]{stroke:#ebe7df73;stroke-width:1.4}
 .clear-radar-shape{fill:#d5514538;stroke:var(--red-bright,#e0675a);stroke-width:1.6;stroke-linejoin:round;pointer-events:none;transition:opacity .18s ease}
 .clear-radar-point{transition:opacity .18s ease}
-.clear-radar-node{fill:#ffffff30;pointer-events:none;transform-box:fill-box;transform-origin:center;transition:transform .18s cubic-bezier(.22,1,.36,1),fill .18s ease}
+/* Dots stay hidden; only the point under the pointer or keyboard focus shows one. */
+.clear-radar-node{fill:#ffffff30;opacity:0;pointer-events:none;transform-box:fill-box;transform-origin:center;transition:transform .18s cubic-bezier(.22,1,.36,1),fill .18s ease,opacity .18s ease}
+.clear-radar-point[data-active=true] .clear-radar-node{opacity:1}
 .clear-radar-point:is([data-clear-kind=no-continue],[data-clear-kind=unknown]) .clear-radar-node{fill:#7fa06a;stroke:#141413;stroke-width:1.5}
 .clear-radar-point[data-clear-kind=continued] .clear-radar-node{fill:#c5a45e;stroke:#141413;stroke-width:1.5}
 .clear-radar-point[data-clear-kind=none][data-axis=true] .clear-radar-node{fill:#ffffff66}
@@ -844,3 +846,6 @@ body:has(.lobby-redesign-sheet) #roomDialog .lobby-submit{background:var(--red);
 .score-content:has(.clear-radar-wrap)>.score-character[data-count="2"] .character-portrait{flex:0 0 64%}
 .score-content:has(.clear-radar-wrap)>.score-character[data-count="2"] .character-portrait+.character-portrait{margin-left:-28%}
 .score-matrix-region:has(.clear-radar-wrap){width:100%}
+
+/* The adaptation progress link has a centred line of its own in the credits. */
+.site-footer .site-footer-inner .site-footer-progress{display:flex;flex:1 0 100%;justify-content:center;margin:0;padding:0;text-align:center}
