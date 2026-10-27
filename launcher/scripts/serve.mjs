@@ -2,7 +2,7 @@ import {LEGACY_HOST_MANIFEST_FILE, legacyHostManifestResponse} from '../compat/s
 import { createReadStream, existsSync, watch } from "node:fs";
 import { createHash } from "node:crypto";
 import { stat, readFile } from "node:fs/promises";
-import { createServer } from "node:http";
+import { createServer, request as httpRequest } from "node:http";
 import { resolve, sep } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
@@ -66,6 +66,7 @@ if (process.env.EAGLER_TOUHOU_ARTWORK_DIR && !existsSync(configuredArtworkDirect
   throw new Error(`EAGLER_TOUHOU_ARTWORK_DIR does not exist: ${configuredArtworkDirectory}`);
 }
 const configuredNetplayRelay = process.env.EAGLER_TOUHOU_NETPLAY_RELAY?.trim() || undefined;
+const accountsUrl = process.env.EAGLER_ACCOUNTS_URL?.trim() || null;
 const hostArtwork = new Set(hostArtworkFiles(Object.keys(DEVELOPMENT_CONTENT.games)));
 const selectedDevelopmentGames = process.env.EAGLER_DEVELOPMENT_GAMES?.split(",").map(value => value.trim()).filter(Boolean);
 // Optional operator-owned local manifest lets UI previews reuse packaged
@@ -178,6 +179,17 @@ createServer(async (request, response) => {
   try {
     const url = new URL(request.url || "/", `http://${host}:${port}`);
     if (await handleThcrap(request, response, url)) return;
+    // Account API requests go to a local account service when one is configured.
+    if (url.pathname.startsWith("/api/") && accountsUrl) {
+      const upstream = new URL(url.pathname + url.search, accountsUrl);
+      const forward = httpRequest(upstream, {method: request.method, headers: {...request.headers, host: upstream.host}}, reply => {
+        response.writeHead(reply.statusCode ?? 502, reply.headers);
+        reply.pipe(response);
+      });
+      forward.on("error", () => {if (!response.headersSent) response.writeHead(502, {"Content-Type": "application/json"}); response.end('{"error":"accounts-unavailable"}');});
+      request.pipe(forward);
+      return;
+    }
     let pathname = decodeURIComponent(url.pathname);
     if (pathname === "/eagler-touhou" || pathname === "/eagler-touhou/") {
       response.writeHead(302, { Location: "/", "Cache-Control": "no-store" });
@@ -192,6 +204,8 @@ createServer(async (request, response) => {
     }
     // User pages (user/:id) are client routes served by the SPA fallback for them.
     if (/^\/user\/[^/]+\/?$/.test(pathname)) pathname = "/user.html";
+    // The account pages sit beside the root documents and share their SPA fallback.
+    if (pathname === "/login" || pathname === "/register") pathname = "/index.html";
     if (developmentMetadata && pathname.startsWith("/")) {
       const name = pathname.slice(1);
       const body = developmentMetadata.get(name);

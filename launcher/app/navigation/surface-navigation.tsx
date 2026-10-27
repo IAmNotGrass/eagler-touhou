@@ -64,6 +64,7 @@ const touchEntryKey = 'launcherTouchEntry';
 const infoEntryKey = 'launcherInformationDialogs';
 const directoryFormKey = 'launcherDirectoryForm';
 const roomPanelKey = 'launcherRoomPanel';
+const registeredKey = 'launcherRegisteredAccount';
 const roomSettingsKey = 'launcherRoomSettings';
 const roomProductKey = 'launcherRoomProductSelection';
 const hiddenSelectionKey = 'launcherClosedPlayerSelection';
@@ -95,6 +96,16 @@ interface SurfaceNavigation extends SurfaceAddress {
   /** A user page (`user/:id`) replaces the directory and workspace. `me` is the local profile. */
   profileOpen: boolean;
   profileUserId: string | null;
+  /** The sign-in page (`login`), which replaces the directory and workspace like a user page. */
+  loginOpen: boolean;
+  openLogin(): void;
+  /** The registration page (`register`), laid out like the sign-in page. */
+  registerOpen: boolean;
+  openRegister(): void;
+  /** Replaces the registration page with the sign-in page for the new account. */
+  openLoginAfterRegister(username: string): void;
+  /** The account just registered, which the sign-in page fills in. */
+  registeredUsername: string | null;
   openProfile(): void;
   /** The site's home page (the launcher with no game selected). */
   openHome(): void;
@@ -791,6 +802,18 @@ export function SurfaceNavigationProvider({dirty, isEditing, onDiscard, decision
     if (profileOpen || blocker.state !== 'unblocked') return;
     void navigate({pathname: '/user/me', search: '', hash: ''}, {preventScrollReset: true, state: {}});
   }
+  const loginOpen = location.pathname === '/login', registerOpen = location.pathname === '/register';
+  function openAccountPage(pathname: '/login' | '/register') {
+    if (location.pathname === pathname || blocker.state !== 'unblocked') return;
+    void navigate({pathname, search: '', hash: ''}, {preventScrollReset: true, state: {}});
+  }
+  const openLogin = () => openAccountPage('/login'), openRegister = () => openAccountPage('/register');
+  const registeredState = plainState(location.state)[registeredKey];
+  const registeredUsername = location.pathname === '/login' && typeof registeredState === 'string' ? registeredState : null;
+  function openLoginAfterRegister(username: string) {
+    if (blocker.state !== 'unblocked') return;
+    void navigate({pathname: '/login', search: '', hash: ''}, {replace: true, preventScrollReset: true, state: {[registeredKey]: username}});
+  }
   function openHome() {
     // A room or a running game is left through its own controls.
     if (address.roomCode !== null || playerOpen || blocker.state !== 'unblocked') return;
@@ -1066,7 +1089,7 @@ export function SurfaceNavigationProvider({dirty, isEditing, onDiscard, decision
     }
     void navigate(target(params), {replace: true, preventScrollReset: true, state: withoutEntry(location.state)});
   }
-  return <NavigationContext.Provider value={{...address, workspaceSettingsScope, openWorkspaceSettings, selectSite, profileOpen, profileUserId, openProfile, openHome, navigateAddress: address => {void navigate(address);}, hasSelection, routedProductId: baseAddress.productId, applyHostSelection, syncSelectionFromRoute, filterProductId: urlAddress.context === 'lobby' ? urlAddress.productId : null, openOptions, selectLobbyProduct, openDirectory, setLocaleAddress, restoreRoomRoute, enterRoomRoute, switchRoomProductRoute, settleRoomInvite, leaveTitleRoomRoute, leaveRoomRoute, roomPanel, roomNetworkPeer: validPanel && typeof panelEntry.peer === 'string' ? panelEntry.peer : undefined, openRoomPanel, closeRoomPanel, roomSettingsOpen, openRoomSettings, closeRoomSettings, directoryFormMode, directoryFormParentKey: validForm && typeof formEntry.parentKey === 'string' && formEntry.parentKey !== location.key ? formEntry.parentKey : null, openDirectoryForm, closeDirectoryForm, openTouchLayout, playerOpen, openPlayer, openRoomFullscreen, closeRoomFullscreen, closeSurface, completeRuntimeClose, infoDialogOpen, openInfoDialog, closeInfoDialog}}>
+  return <NavigationContext.Provider value={{...address, workspaceSettingsScope, openWorkspaceSettings, selectSite, profileOpen, profileUserId, loginOpen, openLogin, registerOpen, openRegister, openLoginAfterRegister, registeredUsername, openProfile, openHome, navigateAddress: address => {void navigate(address);}, hasSelection, routedProductId: baseAddress.productId, applyHostSelection, syncSelectionFromRoute, filterProductId: urlAddress.context === 'lobby' ? urlAddress.productId : null, openOptions, selectLobbyProduct, openDirectory, setLocaleAddress, restoreRoomRoute, enterRoomRoute, switchRoomProductRoute, settleRoomInvite, leaveTitleRoomRoute, leaveRoomRoute, roomPanel, roomNetworkPeer: validPanel && typeof panelEntry.peer === 'string' ? panelEntry.peer : undefined, openRoomPanel, closeRoomPanel, roomSettingsOpen, openRoomSettings, closeRoomSettings, directoryFormMode, directoryFormParentKey: validForm && typeof formEntry.parentKey === 'string' && formEntry.parentKey !== location.key ? formEntry.parentKey : null, openDirectoryForm, closeDirectoryForm, openTouchLayout, playerOpen, openPlayer, openRoomFullscreen, closeRoomFullscreen, closeSurface, completeRuntimeClose, infoDialogOpen, openInfoDialog, closeInfoDialog}}>
     {children}
     <FullscreenTransient><ConfirmationDialog key={applicationDecision ? `application:${applicationDecision.requestId}` : 'navigation'}
       open={applicationDecision !== null || (blocker.state === 'blocked' && pendingBlockKind.current === 'touch')}

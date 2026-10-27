@@ -19,9 +19,9 @@ export interface LibrarySurfaceProps {
   settingsCard?: ReactNode;
   filesOpen?: boolean;
   filesCard?: ReactNode;
-  /** The profile page takes the whole width below the header; the directory and workspace stay mounted behind it. */
-  profileOpen?: boolean;
-  profileCard?: ReactNode;
+  /** A standalone page (a user page, the sign-in page) takes the whole width below the header; the directory and workspace stay mounted behind it. */
+  pageOpen?: boolean;
+  pageCard?: ReactNode;
   lobby?: boolean;
   onSite?(): void;
   siteHref?: string;
@@ -41,14 +41,14 @@ export interface LibrarySurfaceProps {
   assetUrl?: (path: string) => string;
 }
 /** Persistent workspace. Directory selection stays available beside the information panel. */
-export function LibrarySurface({masthead, footer, serverStatusNote, lobbyHref, optionsOpen, settingsOpen = false, settingsCard, filesOpen = false, filesCard, profileOpen = false, profileCard, roomOpen = false, persistent, directoryCollapsed = false, directoryRestoring = false, roomDirectoryLocked = true, foregroundActive = false, roomDrawer, onBack, children, siteNoticeLines, assetUrl = path => path, products, selectedProduct, interactive, onActivate, lobby = false, onSite, siteHref}: LibrarySurfaceProps) {
+export function LibrarySurface({masthead, footer, serverStatusNote, lobbyHref, optionsOpen, settingsOpen = false, settingsCard, filesOpen = false, filesCard, pageOpen = false, pageCard, roomOpen = false, persistent, directoryCollapsed = false, directoryRestoring = false, roomDirectoryLocked = true, foregroundActive = false, roomDrawer, onBack, children, siteNoticeLines, assetUrl = path => path, products, selectedProduct, interactive, onActivate, lobby = false, onSite, siteHref}: LibrarySurfaceProps) {
   const {locale} = useLocale();
   return <><div className="library-background" aria-hidden="true"/><div className={`sheet redesign-sheet${lobby ? ' lobby-redesign-sheet' : ''}`} inert={foregroundActive}>
     {masthead}
-    <main className={`main library-layout directory-layout${lobby ? ' lobby-main lobby-directory-layout' : ''}${optionsOpen ? ' has-selection' : ''}${optionsOpen && !lobby && !roomOpen ? ' game-info-layout' : ''}${' launcher-workspace-layout'}${settingsOpen ? ' settings-layout' : ''}${profileOpen ? ' profile-layout' : ''}${roomOpen ? ' mp-room-open' : ''}${directoryCollapsed ? ' directory-collapsed' : ''}${directoryRestoring ? ' directory-restoring' : ''}`} id="main" inert={lobby && interactive === false}>
+    <main className={`main library-layout directory-layout${lobby ? ' lobby-main lobby-directory-layout' : ''}${optionsOpen ? ' has-selection' : ''}${optionsOpen && !lobby && !roomOpen ? ' game-info-layout' : ''}${' launcher-workspace-layout'}${settingsOpen ? ' settings-layout' : ''}${pageOpen ? ' page-layout' : ''}${roomOpen ? ' mp-room-open' : ''}${directoryCollapsed ? ' directory-collapsed' : ''}${directoryRestoring ? ' directory-restoring' : ''}`} id="main" inert={lobby && interactive === false}>
       <h1 className="visually-hidden">东方Project 原作 STG ~ EAGLER TOUHOU</h1>
       <GameDirectory locked={roomOpen && roomDirectoryLocked} siteDisabled={roomOpen} products={products} selectedProduct={selectedProduct} interactive={interactive} onActivate={onActivate} railId={lobby ? 'lobbyGameRail' : undefined} onSite={roomOpen ? () => {} : onSite ?? onBack} siteHref={siteHref ?? (locale === 'en' ? 'en.html' : './')}/>
-      <div className="workspace-column"><div className="workspace-current" hidden={settingsOpen || filesOpen || profileOpen} inert={settingsOpen || filesOpen || profileOpen}>{persistent}{children ?? <SiteWorkspace noticeLines={siteNoticeLines} assetUrl={assetUrl} interactive={interactive}/>}</div>{filesCard}{!settingsOpen && profileCard}{settingsCard}{footer}</div>
+      <div className="workspace-column"><div className="workspace-current" hidden={settingsOpen || filesOpen || pageOpen} inert={settingsOpen || filesOpen || pageOpen}>{persistent}{children ?? <SiteWorkspace noticeLines={siteNoticeLines} assetUrl={assetUrl} interactive={interactive}/>}</div>{filesCard}{!settingsOpen && pageCard}{settingsCard}{footer}</div>
     </main>
     {roomDrawer}{serverStatusNote}
   </div></>;

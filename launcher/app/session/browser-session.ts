@@ -15,6 +15,8 @@ import {replayImportAccept} from '../../src/launcher/replay-files.mts';
 import {discouragedBrowserId} from '../../src/launcher/browser-support.mts';
 import {parseAvatarChoice, type ProfileAvatarChoice} from '../models/profile-avatars';
 import {profileTheme} from '../models/profile-themes';
+import {parseShowcases, type ProfileShowcase} from '../models/profile-showcases';
+import {createAccountStore} from '../services/account';
 import {createMultiplayerIdentityStore, multiplayerDisplayNameStorageKey, multiplayerMemberId, type MultiplayerIdentityStore} from '../../src/launcher/multiplayer-identity.mts';
 import {createMultiplayerRoomSessionStore} from '../../src/launcher/multiplayer-room-session.mts';
 import {buildMultiplayerDiagnosticRelayUrl} from '../../src/launcher/multiplayer-relay-url.mts';
@@ -116,8 +118,9 @@ export interface BrowserSessionSnapshot {
 export const PROFILE_AVATAR_STORAGE_KEY = 'eagler-touhou-profile-avatar-v1';
 export const PROFILE_COVER_STORAGE_KEY = 'eagler-touhou-profile-cover-v1';
 export const PROFILE_THEME_STORAGE_KEY = 'eagler-touhou-profile-theme-v1';
+export const PROFILE_SHOWCASES_STORAGE_KEY = 'eagler-touhou-profile-showcases-v1';
 /** `cover` is a data: URL of the visitor's own cover image; `theme` a PROFILE_THEMES id. */
-export interface ProfileSnapshot {name: string; avatar: ProfileAvatarChoice | null; cover: string | null; theme: string}
+export interface ProfileSnapshot {name: string; avatar: ProfileAvatarChoice | null; cover: string | null; theme: string; showcases: readonly ProfileShowcase[]}
 export function createBrowserSession({document, window, baseUrl: configuredBaseUrl, appShellDeployment}: {document: Document; window: Window; baseUrl?: string; appShellDeployment?: AppShellOptions['deployment']}) {
   const baseUrl = configuredBaseUrl ?? launcherBaseUrl(window.location.href);
   let storage: Storage | null = null;
@@ -365,11 +368,12 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
   const loadAvatar = () => {try {return parseAvatarChoice(JSON.parse(storage?.getItem(PROFILE_AVATAR_STORAGE_KEY) ?? 'null'));} catch {return null;}};
   const loadCover = () => {try {const value = storage?.getItem(PROFILE_COVER_STORAGE_KEY); return value?.startsWith('data:image/') ? value : null;} catch {return null;}};
   const loadTheme = () => {try {return profileTheme(storage?.getItem(PROFILE_THEME_STORAGE_KEY)).id;} catch {return profileTheme(null).id;}};
-  const loadProfile = (): ProfileSnapshot => ({name: storedIdentity.loadDisplayName(), avatar: loadAvatar(), cover: loadCover(), theme: loadTheme()});
+  const loadShowcases = () => {try {return parseShowcases(JSON.parse(storage?.getItem(PROFILE_SHOWCASES_STORAGE_KEY) ?? '[]'));} catch {return [];}};
+  const loadProfile = (): ProfileSnapshot => ({name: storedIdentity.loadDisplayName(), avatar: loadAvatar(), cover: loadCover(), theme: loadTheme(), showcases: loadShowcases()});
   let profileSnapshot: ProfileSnapshot = Object.freeze(loadProfile());
   const publishProfile = (next: ProfileSnapshot) => {
     if (next.name === profileSnapshot.name && next.avatar?.character === profileSnapshot.avatar?.character && next.avatar?.expression === profileSnapshot.avatar?.expression &&
-        next.cover === profileSnapshot.cover && next.theme === profileSnapshot.theme) return;
+        next.cover === profileSnapshot.cover && next.theme === profileSnapshot.theme && JSON.stringify(next.showcases) === JSON.stringify(profileSnapshot.showcases)) return;
     profileSnapshot = Object.freeze(next);
     profileListeners.forEach(listener => listener());
   };
@@ -379,7 +383,7 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
     refreshProfile();
     return result;
   }});
-  window.addEventListener('storage', event => {if (event.key === multiplayerDisplayNameStorageKey || event.key === PROFILE_AVATAR_STORAGE_KEY || event.key === PROFILE_COVER_STORAGE_KEY || event.key === PROFILE_THEME_STORAGE_KEY) refreshProfile();});
+  window.addEventListener('storage', event => {if (event.key === multiplayerDisplayNameStorageKey || event.key === PROFILE_AVATAR_STORAGE_KEY || event.key === PROFILE_COVER_STORAGE_KEY || event.key === PROFILE_THEME_STORAGE_KEY || event.key === PROFILE_SHOWCASES_STORAGE_KEY) refreshProfile();});
   const profile = Object.freeze({
     subscribe(listener: () => void) {profileListeners.add(listener); return () => {profileListeners.delete(listener);};},
     getSnapshot: () => profileSnapshot,
@@ -404,7 +408,17 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
       try {storage?.setItem(PROFILE_THEME_STORAGE_KEY, theme);} catch {}
       publishProfile({...profileSnapshot, theme});
     },
+    /** Stores the showcases in order; empty ones are dropped. Returns false when
+     * the browser has no room to keep them. */
+    setShowcases(showcases: readonly ProfileShowcase[]) {
+      const kept = parseShowcases(showcases);
+      try {if (kept.length) storage?.setItem(PROFILE_SHOWCASES_STORAGE_KEY, JSON.stringify(kept)); else storage?.removeItem(PROFILE_SHOWCASES_STORAGE_KEY);} catch {return false;}
+      publishProfile({...profileSnapshot, showcases: kept});
+      return true;
+    },
   });
+  const account = createAccountStore({fetch: (input, init) => window.fetch(input, init), baseUrl});
+  void account.refresh();
   const sessions = createMultiplayerRoomSessionStore({storage: sessionStorage});
   const directory = createLobbyDirectory({
     testBuild: entryUrl.searchParams.has('test'),
@@ -1277,7 +1291,7 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
       const command = spectatorPlaybackCommand(state, action, frame);
       if (command) await owner.send('spectator-playback', command);
     },
-    saveLibrary, scores, profile, room, titleNetwork, calibration, networkDiagnostics, appShell: appShellOwner, baseUrl, storage, mobile, metadata, settingsContext, acquisition, directory, gameData, transfer, startupError, startup, settings, gamepad, keyboardPreferences, th09LocalInput, touchLayout, preferences, feedback, decisions, nativeTouch, settingsActions,
+    saveLibrary, scores, profile, account, room, titleNetwork, calibration, networkDiagnostics, appShell: appShellOwner, baseUrl, storage, mobile, metadata, settingsContext, acquisition, directory, gameData, transfer, startupError, startup, settings, gamepad, keyboardPreferences, th09LocalInput, touchLayout, preferences, feedback, decisions, nativeTouch, settingsActions,
     subscribe(listener: () => void) {listeners.add(listener); return () => {listeners.delete(listener);};}, getSnapshot: () => snapshot,
     initialize, attachFrame, requestRuntimeClose, launch, openReplayViewer, exitRoomPlayerFullscreen,
     restoreRoomFromUrl,

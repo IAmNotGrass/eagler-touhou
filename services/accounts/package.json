@@ -1,0 +1,12 @@
+{
+  "name": "eagler-accounts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "engines": {"node": ">=22.13"},
+  "scripts": {
+    "start": "node --no-warnings=ExperimentalWarning src/account-server.mjs",
+    "test": "node --no-warnings=ExperimentalWarning --test tests/*.test.mjs"
+  }
+}

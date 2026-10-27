@@ -1,0 +1,23 @@
+[Unit]
+Description=Eagler Touhou accounts
+After=network.target
+
+[Service]
+User=eagler
+WorkingDirectory=/srv/eagler/accounts
+Environment=EAGLER_ACCOUNTS_HOST=127.0.0.1
+Environment=EAGLER_ACCOUNTS_PORT=18143
+Environment=EAGLER_ACCOUNTS_DATABASE=/var/lib/eagler-accounts/accounts.db
+ExecStart=/opt/node/bin/node --no-warnings=ExperimentalWarning src/account-server.mjs
+StateDirectory=eagler-accounts
+StateDirectoryMode=0700
+Restart=always
+RestartSec=3
+MemoryMax=160M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

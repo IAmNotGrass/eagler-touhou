@@ -68,8 +68,12 @@ export interface LauncherHost {
   multiplayerDiagnostics?: ReactNode;
   multiplayerOnline?: ReactNode;
   overlays?: ReactNode;
-  /** The profile page card shown at `?view=profile`. */
+  /** The user page card shown at `user/:id`. */
   profilePage?: ReactNode;
+  /** The sign-in page card shown at `login`. */
+  loginPage?: ReactNode;
+  /** The registration page card shown at `register`. */
+  registerPage?: ReactNode;
   previewImage?: string;
   touchFireEnabled?: boolean;
   bootTouchPreview?: boolean;
@@ -111,8 +115,8 @@ function LauncherSurfaces({host}: {host: LauncherHost}) {
   const previousContext = useRef(navigation.context), restoreLaunchFocus = useRef(false);
   const settingsScope = navigation.workspaceSettingsScope;
   const filesOpen = navigation.context === 'library' && navigation.roomCode === null && navigation.infoDialogOpen('scoreFilesDialog');
-  const profileOpen = navigation.profileOpen && navigation.roomCode === null;
-  const workspaceKind = settingsScope ? `settings:${settingsScope}` : filesOpen ? 'files' : navigation.roomCode !== null ? 'room' : profileOpen ? 'profile' : navigation.context;
+  const profileOpen = navigation.profileOpen && navigation.roomCode === null, loginOpen = navigation.loginOpen && navigation.roomCode === null, registerOpen = navigation.registerOpen && navigation.roomCode === null;
+  const workspaceKind = settingsScope ? `settings:${settingsScope}` : filesOpen ? 'files' : navigation.roomCode !== null ? 'room' : profileOpen ? 'profile' : loginOpen ? 'login' : registerOpen ? 'register' : navigation.context;
   const motionContext = useRef(workspaceKind);
   useLayoutEffect(() => {
     if (motionContext.current === workspaceKind) return;
@@ -131,7 +135,12 @@ function LauncherSurfaces({host}: {host: LauncherHost}) {
           // The global settings opener lives in the closed header menu; its toggle takes the focus back.
           const opener=document.querySelector<HTMLElement>(settingsMotion === 'open' ? '#globalSettingsClose' : previous === 'settings:game' ? '.workspace-game-settings' : '#globalSettingsOpen');
           (opener?.closest('[inert]') ? document.getElementById('mastheadMenuToggle') : opener)?.focus({preventScroll:true});return;}
-        if(workspaceKind === 'profile' || previous === 'profile'){if(workspaceKind === 'profile')document.getElementById('profilePageAvatar')?.focus({preventScroll:true});return;}
+        const pageFocus: Record<string, string> = {profile: 'profilePageAvatar', login: 'loginUsername', register: 'registerUsername'};
+        if(workspaceKind in pageFocus || previous in pageFocus){if(workspaceKind in pageFocus){
+          // A filled-in username (after registering) leaves only the password to type.
+          const username=document.getElementById('loginUsername');
+          document.getElementById(workspaceKind === 'login' && username instanceof HTMLInputElement && username.value ? 'loginPassword' : pageFocus[workspaceKind]!)?.focus({preventScroll:true});}
+          return;}
         if(filesMotion){document.getElementById(filesMotion === 'open' ? 'scoreFilesClose' : 'scoreFilesOpen')?.focus({preventScroll:true});return;}
         const target = document.querySelector<HTMLElement>(previous === 'room' ? '#createButton' : backwards ? '#optionsLobbyLink' : '#launcherLink') ??
           (backwards ? document.getElementById('siteInfoTitle') : null);
@@ -263,7 +272,7 @@ function LauncherSurfaces({host}: {host: LauncherHost}) {
       roomDirectoryLocked={host.roomDirectoryLocked} onActivate={roomOpen ? host.onRoomProductSelected ?? (() => {}) : navigation.context === 'lobby' ? id => {if (isProductId(id)) navigation.selectLobbyProduct(id);} : activate} masthead={host.masthead} footer={host.footer} serverStatusNote={host.serverStatusNote}
       onSite={navigation.selectSite} siteHref={navigation.context === 'lobby' ? host.workspaceLobbyHref ?? host.lobbyHref : undefined}
       lobbyHref={host.workspaceLobbyHref ?? host.lobbyHref} optionsOpen={optionsOpen} settingsOpen={!!settingsScope} settingsCard={settingsScope && workspaceSettingsModel ? <SettingsWorkspace scope={settingsScope} gameTitle={selectedProduct?.title ?? settings?.gameId ?? ''} model={workspaceSettingsModel} effectiveModel={host.settings} actions={host.settingsActions} onOpenTouchLayout={openTouchLayout}/> : undefined}
-      profileOpen={profileOpen} profileCard={profileOpen ? host.profilePage : undefined} filesOpen={filesOpen} filesCard={filesOpen && selectedProduct ? <FilesWorkspace product={selectedProduct.id} language={settings?.language ?? 'ja'} saveLibrary={host.saveLibrary} replays={host.replays} replayActions={host.replayActions} actions={host.settingsActions} hidden={!!settingsScope} assetUrl={host.assetUrl}/> : undefined}
+      pageOpen={profileOpen || loginOpen || registerOpen} pageCard={profileOpen ? host.profilePage : loginOpen ? host.loginPage : registerOpen ? host.registerPage : undefined} filesOpen={filesOpen} filesCard={filesOpen && selectedProduct ? <FilesWorkspace product={selectedProduct.id} language={settings?.language ?? 'ja'} saveLibrary={host.saveLibrary} replays={host.replays} replayActions={host.replayActions} actions={host.settingsActions} hidden={!!settingsScope} assetUrl={host.assetUrl}/> : undefined}
       persistent={host.roomSurface} roomOpen={roomOpen} directoryCollapsed={directoryCollapsed} directoryRestoring={directoryRestoring} foregroundActive={navigation.surface === 'touch' || host.runtimeOpen === true} roomDrawer={host.roomDrawer} onBack={navigation.closeSurface} assetUrl={host.assetUrl} siteNoticeLines={host.siteNoticeLines}>
       {roomOpen ? <>{settingsPanel}{roomWorkspace && <RoomWorkspaceDock/>}</> : navigation.context === 'lobby' ? host.renderLobby ? host.renderLobby(lobbyProps) : <LobbySurface {...lobbyProps}/> : optionsOpen && selectedProduct ? <GameWorkspace saveLibrary={host.saveLibrary} scores={host.scores} scoreLanguage={settings?.language ?? 'ja'} assetUrl={host.assetUrl} product={selectedProduct} actions={host.optionsActions} renderActions={host.renderWorkspaceActions} multiplayerOnline={host.multiplayerOnline} multiplayerDiagnostics={host.multiplayerDiagnostics}
         multiplayerHref={host.products.some(product => product.gameId === selectedProduct.gameId && product.multiplayer && !product.hidden) ? directoryGameHref(host.workspaceLobbyHref ?? host.lobbyHref, `${selectedProduct.gameId}mp`) : undefined}

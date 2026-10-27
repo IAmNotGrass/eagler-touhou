@@ -20,6 +20,12 @@ import {NetworkDiagnosticsDialog, type NetworkDiagnosticsHandle} from './compone
 import {DirectoryRoomDialog} from './components/directory/DirectoryRoomDialog';
 import {avatarSource} from './models/profile-avatars';
 import {ProfileWorkspace} from './components/launcher/ProfileWorkspace';
+import {LoginWorkspace} from './components/launcher/LoginWorkspace';
+import {RegisterWorkspace} from './components/launcher/RegisterWorkspace';
+import type {PlaytimeSlice} from './components/launcher/PlaytimeShowcase';
+import type {LibraryProduct} from './components/launcher/products';
+import {gameColor, readPlaytimes} from './models/playtime';
+import {directoryCategory} from './components/launcher/directory-categories';
 import {FirstUseNotice, SiteNotice, DonationDialog, AppleRefreshDialog, MultiplayerGuideDialog, ReplayDialog, ProfileDialog,
   type FirstUseNoticeHandle, type SiteNoticeHandle} from './components/notices';
 import {GameDataImportWindows} from './components/player/GameDataImportWindows';
@@ -84,7 +90,7 @@ function BrowserWorkspace({session}: {session: BrowserSession}) {
     settingsContext: session.settingsContext, settingsActions: session.settingsActions, decisions: session.decisions,
     bootTouchPreview: state.bootTouchPreview !== null, bootTouchPreviewImage: state.bootTouchPreviewImage,
     nativeTouch: session.nativeTouch, touchFireEnabled: session.touchFireState.getEnabled(), assetUrl, lobbyHref: assetUrl('lobby.html'), masthead,
-    workspaceLobbyHref: assetUrl(state.locale === 'en' ? 'en.html?view=lobby' : './?view=lobby'), footer: <Footer donationAvailable={donationAvailable}/>, profilePage: <ProfilePage session={session}/>, serverStatusNote: <ServerStatusNote session={session}/>, metadataRevision: state.metadataRevision,
+    workspaceLobbyHref: assetUrl(state.locale === 'en' ? 'en.html?view=lobby' : './?view=lobby'), footer: <Footer donationAvailable={donationAvailable}/>, profilePage: <ProfilePage session={session} products={products}/>, loginPage: <LoginPage session={session}/>, registerPage: <RegisterWorkspace endpoint={assetUrl('api/accounts/register')}/>, serverStatusNote: <ServerStatusNote session={session}/>, metadataRevision: state.metadataRevision,
     replayWorkspace,
     roomWorkspace,
     roomPlayerExpanded: state.roomPlayerExpanded,
@@ -143,8 +149,10 @@ function Header({session, firstUse, notice, donationAvailable}: {
   const diagnosticState = useSyncExternalStore(diagnostics?.subscribe ?? emptySubscribe, diagnostics?.getSnapshot ?? noDiagnostics, noDiagnostics);
   const updatedAge = useSyncExternalStore(session.appShell.brandAge.subscribe, session.appShell.brandAge.getSnapshot, session.appShell.brandAge.getSnapshot);
   const profile = useSyncExternalStore(session.profile.subscribe, session.profile.getSnapshot, session.profile.getSnapshot);
+  const account = useSyncExternalStore(session.account.subscribe, session.account.getSnapshot, session.account.getSnapshot);
   const [menuOpen, setMenuOpen] = useState(false), url = (path: string) => new URL(path, session.baseUrl).href;
-  return <LauncherMasthead profileName={profile.name} profileAvatar={avatarSource(profile.avatar)} onProfile={() => navigation.roomCode !== null || navigation.playerOpen ? navigation.openInfoDialog('profileDialog') : navigation.openProfile()} onHome={navigation.openHome} updatedAge={updatedAge} variant={navigation.context} assetUrl={url} launcherHref={url(locale === 'en' ? 'en.html' : './')}
+  return <LauncherMasthead profileName={profile.name} profileAvatar={avatarSource(profile.avatar)} onProfile={() => navigation.roomCode !== null || navigation.playerOpen ? navigation.openInfoDialog('profileDialog') : account.status === 'signed-in' ? navigation.openProfile() : navigation.openLogin()}
+    onSignOut={account.status === 'signed-in' ? () => void session.account.signOut() : undefined} onHome={navigation.openHome} updatedAge={updatedAge} variant={navigation.context} assetUrl={url} launcherHref={url(locale === 'en' ? 'en.html' : './')}
     faqHref={url('faq.html')} aboutHref={url('about.html')} migrationPolicyKnown={metadata.siteManifest !== null} migrationHref={metadata.siteManifest && siteOriginMigrationAvailable(metadata.siteManifest, window.location.protocol) ? url('migrate.html') : undefined}
     menuOpen={menuOpen} onMenuOpenChange={setMenuOpen} lessMotion={prefs.lessMotion} onToggleMotion={session.preferences.toggleMotion}
     noticeEnabled={prefs.noticeEnabled} onToggleNotice={session.preferences.toggleNotice}
@@ -161,9 +169,27 @@ function Profile({session}: {session: BrowserSession}) {
   return <ProfileDialog open={navigation.infoDialogOpen('profileDialog')} onCloseRequest={() => navigation.closeInfoDialog('profileDialog')}
     name={profile.name} avatar={profile.avatar} assetUrl={path => new URL(path, session.baseUrl).href} onAvatar={session.profile.setAvatar}/>;
 }
-function ProfilePage({session}: {session: BrowserSession}) {
+function LoginPage({session}: {session: BrowserSession}) {
+  const account = useSyncExternalStore(session.account.subscribe, session.account.getSnapshot, session.account.getSnapshot);
+  return <LoginWorkspace account={account} onSignIn={session.account.signIn} onSignOut={() => void session.account.signOut()}/>;
+}
+function ProfilePage({session, products}: {session: BrowserSession; products: readonly LibraryProduct[]}) {
+  // Play time is read from each game's save whenever the page opens.
+  const [playtime, setPlaytime] = useState<PlaytimeSlice[] | null>(null);
+  useEffect(() => {
+    let active = true;
+    const played = products.filter(product => !product.multiplayer && !product.hidden);
+    void readPlaytimes(played.map(product => product.id)).then(entries => {
+      if (active) setPlaytime(entries.flatMap(entry => {
+        const product = played.find(candidate => candidate.id === entry.product);
+        return product ? [{key: entry.product, seconds: entry.seconds, color: gameColor(entry.product), title: product.title, category: directoryCategory(product)}] : [];
+      }));
+    });
+    return () => {active = false;};
+  }, [products]);
   const navigation = useSurfaceNavigation(), profile = useSyncExternalStore(session.profile.subscribe, session.profile.getSnapshot, session.profile.getSnapshot);
-  return <ProfileWorkspace name={profile.name} avatar={avatarSource(profile.avatar)} cover={profile.cover} theme={profile.theme} assetUrl={path => new URL(path, session.baseUrl).href}
+  const account = useSyncExternalStore(session.account.subscribe, session.account.getSnapshot, session.account.getSnapshot);
+  return <ProfileWorkspace account={account} name={profile.name} avatar={avatarSource(profile.avatar)} cover={profile.cover} theme={profile.theme} showcases={profile.showcases} playtime={playtime} onShowcases={session.profile.setShowcases} assetUrl={path => new URL(path, session.baseUrl).href}
     onEdit={() => navigation.openInfoDialog('profileDialog')} onCover={session.profile.setCover} onTheme={session.profile.setTheme}/>;
 }
 function Footer({donationAvailable}: {donationAvailable: boolean}) {const navigation = useSurfaceNavigation(); return <SiteFooter donationAvailable={donationAvailable} onDonation={() => navigation.openInfoDialog('donationDialog')}/>;}

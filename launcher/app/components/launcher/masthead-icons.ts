@@ -11,4 +11,5 @@ export const mastheadIcons = {
   "migration": "<svg class=\"masthead-menu-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6.99 11 3 15l3.99 4v-3H14v-2H6.99zM21 9l-3.99-4v3H10v2h7.01v3z\"/></svg>",
   "donate": "<svg class=\"masthead-menu-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m12 21.35-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z\"/></svg>",
   "faq": "<svg class=\"masthead-menu-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m1 17h-2v-2h2zm2.07-7.75-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41a2 2 0 1 0-4 0H8a4 4 0 1 1 8 0c0 .88-.36 1.68-.93 2.25\"/></svg>",
+  "signOut": "<svg class=\"masthead-menu-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h7v2zm11-4-1.375-1.45 2.55-2.55H9v-2h8.175l-2.55-2.55L16 7l5 5z\"/></svg>",
 } as const;

@@ -35,6 +35,8 @@ export interface LauncherMastheadProps {
   onProfile?: () => void;
   /** The brand returns to the site's home page. */
   onHome?: () => void;
+  /** Present while someone is signed in: the menu then offers to sign out. */
+  onSignOut?: () => void;
   /** The shared MainSelect, with the original uiLanguageSelect native props. */
   languageControl: ReactNode;
 }
@@ -94,13 +96,14 @@ export function LauncherMasthead(props: LauncherMastheadProps) {
           <div className="ui-language-control masthead-menu-language"><MainSelectPrefix prefix={<MenuIcon name="language"/>}>{props.languageControl}</MainSelectPrefix><template data-select-trigger-prefix="" dangerouslySetInnerHTML={{__html: mastheadIcons.language}}/></div>
           <button className="masthead-menu-item" id="firstUseNoticeOpen" type="button" onClick={() => {onMenuOpenChange(false); props.onFirstUse();}}><MenuIcon name="firstUse"/><span>{t('nav.firstUseNotice')}</span></button>
           <a className="masthead-menu-item" href={props.aboutHref}><MenuIcon name="about"/><span>{t('nav.about')}</span></a>
+          {props.onSignOut && <button className="masthead-menu-item" id="signOutMenu" type="button" onClick={() => {onMenuOpenChange(false); props.onSignOut?.();}}><MenuIcon name="signOut"/><span>{t('login.signOut')}</span></button>}
         </div>
       </div>
     </nav>
   </header>;
 }
 
-function MenuIcon({name}: {name: 'settings' | 'migration' | 'donate' | 'faq' | 'motion' | 'notice' | 'diagnostics' | 'firstUse' | 'about' | 'language'}) {
+function MenuIcon({name}: {name: 'settings' | 'migration' | 'donate' | 'faq' | 'signOut' | 'motion' | 'notice' | 'diagnostics' | 'firstUse' | 'about' | 'language'}) {
   // Preserve the original SVG as the direct child, with no layout wrapper.
   const svg = mastheadIcons[name];
   const path = svg.match(/<path d="([^"]*)"/)![1];
