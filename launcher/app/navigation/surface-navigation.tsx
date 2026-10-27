@@ -58,6 +58,7 @@ const touchEntryKey = 'launcherTouchEntry';
 const infoEntryKey = 'launcherInformationDialogs';
 const directoryFormKey = 'launcherDirectoryForm';
 const roomPanelKey = 'launcherRoomPanel';
+const profileEntryKey = 'launcherProfileEntry';
 const roomSettingsKey = 'launcherRoomSettings';
 const roomProductKey = 'launcherRoomProductSelection';
 const hiddenSelectionKey = 'launcherClosedPlayerSelection';
@@ -86,6 +87,10 @@ interface SurfaceNavigation extends SurfaceAddress {
   workspaceSettingsScope: SettingsScope | null;
   openWorkspaceSettings(scope: SettingsScope): void;
   selectSite(): void;
+  /** The standalone profile page (`?view=profile`) replaces the directory and workspace. */
+  profileOpen: boolean;
+  openProfile(): void;
+  closeProfile(): void;
   hasSelection: boolean;
   routedProductId: ProductId | null;
   applyHostSelection(selection: HostSelection): void;
@@ -773,6 +778,22 @@ export function SurfaceNavigationProvider({dirty, isEditing, onDiscard, decision
     pendingLocaleAddress.current = {sourceKey: location.key, target: href(next)};
     void navigate(next, {replace: true, preventScrollReset: true, state});
   }
+  const profileOpen = new URLSearchParams(location.search).get('view') === 'profile';
+  function profileAddress(open: boolean) {
+    const destination = new URL(locale === 'en' ? 'en.html' : './', new URL(href(location), 'https://launcher.invalid'));
+    if (open) destination.searchParams.set('view', 'profile');
+    return {pathname: destination.pathname, search: destination.search, hash: ''};
+  }
+  function openProfile() {
+    if (profileOpen || blocker.state !== 'unblocked') return;
+    void navigate(profileAddress(true), {preventScrollReset: true, state: {[profileEntryKey]: {parentKey: location.key}}});
+  }
+  function closeProfile() {
+    if (!profileOpen || blocker.state !== 'unblocked') return;
+    // A page opened from the launcher returns to it; a direct visit replaces itself with the home page.
+    if (plainState(location.state)[profileEntryKey]) void navigate(-1);
+    else void navigate(profileAddress(false), {replace: true, preventScrollReset: true, state: {}});
+  }
   function openDirectory(productId: ProductId) {
     if (!isMultiplayerProductId(productId) || !productAvailable(productId) || address.context !== 'library' || blocker.state !== 'unblocked' ||
         surfaceOpenIssuedKey.current === location.key) return;
@@ -1040,7 +1061,7 @@ export function SurfaceNavigationProvider({dirty, isEditing, onDiscard, decision
     }
     void navigate(target(params), {replace: true, preventScrollReset: true, state: withoutEntry(location.state)});
   }
-  return <NavigationContext.Provider value={{...address, workspaceSettingsScope, openWorkspaceSettings, selectSite, navigateAddress: address => {void navigate(address);}, hasSelection, routedProductId: baseAddress.productId, applyHostSelection, syncSelectionFromRoute, filterProductId: urlAddress.context === 'lobby' ? urlAddress.productId : null, openOptions, selectLobbyProduct, openDirectory, setLocaleAddress, restoreRoomRoute, enterRoomRoute, switchRoomProductRoute, settleRoomInvite, leaveTitleRoomRoute, leaveRoomRoute, roomPanel, roomNetworkPeer: validPanel && typeof panelEntry.peer === 'string' ? panelEntry.peer : undefined, openRoomPanel, closeRoomPanel, roomSettingsOpen, openRoomSettings, closeRoomSettings, directoryFormMode, directoryFormParentKey: validForm && typeof formEntry.parentKey === 'string' && formEntry.parentKey !== location.key ? formEntry.parentKey : null, openDirectoryForm, closeDirectoryForm, openTouchLayout, playerOpen, openPlayer, openRoomFullscreen, closeRoomFullscreen, closeSurface, completeRuntimeClose, infoDialogOpen, openInfoDialog, closeInfoDialog}}>
+  return <NavigationContext.Provider value={{...address, workspaceSettingsScope, openWorkspaceSettings, selectSite, profileOpen, openProfile, closeProfile, navigateAddress: address => {void navigate(address);}, hasSelection, routedProductId: baseAddress.productId, applyHostSelection, syncSelectionFromRoute, filterProductId: urlAddress.context === 'lobby' ? urlAddress.productId : null, openOptions, selectLobbyProduct, openDirectory, setLocaleAddress, restoreRoomRoute, enterRoomRoute, switchRoomProductRoute, settleRoomInvite, leaveTitleRoomRoute, leaveRoomRoute, roomPanel, roomNetworkPeer: validPanel && typeof panelEntry.peer === 'string' ? panelEntry.peer : undefined, openRoomPanel, closeRoomPanel, roomSettingsOpen, openRoomSettings, closeRoomSettings, directoryFormMode, directoryFormParentKey: validForm && typeof formEntry.parentKey === 'string' && formEntry.parentKey !== location.key ? formEntry.parentKey : null, openDirectoryForm, closeDirectoryForm, openTouchLayout, playerOpen, openPlayer, openRoomFullscreen, closeRoomFullscreen, closeSurface, completeRuntimeClose, infoDialogOpen, openInfoDialog, closeInfoDialog}}>
     {children}
     <FullscreenTransient><ConfirmationDialog key={applicationDecision ? `application:${applicationDecision.requestId}` : 'navigation'}
       open={applicationDecision !== null || (blocker.state === 'blocked' && pendingBlockKind.current === 'touch')}

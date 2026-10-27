@@ -65,10 +65,6 @@ export function LauncherMasthead(props: LauncherMastheadProps) {
   return <header className="masthead">
     <MastheadBrand interactive={interactive} updatedAge={props.updatedAge} lessMotion={props.lessMotion}/>
     <nav className="masthead-links" aria-label={t('nav.siteInfo')}>
-      {<button className="masthead-link" id="globalSettingsOpen" type="button" aria-controls="globalSettingsDialog" disabled={!interactive} onClick={props.onSettings}>{t('settings.globalTitle')}</button>}
-      <a className="masthead-link" id="originMigrationOpen" href={props.migrationHref ?? 'migrate.html'} hidden={!props.migrationHref} data-policy={props.migrationPolicyKnown ? 'host-manifest-origin-migration-policy/1' : undefined}><span className="masthead-label"><span>{t('nav.oldSitePart1')}</span><wbr/><span>{t('nav.migrationPart2')}</span></span></a>
-      <button className="masthead-link" id="donationOpenTop" type="button" hidden={props.donationAvailable === false} onClick={props.onDonation}><span className="masthead-label">{t('nav.donate')}</span></button>
-      <a className="masthead-link" href={props.faqHref}><span className="masthead-label"><span>{t('nav.faqFirst')}</span><wbr/><span>{t('nav.faqSecond')}</span></span></a>
       <button className="masthead-link masthead-profile" id="profileOpen" type="button" aria-controls="profileDialog" disabled={!interactive || !props.onProfile}
         aria-label={props.profileName ? `${t('profile.title')}：${props.profileName}` : t('profile.title')} title={props.profileName || t('profile.title')} onClick={props.onProfile}>
         <ProfileAvatar name={props.profileName ?? ''} src={props.profileAvatar} assetUrl={props.assetUrl}/>
@@ -86,6 +82,10 @@ export function LauncherMasthead(props: LauncherMastheadProps) {
           else {focusFirst.current = true; onMenuOpenChange(true);}
         }}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></svg></button>
         <div ref={panel} className="masthead-menu-panel" id="mastheadMenuPanel" aria-hidden={!menuOpen} inert={!menuOpen}>
+          <button className="masthead-menu-item" id="globalSettingsOpen" type="button" aria-controls="globalSettingsDialog" disabled={!interactive} onClick={() => {onMenuOpenChange(false); props.onSettings?.();}}><MenuIcon name="settings"/><span>{t('settings.globalTitle')}</span></button>
+          <a className="masthead-menu-item" id="originMigrationOpen" href={props.migrationHref ?? 'migrate.html'} hidden={!props.migrationHref} data-policy={props.migrationPolicyKnown ? 'host-manifest-origin-migration-policy/1' : undefined}><MenuIcon name="migration"/><span className="masthead-label"><span>{t('nav.oldSitePart1')}</span><wbr/><span>{t('nav.migrationPart2')}</span></span></a>
+          <button className="masthead-menu-item" id="donationOpenTop" type="button" hidden={props.donationAvailable === false} onClick={() => {onMenuOpenChange(false); props.onDonation();}}><MenuIcon name="donate"/><span>{t('nav.donate')}</span></button>
+          <a className="masthead-menu-item" href={props.faqHref}><MenuIcon name="faq"/><span className="masthead-label"><span>{t('nav.faqFirst')}</span><wbr/><span>{t('nav.faqSecond')}</span></span></a>
           <button className="masthead-menu-item motion-menu-toggle" id={variant === 'lobby' ? 'lobbyLessMotion' : 'lessMotionToggle'} type="button" aria-pressed={props.lessMotion} title={t(props.lessMotion ? 'nav.motionFullTitle' : 'nav.motionLessTitle')} onClick={props.onToggleMotion}><MenuIcon name="motion"/><span>{t('nav.lessMotion')}</span><i className="site-notice-toggle-state" aria-hidden="true"/></button>
           <button className="masthead-menu-item" id="siteNoticeToggle" type="button" role="switch" aria-checked={props.noticeEnabled} onClick={props.onToggleNotice}><MenuIcon name="notice"/><span>{t('notice.label')}</span><i className="site-notice-toggle-state" aria-hidden="true"/></button>
           <button className="masthead-menu-item" id="runtimeDiagnosticsToggle" type="button" role="switch" aria-checked={props.diagnosticsEnabled} onClick={props.onToggleDiagnostics}><MenuIcon name="diagnostics"/><span>{t('diagnostics.toggle')}</span><i className="site-notice-toggle-state" aria-hidden="true"/></button>
@@ -98,7 +98,7 @@ export function LauncherMasthead(props: LauncherMastheadProps) {
   </header>;
 }
 
-function MenuIcon({name}: {name: 'motion' | 'notice' | 'diagnostics' | 'firstUse' | 'about' | 'language'}) {
+function MenuIcon({name}: {name: 'settings' | 'migration' | 'donate' | 'faq' | 'motion' | 'notice' | 'diagnostics' | 'firstUse' | 'about' | 'language'}) {
   // Preserve the original SVG as the direct child, with no layout wrapper.
   const svg = mastheadIcons[name];
   const path = svg.match(/<path d="([^"]*)"/)![1];

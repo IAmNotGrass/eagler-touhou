@@ -19,6 +19,7 @@ import {LobbyDirectoryView} from './components/directory/LobbyDirectoryView';
 import {NetworkDiagnosticsDialog, type NetworkDiagnosticsHandle} from './components/directory/NetworkDiagnosticsDialog';
 import {DirectoryRoomDialog} from './components/directory/DirectoryRoomDialog';
 import {avatarSource} from './models/profile-avatars';
+import {ProfileWorkspace} from './components/launcher/ProfileWorkspace';
 import {FirstUseNotice, SiteNotice, DonationDialog, AppleRefreshDialog, MultiplayerGuideDialog, ReplayDialog, ProfileDialog,
   type FirstUseNoticeHandle, type SiteNoticeHandle} from './components/notices';
 import {GameDataImportWindows} from './components/player/GameDataImportWindows';
@@ -83,7 +84,7 @@ function BrowserWorkspace({session}: {session: BrowserSession}) {
     settingsContext: session.settingsContext, settingsActions: session.settingsActions, decisions: session.decisions,
     bootTouchPreview: state.bootTouchPreview !== null, bootTouchPreviewImage: state.bootTouchPreviewImage,
     nativeTouch: session.nativeTouch, touchFireEnabled: session.touchFireState.getEnabled(), assetUrl, lobbyHref: assetUrl('lobby.html'), masthead,
-    workspaceLobbyHref: assetUrl(state.locale === 'en' ? 'en.html?view=lobby' : './?view=lobby'), footer: <Footer donationAvailable={donationAvailable}/>, serverStatusNote: <ServerStatusNote session={session}/>, metadataRevision: state.metadataRevision,
+    workspaceLobbyHref: assetUrl(state.locale === 'en' ? 'en.html?view=lobby' : './?view=lobby'), footer: <Footer donationAvailable={donationAvailable}/>, profilePage: <ProfilePage session={session}/>, serverStatusNote: <ServerStatusNote session={session}/>, metadataRevision: state.metadataRevision,
     replayWorkspace,
     roomWorkspace,
     roomPlayerExpanded: state.roomPlayerExpanded,
@@ -143,7 +144,7 @@ function Header({session, firstUse, notice, donationAvailable}: {
   const updatedAge = useSyncExternalStore(session.appShell.brandAge.subscribe, session.appShell.brandAge.getSnapshot, session.appShell.brandAge.getSnapshot);
   const profile = useSyncExternalStore(session.profile.subscribe, session.profile.getSnapshot, session.profile.getSnapshot);
   const [menuOpen, setMenuOpen] = useState(false), url = (path: string) => new URL(path, session.baseUrl).href;
-  return <LauncherMasthead profileName={profile.name} profileAvatar={avatarSource(profile.avatar)} onProfile={() => navigation.openInfoDialog('profileDialog')} updatedAge={updatedAge} variant={navigation.context} assetUrl={url} launcherHref={url(locale === 'en' ? 'en.html' : './')}
+  return <LauncherMasthead profileName={profile.name} profileAvatar={avatarSource(profile.avatar)} onProfile={() => navigation.roomCode !== null || navigation.playerOpen ? navigation.openInfoDialog('profileDialog') : navigation.openProfile()} updatedAge={updatedAge} variant={navigation.context} assetUrl={url} launcherHref={url(locale === 'en' ? 'en.html' : './')}
     faqHref={url('faq.html')} aboutHref={url('about.html')} migrationPolicyKnown={metadata.siteManifest !== null} migrationHref={metadata.siteManifest && siteOriginMigrationAvailable(metadata.siteManifest, window.location.protocol) ? url('migrate.html') : undefined}
     menuOpen={menuOpen} onMenuOpenChange={setMenuOpen} lessMotion={prefs.lessMotion} onToggleMotion={session.preferences.toggleMotion}
     noticeEnabled={prefs.noticeEnabled} onToggleNotice={session.preferences.toggleNotice}
@@ -159,6 +160,10 @@ function Profile({session}: {session: BrowserSession}) {
   const navigation = useSurfaceNavigation(), profile = useSyncExternalStore(session.profile.subscribe, session.profile.getSnapshot, session.profile.getSnapshot);
   return <ProfileDialog open={navigation.infoDialogOpen('profileDialog')} onCloseRequest={() => navigation.closeInfoDialog('profileDialog')}
     name={profile.name} avatar={profile.avatar} assetUrl={path => new URL(path, session.baseUrl).href} onName={session.profile.setName} onAvatar={session.profile.setAvatar}/>;
+}
+function ProfilePage({session}: {session: BrowserSession}) {
+  const navigation = useSurfaceNavigation(), profile = useSyncExternalStore(session.profile.subscribe, session.profile.getSnapshot, session.profile.getSnapshot);
+  return <ProfileWorkspace name={profile.name} avatar={avatarSource(profile.avatar)} assetUrl={path => new URL(path, session.baseUrl).href} onEdit={() => navigation.openInfoDialog('profileDialog')}/>;
 }
 function Footer({donationAvailable}: {donationAvailable: boolean}) {const navigation = useSurfaceNavigation(); return <SiteFooter donationAvailable={donationAvailable} onDonation={() => navigation.openInfoDialog('donationDialog')}/>;}
 function Directory({session, network, ...props}: LobbySurfaceProps & {session: BrowserSession; network: React.RefObject<NetworkDiagnosticsHandle | null>}) {

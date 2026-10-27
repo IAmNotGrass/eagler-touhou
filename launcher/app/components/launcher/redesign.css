@@ -33,7 +33,6 @@ html:has(.directory-layout):not(:has(.player.active)){overflow-y:auto!important}
 .profile-dial-item{--size:calc((46px + 14px*var(--dial-near))*var(--wheel-scale));position:absolute;left:50%;top:50%;width:var(--size);height:var(--size);
   translate:calc(-50% + var(--dial-x)*var(--wheel-scale)) calc(-50% + var(--dial-y)*var(--wheel-scale));padding:0;border:2px solid #ffffff26;border-radius:50%;
   background:#2b2b28;overflow:hidden;opacity:var(--dial-fade);cursor:pointer;transition:scale .16s ease,border-color .16s ease,box-shadow .16s ease}
-.profile-dial-item[hidden]{display:none}
 .profile-dial-item img{width:100%;height:100%;display:block;object-fit:cover;pointer-events:none}
 .profile-dial-item:hover,.profile-dial-item:focus-visible{z-index:1;scale:1.1;border-color:var(--paper);outline:none}
 .profile-dial-item[data-focused=true]{border-color:var(--avatar-color,var(--paper))}
@@ -847,5 +846,32 @@ body:has(.lobby-redesign-sheet) #roomDialog .lobby-submit{background:var(--red);
 .score-content:has(.clear-radar-wrap)>.score-character[data-count="2"] .character-portrait+.character-portrait{margin-left:-28%}
 .score-matrix-region:has(.clear-radar-wrap){width:100%}
 
-/* The adaptation progress link has a centred line of its own in the credits. */
-.site-footer .site-footer-inner .site-footer-progress{display:flex;flex:1 0 100%;justify-content:center;margin:0;padding:0;text-align:center}
+/* The adaptation progress link and the registration share a centred line under the credits. */
+.site-footer .site-footer-inner .site-footer-row{display:flex;flex:1 0 100%;justify-content:center;align-items:center;margin:0;padding:0}
+.site-footer .site-footer-inner .site-footer-row p{margin:0;padding:0;border:0;text-align:center}
+.site-footer .site-footer-inner .site-footer-row p+p{margin-left:clamp(10px,1.5vw,24px);padding-left:clamp(10px,1.5vw,24px);border-left:1px solid rgba(198,192,183,.28)}
+
+/* Menu entries that the host does not offer stay out of the header menu. */
+.masthead-menu-item[hidden]{display:none}
+
+/* Profile page: no directory; one card across the width that grows with its content. */
+.main.library-layout.directory-layout.profile-layout{grid-template-columns:minmax(0,1fr)}
+.profile-layout .redesign-directory{display:none!important}
+.directory-layout .profile-workspace{grid-column:1/-1;min-height:max(1200px,100dvh)!important}
+.profile-workspace-content{display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:28px 32px 32px}
+.profile-page-avatar{appearance:none;padding:0;border:0;border-radius:50%;background:transparent;color:var(--paper);cursor:pointer}
+.profile-page-avatar .profile-avatar{width:144px;height:144px;border-width:3px;font-size:56px}
+.profile-page-avatar .profile-avatar svg{width:96px;height:96px;stroke-width:1.2}
+.profile-page-avatar:hover .profile-avatar,.profile-page-avatar:focus-visible .profile-avatar{border-color:var(--red-bright)}
+.profile-page-avatar:focus-visible{outline:2px solid var(--red-bright);outline-offset:4px}
+.profile-page-name{margin:0;color:var(--paper);font:700 20px/1.4 var(--ui-font)}
+.profile-page-name[data-empty]{color:var(--muted);font-weight:500}
+@media(min-width:781px) and (orientation:landscape){
+ .sheet.redesign-sheet:has(.profile-layout){height:auto!important;min-height:100dvh!important;grid-template-rows:max-content minmax(min-content,1fr)}
+ .main.library-layout.directory-layout.profile-layout{height:auto;grid-template-rows:minmax(min-content,1fr) auto}
+ .directory-layout.launcher-workspace-layout.profile-layout .profile-workspace{grid-column:1/-1;grid-row:1;height:auto!important}
+}
+@media(max-width:780px){
+ .profile-workspace-content{padding:20px 24px 24px}
+ .profile-page-avatar .profile-avatar{width:112px;height:112px;font-size:44px}
+}
