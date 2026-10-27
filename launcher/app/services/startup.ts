@@ -112,18 +112,21 @@ export function createStartupController(options: StartupOptions) {
     win.clearTimeout(deadline); timeouts.delete(deadline);
     return current(id);
   }
+  /** The document names the background's bundled (hashed) file, which the
+   * stylesheets and preload use; decoding that same file downloads it once. */
+  const backgroundSource = () => new URL(doc.documentElement.dataset.launcherBackground || 'assets/launcher-background.webp', options.baseUrl).href;
   async function revealLibrary(id: number) {
     const covers = Array.from(doc.querySelectorAll<HTMLImageElement>('.game-library img')).filter(image => {
       const rect = image.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0 && rect.top < win.innerHeight + 80 && rect.bottom > 0 && rect.left < win.innerWidth + 80 && rect.right > 0;
     });
-    const visuals = Promise.allSettled([decodeImage(new URL('assets/launcher-background.webp', options.baseUrl).href),
+    const visuals = Promise.allSettled([decodeImage(backgroundSource()),
       ...fonts(), ...covers.map(image => decodeImage(image.currentSrc || image.src))]);
     if (await waitForVisuals(id, visuals)) finishReveal(id, 'library', () => {});
   }
   async function revealLobby(id: number, ports: StartupPorts) {
     // Work begins alongside manifest/directory initialization, as original main.
-    const initial = Promise.allSettled([decodeImage(new URL('assets/launcher-background.webp', options.baseUrl).href), ...fonts()]);
+    const initial = Promise.allSettled([decodeImage(backgroundSource()), ...fonts()]);
     await ports.waitDirectoryRendered(); if (!current(id)) return;
     const covers = Array.from(doc.querySelectorAll<HTMLImageElement>('.lobby-main img')).filter(image => {
       const rect = image.getBoundingClientRect(); return rect.width > 0 && rect.height > 0 && rect.top < win.innerHeight + 80 && rect.bottom > 0;

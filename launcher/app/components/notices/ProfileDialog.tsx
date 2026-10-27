@@ -62,10 +62,22 @@ function useDial(initial: number, size: number) {
   };
 }
 
-/** Profile window: a dial of characters around the chosen avatar with the
- * nickname below it, and the focused character's expressions on the right.
- * Searching narrows the dial itself to the matching characters. */
-export function ProfileDialog({name, avatar, assetUrl, onName, onAvatar, ...props}: ProfileDialogProps) {
+/** Profile window. Its content exists only while the window is open (or
+ * closing) and is dropped once it has closed. */
+export function ProfileDialog({name, avatar, assetUrl, onName, onAvatar, onClosed, ...props}: ProfileDialogProps) {
+  const {t} = useLocale();
+  const [present, setPresent] = useState(props.open);
+  if (props.open && !present) setPresent(true);
+  return <InformationalDialog {...props} onClosed={() => {setPresent(false); onClosed?.();}} id="profileDialog" titleId="profileTitle" closeId="profileClose"
+    title={t('profile.title')} closeLabel={t('profile.close')} launcherDocument presentation={informationalDialogPresentation.standard}>
+    {present && <ProfileEditor name={name} avatar={avatar} assetUrl={assetUrl} onName={onName} onAvatar={onAvatar}/>}
+  </InformationalDialog>;
+}
+
+/** A dial of characters around the chosen avatar with the nickname below it,
+ * and the focused character's expressions on the right. Searching narrows the
+ * dial itself to the matching characters. */
+function ProfileEditor({name, avatar, assetUrl, onName, onAvatar}: Pick<ProfileDialogProps, 'name' | 'avatar' | 'assetUrl' | 'onName' | 'onAvatar'>) {
   const {t, locale} = useLocale();
   const [searching, setSearching] = useState(false), [query, setQuery] = useState('');
   const list = query.trim() ? searchAvatarCharacters(query) : CHARACTERS, count = list.length;
@@ -83,10 +95,6 @@ export function ProfileDialog({name, avatar, assetUrl, onName, onAvatar, ...prop
   const text = (key: string, fallback: string) => isUiMessageKey(key) ? t(key) : fallback;
   const filter = (value: string) => {setQuery(value); dial.jump(0);};
   const closeSearch = () => {setSearching(false); setQuery(''); dial.jump(indexIn(CHARACTERS, focus));};
-  useEffect(() => {
-    if (!props.open) {setSearching(false); setQuery(''); return;}
-    dial.jump(indexIn(CHARACTERS, avatar?.character));
-  }, [props.open]);
   useEffect(() => {if (searching) search.current?.focus();}, [searching]);
   const focusTop = (character: AvatarCharacterId | undefined) => requestAnimationFrame(() =>
     ring.current?.querySelector<HTMLElement>(`[data-character="${character}"]`)?.focus({preventScroll: true}));
@@ -109,14 +117,13 @@ export function ProfileDialog({name, avatar, assetUrl, onName, onAvatar, ...prop
   }, []);
   // Opening the window starts keyboard focus on the dial, unless something in it already took focus.
   useEffect(() => {
-    if (!props.open) return;
     const frame = requestAnimationFrame(() => {
       const current = document.activeElement;
       if (current && current.id !== 'profileClose' && ring.current?.closest('.profile-editor')?.contains(current)) return;
       ring.current?.querySelector<HTMLElement>(`[data-character="${avatar?.character ?? CHARACTERS[0]}"]`)?.focus({preventScroll: true});
     });
     return () => cancelAnimationFrame(frame);
-  }, [props.open]);
+  }, []);
   // Wheel turns the dial a step per notch; trackpads accumulate smaller deltas.
   useEffect(() => {
     const node = ring.current;
@@ -134,7 +141,7 @@ export function ProfileDialog({name, avatar, assetUrl, onName, onAvatar, ...prop
     return () => node.removeEventListener('wheel', wheel);
   }, []);
   const input = useRef<HTMLInputElement>(null);
-  useEffect(() => {if (input.current && document.activeElement !== input.current) input.current.value = name;}, [name, props.open]);
+  useEffect(() => {if (input.current && document.activeElement !== input.current) input.current.value = name;}, [name]);
   const commitName = () => {if (input.current) input.current.value = onName(input.current.value);};
   const pick = (character: AvatarCharacterId) => {
     dial.show(indexIn(list, character));
@@ -150,9 +157,7 @@ export function ProfileDialog({name, avatar, assetUrl, onName, onAvatar, ...prop
       <img src={assetUrl(expression.src)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false}/>
     </button>;
   };
-  return <InformationalDialog {...props} id="profileDialog" titleId="profileTitle" closeId="profileClose"
-    title={t('profile.title')} closeLabel={t('profile.close')} launcherDocument presentation={informationalDialogPresentation.standard}>
-    <div className="profile-editor">
+  return <div className="profile-editor">
       <section className="profile-identity-panel" aria-label={t('profile.characters')}>
         <div ref={ring} className="profile-dial" role="group" aria-label={t('profile.characters')} aria-describedby="profileDialHint" data-filtered={!!query.trim()}
           onPointerDown={event => {if (event.button === 0 && !(event.target as Element).closest('.profile-search')) dragging.current = {x: event.clientX, offset: dial.offset, moved: false};}}
@@ -177,16 +182,18 @@ export function ProfileDialog({name, avatar, assetUrl, onName, onAvatar, ...prop
             const index = list.indexOf(character);
             // Signed distance from the top slot, in steps.
             const slot = index < 0 ? SLOTS : wrap(index - dial.offset + count / 2, count) - count / 2, distance = Math.abs(slot);
-            const visible = distance < SHOWN, angle = -Math.PI / 2 + slot * 2 * Math.PI / SLOTS;
+            // Only the characters on the dial are rendered; the rest join as it turns.
+            if (distance >= SHOWN) return null;
+            const angle = -Math.PI / 2 + slot * 2 * Math.PI / SLOTS;
             const style = {'--dial-x': `${(Math.cos(angle) * RADIUS).toFixed(1)}px`, '--dial-y': `${(Math.sin(angle) * RADIUS).toFixed(1)}px`,
               '--dial-fade': Math.max(0, Math.min(1, (SHOWN - distance) * 2)).toFixed(3), '--dial-near': Math.max(0, 1 - distance).toFixed(3),
               '--avatar-color': avatarColor(character)} as CSSProperties;
             const label = avatarCharacterName(character, locale) + (avatarArt(character) === 'tpdp' ? ` · ${t('profile.artTpdp')}` : '');
-            return <button key={character} type="button" className="profile-dial-item" style={style} hidden={!visible}
-              tabIndex={visible && distance < 0.5 ? 0 : -1} aria-pressed={avatar?.character === character} data-focused={count > 0 && focus === character}
+            return <button key={character} type="button" className="profile-dial-item" style={style}
+              tabIndex={distance < 0.5 ? 0 : -1} aria-pressed={avatar?.character === character} data-focused={count > 0 && focus === character}
               data-character={character} aria-label={label} title={label}
               onClick={() => {if (suppressClick.current) {suppressClick.current = false; return;} pick(character);}}>
-              {visible && <img src={assetUrl(avatarExpressions(character)[0]!.src)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false}/>}
+              <img src={assetUrl(avatarExpressions(character)[0]!.src)} alt="" width="256" height="256" decoding="async" draggable={false}/>
             </button>;
           })}
           <div className="profile-search" data-open={searching}>
@@ -221,8 +228,7 @@ export function ProfileDialog({name, avatar, assetUrl, onName, onAvatar, ...prop
         <div className="profile-expression-grid">{expressions.map(expressionButton)}</div>
         <p className="profile-art-credit">{t(avatarArt(focus) === 'tpdp' ? 'profile.creditTpdp' : 'profile.creditDairi')}</p>
       </section>
-    </div>
-  </InformationalDialog>;
+    </div>;
 }
 
 /** The chosen preset, else the nickname's first character, else a person glyph. */

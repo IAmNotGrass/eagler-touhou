@@ -108,7 +108,8 @@
       setTimeout(function () { if (preload.isConnected) preload.remove(); }, 240);
     }
     function waitForCriticalVisuals() {
-      var sources = ["assets/launcher-background.webp"];
+      // The document names the bundled background its stylesheets use; decode that same file.
+      var sources = [document.documentElement.getAttribute("data-launcher-background") || "assets/launcher-background.webp"];
       var cards = document.querySelectorAll(".game-shelf .game:not([hidden]) .card-art-image");
       for (var i = 0; i < cards.length; i++) {
         var card = cards[i].closest(".game");

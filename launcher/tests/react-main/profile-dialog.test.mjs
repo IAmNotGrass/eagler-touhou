@@ -74,7 +74,7 @@ const nameOf=id=>api.avatarCharacterName(id,'zh-CN');
 test('the dial shows a window of characters with the focused one on top and turns with the wheel',async()=>{
  const {calls,rerender}=await mount();
  const items=()=>[...env.document.querySelectorAll('.profile-dial-item')],visible=()=>items().filter(item=>!item.hidden),focused=()=>node('.profile-dial-item[data-focused=true]');
- assert.equal(items().length,api.PROFILE_AVATAR_CHARACTERS.length);assert.equal(visible().length,11,'one ring; its two bottom slots hold the search');
+ assert.equal(items().length,11,'only the characters on the dial are rendered; its two bottom slots hold the search');
  assert.equal(focused().title,'博丽灵梦');assert.equal(Number(focused().style.getPropertyValue('--dial-x').replace('px','')),0);
  assert.equal(items().filter(item=>item.querySelector('img')).length,11,'only shown characters load their image');
  assert.ok(node('.profile-dial-center svg'),'no avatar yet shows the person glyph');
@@ -95,6 +95,15 @@ test('the dial shows a window of characters with the focused one on top and turn
  assert.equal(grid.querySelector('span'),null,'expressions carry no captions');assert.ok(grid.querySelector('[aria-pressed=true]').getAttribute('aria-label'),'the name stays available to assistive technology');
  await React.act(async()=>buttons.at(-1).click());
  assert.equal(calls.avatars.at(-1).expression,api.avatarCostumes(id)[0].expressions.at(-1).id,'every expression is its own choice');
+});
+test('the window builds its content when opened and drops it once closed',async()=>{
+ const {rerender}=await mount({open:false});
+ assert.equal(node('.profile-editor'),null,'nothing is built while the window is closed');
+ await rerender({open:true});
+ assert.ok(node('.profile-editor'));assert.equal(env.document.querySelectorAll('.profile-dial-item').length,11);
+ await rerender({open:false});
+ await React.act(async()=>{await new Promise(resolve=>setTimeout(resolve,700));});
+ assert.equal(node('.profile-editor'),null,'closing removes the content');assert.ok(node('#profileDialog'),'the empty window stays ready');
 });
 test('arrow keys anywhere in the window turn the dial, except in the nickname field',async()=>{
  await mount();await React.act(async()=>{await new Promise(resolve=>setTimeout(resolve,100));});

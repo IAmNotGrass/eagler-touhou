@@ -1,8 +1,10 @@
 # DAIRI artwork provenance
 
-The 30 selected PNGs in `public/assets/dairi/` are unchanged originals from the
-character ZIP packages listed in `selection.json`. That file records each
-archive, selected member and SHA-256 digest. The corresponding original package
+The 30 selected portraits are kept as unchanged original PNGs in
+`docs/dairi-art/portraits/`, from the character ZIP packages listed in
+`selection.json`. That file records each archive, selected member and SHA-256 digest.
+The site publishes WebP copies of them in `public/assets/dairi/` (quality 85),
+about a fifth of the PNG size. The corresponding original package
 readme files are retained in this directory, and attribution is delivered in
 `assets/dairi/CREDITS.txt`.
 

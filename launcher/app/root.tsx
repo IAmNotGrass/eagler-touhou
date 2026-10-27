@@ -1,7 +1,7 @@
 import {Links, Meta, Outlet, Scripts, ScrollRestoration, useLocation} from 'react-router';
 import {useRef, type ReactNode} from 'react';
 import {BrowserLauncher} from './BrowserLauncher';
-import {OriginalBootstrapHead, OriginalPreloads, OriginalModuleRequestMark, OriginalBootstrapTail, useDocumentUiLocale} from './components/startup/OriginalBootstrap';
+import {OriginalBootstrapHead, OriginalPreloads, OriginalModuleRequestMark, OriginalBootstrapTail, launcherBackgroundUrl, useDocumentUiLocale} from './components/startup/OriginalBootstrap';
 import {AppShellDeploymentMeta} from './components/startup/AppShellDeploymentMeta';
 import {InitialLauncher, InitialDocumentBody, OriginalNoscript} from './components/startup/InitialLauncher';
 import '../public/styles.css';
@@ -18,7 +18,7 @@ export function Layout({children}: {children: ReactNode}) {
   // Original boot owns removal. Keep this initial prop constant so later SPA
   // route renders cannot reintroduce the document's retired loading gate.
   const initialLobby = useRef(lobby).current;
-  return <html lang={locale} data-ui-locale={locale} data-original-entry={initialLobby ? 'lobby' : 'library'} data-lobby-boot={initialLobby ? 'loading' : undefined} suppressHydrationWarning><head><meta charSet="utf-8"/><OriginalBootstrapHead/><AppShellDeploymentMeta/><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/><Meta/><Links/></head>
+  return <html lang={locale} data-ui-locale={locale} data-original-entry={initialLobby ? 'lobby' : 'library'} data-lobby-boot={initialLobby ? 'loading' : undefined} data-launcher-background={launcherBackgroundUrl} suppressHydrationWarning><head><meta charSet="utf-8"/><OriginalBootstrapHead/><AppShellDeploymentMeta/><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/><Meta/><Links/></head>
     <InitialDocumentBody lobby={lobby}><OriginalPreloads/>{children}<OriginalNoscript lobby={lobby}/><ScrollRestoration/><OriginalModuleRequestMark/><Scripts data-eagler-entry="true"/><OriginalBootstrapTail/></InitialDocumentBody></html>;
 }
 /** Framework's index.html SPA fallback renders this rather than App. */

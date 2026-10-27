@@ -1,4 +1,6 @@
 import backgroundUrl from '../../../public/assets/launcher-background.webp?url';
+/** The bundled background, which the stylesheets and the preload use. */
+export const launcherBackgroundUrl: string = backgroundUrl;
 import touhouFontUrl from '../../../public/assets/fonts/touhou98.woff2?url';
 import yatraFontUrl from '../../../public/assets/fonts/yatra-one-latin.woff2?url';
 import mediumFontUrl from '../../../public/assets/fonts/chill-round-gothic-site-medium-critical.woff2?url';

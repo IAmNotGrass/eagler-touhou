@@ -7,7 +7,7 @@ export function CharacterPortraits({characters, assetUrl, label}: {label?: strin
   const {t} = useLocale();
   if (!characters.length) return null;
   return <figure className="score-character" data-count={characters.length} aria-label={label ?? t('scores.portraits')}>
-    {characters.map(id => <Portrait key={id} id={id} src={assetUrl(`assets/dairi/${id}.png`)}/>)}
+    {characters.map(id => <Portrait key={id} id={id} src={assetUrl(`assets/dairi/${id}.webp`)}/>)}
     <figcaption>{label && <span>{label} · </span>}<a href={assetUrl('assets/dairi/CREDITS.txt')} target="_blank" rel="noopener noreferrer">DAIRI / はるか</a></figcaption>
   </figure>;
 }
