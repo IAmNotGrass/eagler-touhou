@@ -33,6 +33,8 @@ export interface LauncherMastheadProps {
   /** The chosen avatar preset's asset path, if any. */
   profileAvatar?: string | null;
   onProfile?: () => void;
+  /** The brand returns to the site's home page. */
+  onHome?: () => void;
   /** The shared MainSelect, with the original uiLanguageSelect native props. */
   languageControl: ReactNode;
 }
@@ -63,7 +65,7 @@ export function LauncherMasthead(props: LauncherMastheadProps) {
     }
   }, [menuOpen, variant, interactive]);
   return <header className="masthead">
-    <MastheadBrand interactive={interactive} updatedAge={props.updatedAge} lessMotion={props.lessMotion}/>
+    <MastheadBrand interactive={interactive} updatedAge={props.updatedAge} lessMotion={props.lessMotion} onHome={props.onHome}/>
     <nav className="masthead-links" aria-label={t('nav.siteInfo')}>
       <button className="masthead-link masthead-profile" id="profileOpen" type="button" aria-controls="profileDialog" disabled={!interactive || !props.onProfile}
         aria-label={props.profileName ? `${t('profile.title')}：${props.profileName}` : t('profile.title')} title={props.profileName || t('profile.title')} onClick={props.onProfile}>

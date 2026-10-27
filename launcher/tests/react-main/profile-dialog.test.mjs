@@ -64,9 +64,9 @@ test('stored avatar choices are validated against the presets',()=>{
  assert.equal(api.avatarCharacterName('nina','zh-CN'),'渡里','a partial Chinese name shows what is known');
 });
 async function mount(props={}){
- const calls={names:[],avatars:[]},container=env.document.createElement('main');env.document.body.append(container);root=createRoot(container);
+ const calls={avatars:[]},container=env.document.createElement('main');env.document.body.append(container);root=createRoot(container);
  const element=extra=>React.createElement(api.LocaleProvider,{locale:'zh-CN'},React.createElement(api.ProfileDialog,{open:true,onCloseRequest(){},name:'',avatar:null,assetUrl:path=>'http://profile.local/'+path,
-  onName:value=>{calls.names.push(value);return value.trim()||'旧名';},onAvatar:choice=>calls.avatars.push(choice),...props,...extra}));
+  onAvatar:choice=>calls.avatars.push(choice),...props,...extra}));
  await React.act(async()=>root.render(element()));
  return {calls,rerender:extra=>React.act(async()=>root.render(element(extra)))};
 }
@@ -81,20 +81,27 @@ test('the dial shows a window of characters with the focused one on top and turn
  const wheel=deltaY=>React.act(async()=>{node('.profile-dial').dispatchEvent(new env.window.WheelEvent('wheel',{deltaY,bubbles:true,cancelable:true}));await new Promise(resolve=>setTimeout(resolve,400));});
  await wheel(30);assert.equal(focused().title,'博丽灵梦','small trackpad deltas accumulate');
  await wheel(30);assert.equal(focused().title,'雾雨魔理沙');
- assert.equal(node('#profileExpressionTitle').firstChild.textContent,'雾雨魔理沙','expressions follow the focused character');
+ assert.equal(node('.profile-dial-caption').textContent,'雾雨魔理沙','the caption names the focused character');
  assert.equal(items()[1].style.getPropertyValue('--avatar-color'),'#f2c94c','each character carries its own colour');
  await wheel(-110);assert.equal(focused().title,`${nameOf(api.PROFILE_AVATAR_CHARACTERS.at(-1))} · 人形演舞`,'the dial wraps past the first character to the 人形演舞 set');
  await wheel(100);assert.deepEqual(calls.avatars,[],'turning only browses');
- const target=items()[4],id=target.dataset.character,first=api.avatarExpressions(id)[0];assert.equal(target.hidden,false);
+ const target=items().find(item=>api.avatarExpressions(item.dataset.character).length>1),id=target.dataset.character,list=api.avatarExpressions(id);
  await React.act(async()=>{target.click();await new Promise(resolve=>setTimeout(resolve,400));});
- assert.deepEqual(calls.avatars,[{character:id,expression:first.id}],'picking stores the default expression');assert.equal(focused(),target,'a pick turns to the top');
- await rerender({avatar:{character:id,expression:first.id}});
- assert.equal(target.getAttribute('aria-pressed'),'true');
- assert.equal(node('.profile-dial-center img').getAttribute('src'),'http://profile.local/'+first.src);
- const grid=node('.profile-expression-grid'),buttons=[...grid.querySelectorAll('.profile-expression')];
- assert.equal(grid.querySelector('span'),null,'expressions carry no captions');assert.ok(grid.querySelector('[aria-pressed=true]').getAttribute('aria-label'),'the name stays available to assistive technology');
- await React.act(async()=>buttons.at(-1).click());
- assert.equal(calls.avatars.at(-1).expression,api.avatarCostumes(id)[0].expressions.at(-1).id,'every expression is its own choice');
+ assert.deepEqual(calls.avatars,[],'picking a character opens its expressions without choosing one');
+ assert.equal(node('.profile-editor').dataset.dialMode,'expressions');
+ assert.equal(node('.profile-dial-item[data-character]'),null,'the characters leave the dial');
+ assert.equal(focused().dataset.dialKey,list[0].id,'the first expression comes to the top');
+ assert.equal(node('.profile-dial-center img').getAttribute('src'),'http://profile.local/'+list[0].src,'the centre previews the focused expression');
+ assert.ok(node('#profileDialBack'),'the search slot turns into a way back');
+ await wheel(50);assert.equal(focused().dataset.dialKey,list[1].id,'the expressions turn like the characters');
+ await React.act(async()=>{focused().click();await new Promise(resolve=>setTimeout(resolve,400));});
+ assert.deepEqual(calls.avatars,[{character:id,expression:list[1].id}],'picking an expression stores it');
+ assert.equal(node('.profile-editor').dataset.dialMode,'characters','and the characters come back');
+ assert.equal(focused().dataset.character,id,'with the chosen character on top');
+ await rerender({avatar:{character:id,expression:list[1].id}});
+ assert.equal(focused().getAttribute('aria-pressed'),'true');
+ assert.equal(node('.profile-dial-center img').getAttribute('src'),'http://profile.local/'+list[1].src);
+ assert.equal(focused().querySelector('img').getAttribute('src'),'http://profile.local/'+list[1].src,'the character on the dial shows the chosen expression');
 });
 test('the window builds its content when opened and drops it once closed',async()=>{
  const {rerender}=await mount({open:false});
@@ -105,37 +112,40 @@ test('the window builds its content when opened and drops it once closed',async(
  await React.act(async()=>{await new Promise(resolve=>setTimeout(resolve,700));});
  assert.equal(node('.profile-editor'),null,'closing removes the content');assert.ok(node('#profileDialog'),'the empty window stays ready');
 });
-test('arrow keys anywhere in the window turn the dial, except in the nickname field',async()=>{
- await mount();await React.act(async()=>{await new Promise(resolve=>setTimeout(resolve,100));});
+test('arrow keys anywhere in the window turn the dial, and Escape leaves the expressions without closing',async()=>{
+ await mount({avatar:{character:'remilia',expression:'smile'}});await React.act(async()=>{await new Promise(resolve=>setTimeout(resolve,100));});
  const focused=()=>node('.profile-dial-item[data-focused=true]');
  assert.equal(env.document.activeElement,focused(),'opening the window focuses the dial');
+ assert.equal(focused().dataset.character,'remilia','the dial opens on the current avatar');
  const press=async(target,key)=>React.act(async()=>{target.dispatchEvent(new env.window.KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));await new Promise(resolve=>setTimeout(resolve,400));});
- const expression=node('.profile-expression');expression.focus();
- await press(expression,'ArrowRight');
- assert.equal(focused().dataset.character,api.PROFILE_AVATAR_CHARACTERS[1],'an expression button does not keep the arrow keys');
- assert.equal(env.document.activeElement,focused(),'focus returns to the dial');
- await press(node('.profile-costumes button')??node('.profile-expression'),'ArrowLeft');
- assert.equal(focused().dataset.character,api.PROFILE_AVATAR_CHARACTERS[0]);
+ const at=index=>api.PROFILE_AVATAR_CHARACTERS[index],start=api.PROFILE_AVATAR_CHARACTERS.indexOf('remilia');
  await press(node('#profileClose'),'ArrowRight');
- assert.equal(focused().dataset.character,api.PROFILE_AVATAR_CHARACTERS[1],'the window header passes arrows to the dial too');
+ assert.equal(focused().dataset.character,at(start+1),'the window header passes arrows to the dial');
  await press(node('#profileClose'),'ArrowLeft');
- const name=node('#profileNameInput');name.focus();
- await press(name,'ArrowRight');
- assert.equal(focused().dataset.character,api.PROFILE_AVATAR_CHARACTERS[0],'arrows move the caret while editing the nickname');
- assert.equal(env.document.activeElement,name);
+ await React.act(async()=>{focused().click();await new Promise(resolve=>setTimeout(resolve,400));});
+ const list=api.avatarExpressions('remilia'),current=list.findIndex(entry=>entry.id==='smile');
+ assert.equal(focused().dataset.dialKey,'smile','the expressions open on the current one');
+ assert.equal(env.document.activeElement,focused());
+ await press(env.document.activeElement,'ArrowRight');
+ assert.equal(focused().dataset.dialKey,list[current+1].id);assert.equal(env.document.activeElement,focused(),'focus follows the dial');
+ const escape=new env.window.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true});
+ await React.act(async()=>{env.document.activeElement.dispatchEvent(escape);await new Promise(resolve=>setTimeout(resolve,400));});
+ assert.equal(escape.defaultPrevented,true,'Escape is kept from closing the window');
+ assert.equal(node('.profile-editor').dataset.dialMode,'characters');assert.equal(focused().dataset.character,'remilia');
 });
-test('outfits switch the expression grid and are stored with their expressions',async()=>{
+test('outfits join a character\'s expressions on the dial and are stored with them',async()=>{
  const {calls}=await mount({avatar:{character:'remilia',expression:'smile'}});
- await new Promise(resolve=>setTimeout(resolve,400));
- const chips=()=>[...env.document.querySelectorAll('.profile-costumes button')];
- assert.deepEqual(chips().map(chip=>chip.getAttribute('aria-pressed')),api.avatarCostumes('remilia').map((_,index)=>String(index===0)));
- assert.equal(chips()[0].textContent,'默认');
- const swimsuit=chips().find(chip=>chip.textContent==='泳装');
- await React.act(async()=>swimsuit.click());
- const expected=api.avatarCostumes('remilia').find(outfit=>outfit.costume==='swimsuit').expressions;
- assert.equal(env.document.querySelectorAll('.profile-expression').length,expected.length);
- await React.act(async()=>node('.profile-expression').click());
- assert.deepEqual(calls.avatars,[{character:'remilia',expression:expected[0].id}]);
+ await React.act(async()=>{await new Promise(resolve=>setTimeout(resolve,100));node('.profile-dial-item[data-focused=true]').click();await new Promise(resolve=>setTimeout(resolve,400));});
+ const all=api.avatarCostumes('remilia').flatMap(outfit=>outfit.expressions);
+ assert.equal(all.length,api.avatarExpressions('remilia').length);
+ const swimsuit=all.findIndex(entry=>entry.costume==='swimsuit'),current=all.findIndex(entry=>entry.id==='smile');
+ const press=async key=>React.act(async()=>{env.document.activeElement.dispatchEvent(new env.window.KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));await new Promise(resolve=>setTimeout(resolve,300));});
+ for(let index=current;index<swimsuit;index++)await press('ArrowRight');
+ const top=node('.profile-dial-item[data-focused=true]');
+ assert.equal(top.dataset.dialKey,all[swimsuit].id);assert.match(top.title,/^泳装 · /,'an outfit expression names its outfit');
+ assert.equal(node('.profile-dial-caption').textContent,`${nameOf('remilia')} · ${top.title}`);
+ await React.act(async()=>top.click());
+ assert.deepEqual(calls.avatars,[{character:'remilia',expression:all[swimsuit].id}]);
 });
 test('character search matches Chinese, English, Japanese and pinyin names or name parts',()=>{
  const first=query=>api.searchAvatarCharacters(query)[0];
@@ -157,26 +167,21 @@ test('search narrows the dial to the matching characters without changing the av
  await type('prismriver');
  assert.deepEqual(shown().sort(),api.searchAvatarCharacters('prismriver').sort(),'only matches stay on the dial');
  assert.equal(node('.profile-dial-item[data-focused=true]').dataset.character,'lunasa','the best match is on top');
- assert.equal(node('#profileExpressionTitle').firstChild.textContent,nameOf('lunasa'));assert.equal(node('.profile-search-results'),null,'no separate result list');
+ assert.equal(node('.profile-dial-caption').textContent,nameOf('lunasa'));assert.equal(node('.profile-search-results'),null,'no separate result list');
  await React.act(async()=>{node('.profile-search input').dispatchEvent(new env.window.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));await new Promise(resolve=>setTimeout(resolve,400));});
  assert.equal(node('.profile-dial-item[data-focused=true]').dataset.character,'merlin','arrow keys turn through the matches');
  assert.deepEqual(calls.avatars,[]);
- await React.act(async()=>node('.profile-search input').dispatchEvent(new env.window.KeyboardEvent('keydown',{key:'Enter',bubbles:true})));
- assert.deepEqual(calls.avatars,[{character:'merlin',expression:api.avatarExpressions('merlin')[0].id}]);
+ await React.act(async()=>{node('.profile-search input').dispatchEvent(new env.window.KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await new Promise(resolve=>setTimeout(resolve,400));});
+ assert.equal(node('.profile-editor').dataset.dialMode,'expressions','Enter opens the top match\'s expressions');assert.deepEqual(calls.avatars,[]);
+ await React.act(async()=>{node('#profileDialBack').click();await new Promise(resolve=>setTimeout(resolve,400));});
+ assert.equal(node('.profile-search input').value,'prismriver','the search is still there on the way back');
+ assert.equal(node('.profile-dial-item[data-focused=true]').dataset.character,'merlin');
  await type('zzzz');
  assert.equal(shown().length,0);assert.equal(node('.profile-dial-empty').textContent,'没有匹配的角色');
- assert.equal(node('#profileExpressionTitle').firstChild.textContent,nameOf('merlin'),'the panel keeps the last character');
+ assert.equal(node('.profile-dial-caption').textContent,'','no match leaves the caption empty');
  await React.act(async()=>node('.profile-search input').dispatchEvent(new env.window.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true})));
  assert.ok(node('.profile-search-open'),'Escape closes only the search');assert.equal(shown().length,11,'the full dial returns');
  assert.equal(node('.profile-dial-item[data-focused=true]').dataset.character,'merlin','closing keeps the focused character on top');
-});
-test('the nickname commits on Enter or blur and shows the name in effect',async()=>{
- const {calls}=await mount({name:'魔法使'});
- const input=node('#profileNameInput');assert.equal(input.value,'魔法使');
- input.value='  琪露诺  ';await React.act(async()=>input.dispatchEvent(new env.window.KeyboardEvent('keydown',{key:'Enter',bubbles:true})));
- assert.deepEqual(calls.names,['  琪露诺  ']);assert.equal(input.value,'琪露诺');
- input.value='';await React.act(async()=>input.dispatchEvent(new env.window.FocusEvent('focusout',{bubbles:true})));
- assert.equal(input.value,'旧名','an empty edit keeps the previous name');
 });
 test('the header avatar prefers the preset, then the nickname initial',async()=>{
  const container=env.document.createElement('div');env.document.body.append(container);root=createRoot(container);

@@ -5,6 +5,8 @@ const entries = [
   ['index.html', true],
   ['en.html', true],
   ['lobby.html', true],
+  // The SPA fallback for user/:id pages, with the mount as its base; generated at build.
+  ['user.html', false],
   ['lobby.css', true],
   ['site.webmanifest', true],
   ['favicon.ico', true],

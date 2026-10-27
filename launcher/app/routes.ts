@@ -7,4 +7,6 @@ export default [
   route('en.html', 'routes/surface.tsx', {id: 'library-en'}),
   route('lobby.html', 'routes/surface.tsx', {id: 'directory-html'}),
   route('lobby', 'routes/surface.tsx', {id: 'directory'}),
+  // Account pages. `me` is the visitor's own local profile until accounts exist.
+  route('user/:userId', 'routes/surface.tsx', {id: 'user'}),
 ] satisfies RouteConfig;

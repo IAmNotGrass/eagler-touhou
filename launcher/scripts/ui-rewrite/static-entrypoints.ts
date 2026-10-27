@@ -1,4 +1,4 @@
-import {readFile, readdir, rename, rmdir} from 'node:fs/promises';
+import {readFile, readdir, rename, rmdir, writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 
 /** RR prerenders /en.html as en.html/index.html. Preserve the original static
@@ -17,4 +17,15 @@ export async function finalizeOriginalEntrypoints(clientDirectory: string, mount
     await rmdir(directory); // Only the validated empty generated directory.
     await rename(temporary, resolve(clientDirectory, filename));
   }
+  // User pages (user/:id) sit one directory below the mount. Servers answer
+  // them with user.html: the SPA fallback document with the mount as its base,
+  // so relative addresses (and the browser's early preloads) resolve as at the
+  // mount. A worker that answers them with index.html gets the same base from
+  // its first script.
+  const fallback = resolve(clientDirectory, '.' + mountPath, 'index.html'), html = await readFile(fallback, 'utf8');
+  const charset = '<meta charSet="utf-8"/>';
+  if (!html.includes(charset)) throw new Error('Missing charset in the SPA fallback document');
+  await writeFile(resolve(clientDirectory, '.' + mountPath, 'user.html'), html.replace(charset, `${charset}<base href="${mountPath}"/>`));
+  await writeFile(fallback, html.replace(charset, charset + `<script>${userPageBase}</script>`));
 }
+const userPageBase = "(function(){var m=/^(.*\\/)user\\/[^\\/]+\\/?$/.exec(location.pathname);if(m&&!document.querySelector('base')){var b=document.createElement('base');b.href=m[1];document.head.appendChild(b);}}());";

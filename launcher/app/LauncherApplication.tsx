@@ -131,7 +131,7 @@ function LauncherSurfaces({host}: {host: LauncherHost}) {
           // The global settings opener lives in the closed header menu; its toggle takes the focus back.
           const opener=document.querySelector<HTMLElement>(settingsMotion === 'open' ? '#globalSettingsClose' : previous === 'settings:game' ? '.workspace-game-settings' : '#globalSettingsOpen');
           (opener?.closest('[inert]') ? document.getElementById('mastheadMenuToggle') : opener)?.focus({preventScroll:true});return;}
-        if(workspaceKind === 'profile' || previous === 'profile'){document.getElementById(workspaceKind === 'profile' ? 'profilePageClose' : 'profileOpen')?.focus({preventScroll:true});return;}
+        if(workspaceKind === 'profile' || previous === 'profile'){if(workspaceKind === 'profile')document.getElementById('profilePageAvatar')?.focus({preventScroll:true});return;}
         if(filesMotion){document.getElementById(filesMotion === 'open' ? 'scoreFilesClose' : 'scoreFilesOpen')?.focus({preventScroll:true});return;}
         const target = document.querySelector<HTMLElement>(previous === 'room' ? '#createButton' : backwards ? '#optionsLobbyLink' : '#launcherLink') ??
           (backwards ? document.getElementById('siteInfoTitle') : null);

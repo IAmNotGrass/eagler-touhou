@@ -190,6 +190,8 @@ createServer(async (request, response) => {
     } else if (pathname.startsWith("/eagler-touhou/")) {
       pathname = pathname.slice("/eagler-touhou".length);
     }
+    // User pages (user/:id) are client routes served by the SPA fallback for them.
+    if (/^\/user\/[^/]+\/?$/.test(pathname)) pathname = "/user.html";
     if (developmentMetadata && pathname.startsWith("/")) {
       const name = pathname.slice(1);
       const body = developmentMetadata.get(name);

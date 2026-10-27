@@ -6,7 +6,7 @@ import {grass1337CreditHref} from './SiteFooter';
 type BrandPhase = 'normal' | 'hide-status' | 'show-visit' | 'hide-visit' | 'restore-status';
 
 /** A temporary subtitle animation; the real update-age owner stays mounted. */
-export function MastheadBrand({interactive = true, updatedAge, lessMotion}: Pick<LauncherMastheadProps,'interactive' | 'updatedAge' | 'lessMotion'>) {
+export function MastheadBrand({interactive = true, updatedAge, lessMotion, onHome}: Pick<LauncherMastheadProps,'interactive' | 'updatedAge' | 'lessMotion' | 'onHome'>) {
   const {t} = useLocale(), clicks = useRef(0), [phase,setPhase] = useState<BrandPhase>('normal');
   useEffect(() => {
     if (!interactive) {clicks.current = 0;setPhase('normal');return;}
@@ -19,6 +19,8 @@ export function MastheadBrand({interactive = true, updatedAge, lessMotion}: Pick
   const normal = phase === 'normal' || phase === 'restore-status';
   return <div className="brand" data-brand-phase={phase}>
     <button className="brand-logo" type="button" aria-label="EAGLER TOUHOU" disabled={!interactive} onClick={()=>{
+      // Each click returns to the home page; the tenth also plays the credit.
+      onHome?.();
       if (phase !== 'normal') return;
       if (++clicks.current === 10) {clicks.current = 0;setPhase('hide-status');}
     }}><span className="brand-eagler"><span className="brand-title">EAGLER</span></span><span className="brand-separator" aria-hidden="true"><span className="brand-yinyang">☯</span></span><span className="brand-title">TOUHOU</span></button>

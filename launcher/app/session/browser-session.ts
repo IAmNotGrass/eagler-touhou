@@ -14,6 +14,7 @@ import {detectUiLocale, isUiMessageKey, UI_LOCALE_STORAGE_KEY, type UiLocale} fr
 import {replayImportAccept} from '../../src/launcher/replay-files.mts';
 import {discouragedBrowserId} from '../../src/launcher/browser-support.mts';
 import {parseAvatarChoice, type ProfileAvatarChoice} from '../models/profile-avatars';
+import {profileTheme} from '../models/profile-themes';
 import {createMultiplayerIdentityStore, multiplayerDisplayNameStorageKey, multiplayerMemberId, type MultiplayerIdentityStore} from '../../src/launcher/multiplayer-identity.mts';
 import {createMultiplayerRoomSessionStore} from '../../src/launcher/multiplayer-room-session.mts';
 import {buildMultiplayerDiagnosticRelayUrl} from '../../src/launcher/multiplayer-relay-url.mts';
@@ -113,7 +114,10 @@ export interface BrowserSessionSnapshot {
 /** One document owner. Construction is browser-only and intentionally separate
  * from React render. The permanent iframe is attached once by its callback ref. */
 export const PROFILE_AVATAR_STORAGE_KEY = 'eagler-touhou-profile-avatar-v1';
-export interface ProfileSnapshot {name: string; avatar: ProfileAvatarChoice | null}
+export const PROFILE_COVER_STORAGE_KEY = 'eagler-touhou-profile-cover-v1';
+export const PROFILE_THEME_STORAGE_KEY = 'eagler-touhou-profile-theme-v1';
+/** `cover` is a data: URL of the visitor's own cover image; `theme` a PROFILE_THEMES id. */
+export interface ProfileSnapshot {name: string; avatar: ProfileAvatarChoice | null; cover: string | null; theme: string}
 export function createBrowserSession({document, window, baseUrl: configuredBaseUrl, appShellDeployment}: {document: Document; window: Window; baseUrl?: string; appShellDeployment?: AppShellOptions['deployment']}) {
   const baseUrl = configuredBaseUrl ?? launcherBaseUrl(window.location.href);
   let storage: Storage | null = null;
@@ -359,19 +363,23 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
   // the lobby, another tab) and keeps the chosen avatar preset locally.
   const profileListeners = new Set<() => void>();
   const loadAvatar = () => {try {return parseAvatarChoice(JSON.parse(storage?.getItem(PROFILE_AVATAR_STORAGE_KEY) ?? 'null'));} catch {return null;}};
-  let profileSnapshot: ProfileSnapshot = Object.freeze({name: storedIdentity.loadDisplayName(), avatar: loadAvatar()});
+  const loadCover = () => {try {const value = storage?.getItem(PROFILE_COVER_STORAGE_KEY); return value?.startsWith('data:image/') ? value : null;} catch {return null;}};
+  const loadTheme = () => {try {return profileTheme(storage?.getItem(PROFILE_THEME_STORAGE_KEY)).id;} catch {return profileTheme(null).id;}};
+  const loadProfile = (): ProfileSnapshot => ({name: storedIdentity.loadDisplayName(), avatar: loadAvatar(), cover: loadCover(), theme: loadTheme()});
+  let profileSnapshot: ProfileSnapshot = Object.freeze(loadProfile());
   const publishProfile = (next: ProfileSnapshot) => {
-    if (next.name === profileSnapshot.name && next.avatar?.character === profileSnapshot.avatar?.character && next.avatar?.expression === profileSnapshot.avatar?.expression) return;
+    if (next.name === profileSnapshot.name && next.avatar?.character === profileSnapshot.avatar?.character && next.avatar?.expression === profileSnapshot.avatar?.expression &&
+        next.cover === profileSnapshot.cover && next.theme === profileSnapshot.theme) return;
     profileSnapshot = Object.freeze(next);
     profileListeners.forEach(listener => listener());
   };
-  const refreshProfile = () => publishProfile({name: storedIdentity.loadDisplayName(), avatar: loadAvatar()});
+  const refreshProfile = () => publishProfile(loadProfile());
   const identity: MultiplayerIdentityStore = Object.freeze({...storedIdentity, updateDisplayName(value: unknown, fallbackName?: string) {
     const result = storedIdentity.updateDisplayName(value, fallbackName);
     refreshProfile();
     return result;
   }});
-  window.addEventListener('storage', event => {if (event.key === multiplayerDisplayNameStorageKey || event.key === PROFILE_AVATAR_STORAGE_KEY) refreshProfile();});
+  window.addEventListener('storage', event => {if (event.key === multiplayerDisplayNameStorageKey || event.key === PROFILE_AVATAR_STORAGE_KEY || event.key === PROFILE_COVER_STORAGE_KEY || event.key === PROFILE_THEME_STORAGE_KEY) refreshProfile();});
   const profile = Object.freeze({
     subscribe(listener: () => void) {profileListeners.add(listener); return () => {profileListeners.delete(listener);};},
     getSnapshot: () => profileSnapshot,
@@ -382,6 +390,19 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
       if (!avatar) return;
       try {storage?.setItem(PROFILE_AVATAR_STORAGE_KEY, JSON.stringify(avatar));} catch {}
       publishProfile({...profileSnapshot, avatar});
+    },
+    /** Stores a cover image (a data: URL), or null for the default cover. Returns
+     * false when the browser has no room to keep it. */
+    setCover(cover: string | null) {
+      if (cover !== null && !cover.startsWith('data:image/')) return false;
+      try {if (cover) storage?.setItem(PROFILE_COVER_STORAGE_KEY, cover); else storage?.removeItem(PROFILE_COVER_STORAGE_KEY);} catch {return false;}
+      publishProfile({...profileSnapshot, cover});
+      return true;
+    },
+    setTheme(id: string) {
+      const theme = profileTheme(id).id;
+      try {storage?.setItem(PROFILE_THEME_STORAGE_KEY, theme);} catch {}
+      publishProfile({...profileSnapshot, theme});
     },
   });
   const sessions = createMultiplayerRoomSessionStore({storage: sessionStorage});
