@@ -90,7 +90,7 @@ function BrowserWorkspace({session}: {session: BrowserSession}) {
     settingsContext: session.settingsContext, settingsActions: session.settingsActions, decisions: session.decisions,
     bootTouchPreview: state.bootTouchPreview !== null, bootTouchPreviewImage: state.bootTouchPreviewImage,
     nativeTouch: session.nativeTouch, touchFireEnabled: session.touchFireState.getEnabled(), assetUrl, lobbyHref: assetUrl('lobby.html'), masthead,
-    workspaceLobbyHref: assetUrl(state.locale === 'en' ? 'en.html?view=lobby' : './?view=lobby'), footer: <Footer donationAvailable={donationAvailable}/>, profilePage: <ProfilePage session={session} products={products}/>, loginPage: <LoginPage session={session}/>, registerPage: <RegisterWorkspace endpoint={assetUrl('api/accounts/register')}/>, serverStatusNote: <ServerStatusNote session={session}/>, metadataRevision: state.metadataRevision,
+    workspaceLobbyHref: assetUrl(state.locale === 'en' ? 'en.html?view=lobby' : './?view=lobby'), footer: <Footer donationAvailable={donationAvailable}/>, profilePage: <ProfilePage session={session} products={products}/>, loginPage: <LoginPage session={session}/>, registerPage: <RegisterWorkspace endpoint={session.account.endpoint('register')}/>, serverStatusNote: <ServerStatusNote session={session}/>, metadataRevision: state.metadataRevision,
     replayWorkspace,
     roomWorkspace,
     roomPlayerExpanded: state.roomPlayerExpanded,
@@ -189,7 +189,7 @@ function ProfilePage({session, products}: {session: BrowserSession; products: re
   }, [products]);
   const navigation = useSurfaceNavigation(), profile = useSyncExternalStore(session.profile.subscribe, session.profile.getSnapshot, session.profile.getSnapshot);
   const account = useSyncExternalStore(session.account.subscribe, session.account.getSnapshot, session.account.getSnapshot);
-  return <ProfileWorkspace account={account} name={profile.name} avatar={avatarSource(profile.avatar)} cover={profile.cover} theme={profile.theme} showcases={profile.showcases} playtime={playtime} onShowcases={session.profile.setShowcases} assetUrl={path => new URL(path, session.baseUrl).href}
+  return <ProfileWorkspace account={account} name={profile.name} avatar={avatarSource(profile.avatar)} cover={profile.cover} theme={profile.theme} showcases={profile.showcases} playtime={playtime} onShowcases={session.profile.setShowcases} onName={session.profile.setName} assetUrl={path => new URL(path, session.baseUrl).href}
     onEdit={() => navigation.openInfoDialog('profileDialog')} onCover={session.profile.setCover} onTheme={session.profile.setTheme}/>;
 }
 function Footer({donationAvailable}: {donationAvailable: boolean}) {const navigation = useSurfaceNavigation(); return <SiteFooter donationAvailable={donationAvailable} onDonation={() => navigation.openInfoDialog('donationDialog')}/>;}

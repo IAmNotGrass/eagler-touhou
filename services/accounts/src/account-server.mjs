@@ -20,7 +20,12 @@ function clientAddress(request, trustedProxies) {
 const SESSION_COOKIE = 'eagler_session';
 /** The session cookie: sent to every page of the site, never readable by scripts. */
 const sessionCookie = (token, maxAge) => `${SESSION_COOKIE}=${token}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;
+/** The app's pages live at these origins; they may call the service and send a bearer token. */
+export const APP_ORIGINS = Object.freeze(['tauri://localhost', 'http://tauri.localhost', 'https://tauri.localhost']);
+/** A session from the app's bearer token, else from the website's cookie. */
 function sessionToken(request) {
+  const bearer = /^Bearer ([\w-]{20,})$/.exec(String(request.headers.authorization ?? ''));
+  if (bearer) return bearer[1];
   for (const part of String(request.headers.cookie ?? '').split(';')) {
     const [name, ...value] = part.trim().split('=');
     if (name === SESSION_COOKIE) return value.join('=');
@@ -31,7 +36,7 @@ function sessionToken(request) {
 function send(response, status, body, cookie) {
   const text = JSON.stringify(body);
   response.writeHead(status, {'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Length': Buffer.byteLength(text),
-    ...(cookie ? {'Set-Cookie': cookie} : {})});
+    ...(cookie ? {'Set-Cookie': cookie} : {}), ...response.corsHeaders});
   response.end(text);
 }
 
@@ -47,8 +52,11 @@ async function readJson(request) {
 }
 
 /** HTTP front of the account store: registration, signing in and out, and the
- * signed-in account. Sign-ins are kept in an HttpOnly session cookie. */
-export function createAccountServer({store, trustedProxies = new Set()}) {
+ * signed-in account. The website's sign-ins are kept in an HttpOnly session
+ * cookie; the app, at its own origins, receives the token and sends it back as
+ * a bearer token. */
+export function createAccountServer({store, trustedProxies = new Set(), appOrigins = APP_ORIGINS}) {
+  const allowed = new Set(appOrigins);
   const attempts = new Map();
   const limited = client => {
     const now = Date.now(), recent = (attempts.get(client) ?? []).filter(time => now - time < ATTEMPTS.windowMs);
@@ -60,7 +68,15 @@ export function createAccountServer({store, trustedProxies = new Set()}) {
     try {
       const {pathname} = new URL(request.url ?? '/', 'http://accounts.invalid');
       const method = {'/api/accounts/register': 'POST', '/api/accounts/login': 'POST', '/api/accounts/logout': 'POST', '/api/accounts/me': 'GET'}[pathname];
+      // The app's origins may read the answers; they authenticate with a bearer
+      // token, never with the cookie, so no credentials are allowed.
+      const origin = String(request.headers.origin ?? '');
+      response.corsHeaders = allowed.has(origin) ? {'Access-Control-Allow-Origin': origin, Vary: 'Origin'} : {};
       if (!method) return send(response, 404, {error: 'not-found'});
+      if (request.method === 'OPTIONS' && allowed.has(origin)) {
+        response.writeHead(204, {...response.corsHeaders, 'Access-Control-Allow-Methods': method, 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Max-Age': '600'});
+        return response.end();
+      }
       if (request.method !== method) {response.setHeader('Allow', method); return send(response, 405, {error: 'method-not-allowed'});}
       if (pathname === '/api/accounts/me') {
         const account = store.account(sessionToken(request));
@@ -74,6 +90,8 @@ export function createAccountServer({store, trustedProxies = new Set()}) {
       if (pathname === '/api/accounts/login') {
         const result = await store.signIn({identifier: body?.identifier, password: body?.password});
         if (result.problem) return send(response, 401, {error: result.problem});
+        // The app asks for the token itself; the website gets it as a cookie only.
+        if (body?.session === 'token') return send(response, 200, {username: result.username, token: result.token});
         return send(response, 200, {username: result.username}, sessionCookie(result.token, SESSION_DAYS * 86400));
       }
       const result = await store.register({username: body?.username, password: body?.password, email: body?.email});

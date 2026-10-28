@@ -38,7 +38,9 @@ const Icon = ({path}: {path: string}) => <svg viewBox="0 0 24 24" aria-hidden="t
  * on the cover's lower edge and the name beside it;
  * the chosen theme colours the page behind the card. `me` shows the local
  * profile, which its owner can edit; other ids have no account to show yet. */
-export function ProfileWorkspace({account, name, avatar, cover, theme, showcases, playtime, assetUrl, onEdit, onCover, onTheme, onShowcases}: {
+export function ProfileWorkspace({account, name, avatar, cover, theme, showcases, playtime, assetUrl, onEdit, onCover, onTheme, onShowcases, onName}: {
+  /** Stores a nickname and returns the one now in effect (an empty one keeps the old). */
+  onName(value: string): string;
   account: AccountSnapshot; playtime: readonly PlaytimeSlice[] | null; showcases: readonly ProfileShowcase[]; onShowcases(showcases: readonly ProfileShowcase[]): boolean; name: string; avatar?: string | null; cover: string | null; theme: string; assetUrl(path: string): string;
   onEdit(): void; onCover(cover: string | null): boolean; onTheme(id: string): void;
 }) {
@@ -49,8 +51,12 @@ export function ProfileWorkspace({account, name, avatar, cover, theme, showcases
   const relation = own ? 'self' : signedIn ? 'member' : 'visitor';
   // Editing works on a copy of the showcases; saving stores it, cancelling drops it.
   const [editing, setEditing] = useState(false), [draft, setDraft] = useState<ProfileShowcase[]>([]), [saveError, setSaveError] = useState('');
-  const startEditing = () => {setDraft(showcases.map(showcase => ({...showcase}))); setSaveError(''); setEditing(true);};
-  const save = () => {if (onShowcases(draft)) setEditing(false); else setSaveError(t('profile.showcaseSaveFailed'));};
+  const [draftName, setDraftName] = useState('');
+  const startEditing = () => {setDraft(showcases.map(showcase => ({...showcase}))); setDraftName(name); setSaveError(''); setEditing(true);};
+  const save = () => {
+    if (draftName !== name) onName(draftName);
+    if (onShowcases(draft)) setEditing(false); else setSaveError(t('profile.showcaseSaveFailed'));
+  };
   const change = (index: number, field: 'title' | 'body', value: string) => setDraft(list => list.map((showcase, at) => at === index ? {...showcase, [field]: value} : showcase));
   const isEditing = own && editing;
   const file = useRef<HTMLInputElement>(null), tools = useRef<HTMLDivElement>(null);
@@ -99,7 +105,13 @@ export function ProfileWorkspace({account, name, avatar, cover, theme, showcases
         : <span className="profile-page-avatar"><ProfileAvatar name=""/></span>}
       <div className="profile-identity-main">
         <div className="profile-identity-text">
-          <h1 className="profile-page-name" id="profilePageName" data-empty={own && name ? undefined : true}>{own ? name || t('profile.unnamed') : t('profile.userMissing')}</h1>
+          {isEditing ? <label className="profile-name-edit">
+            <span className="visually-hidden">{t('profile.nickname')}</span>
+            <input id="profileNameInput" type="text" value={draftName} placeholder={t('profile.unnamed')} maxLength={24} autoComplete="nickname" aria-describedby="profileNameHint"
+              onChange={event => setDraftName(event.target.value)} onKeyDown={event => {if (event.key === 'Enter') {event.preventDefault(); save();}}}/>
+            <small id="profileNameHint">{t('profile.nicknameHint')}</small>
+          </label>
+            : <h1 className="profile-page-name" id="profilePageName" data-empty={own && name ? undefined : true}>{own ? name || t('profile.unnamed') : t('profile.userMissing')}</h1>}
           {/* The own page shows the account's username, or that no one is signed in. */}
           <p className="profile-page-handle" data-empty={own && !signedIn ? true : undefined}>{own ? signedIn ? `@${account.username}` : t('profile.notSignedIn') : `@${navigation.profileUserId}`}</p>
         </div>

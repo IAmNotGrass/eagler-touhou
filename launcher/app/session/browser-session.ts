@@ -17,6 +17,7 @@ import {parseAvatarChoice, type ProfileAvatarChoice} from '../models/profile-ava
 import {profileTheme} from '../models/profile-themes';
 import {parseShowcases, type ProfileShowcase} from '../models/profile-showcases';
 import {createAccountStore} from '../services/account';
+import {serviceOrigin} from '../../src/launcher/native-app.mts';
 import {createMultiplayerIdentityStore, multiplayerDisplayNameStorageKey, multiplayerMemberId, type MultiplayerIdentityStore} from '../../src/launcher/multiplayer-identity.mts';
 import {createMultiplayerRoomSessionStore} from '../../src/launcher/multiplayer-room-session.mts';
 import {buildMultiplayerDiagnosticRelayUrl} from '../../src/launcher/multiplayer-relay-url.mts';
@@ -417,7 +418,9 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
       return true;
     },
   });
-  const account = createAccountStore({fetch: (input, init) => window.fetch(input, init), baseUrl});
+  // The app reaches accounts at the website's origin, signed in by token.
+  const services = serviceOrigin();
+  const account = createAccountStore({fetch: (input, init) => window.fetch(input, init), baseUrl: services ? `${services}/` : baseUrl, tokens: services ? storage ?? null : null});
   void account.refresh();
   const sessions = createMultiplayerRoomSessionStore({storage: sessionStorage});
   const directory = createLobbyDirectory({

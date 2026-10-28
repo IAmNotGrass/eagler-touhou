@@ -1,3 +1,4 @@
+import {nativeApp} from './native-app.mts';
 import {
   RUNTIME_MANIFEST_FILE, RUNTIME_CAPABILITIES, RUNTIME_PREPARE, RUNTIME_PROGRESS, RUNTIME_IMPORT, RUNTIME_CACHE_PROTOCOL,
   RUNTIME_CACHE_MAX_PREVIOUS, canonicalRuntimePayload, findRuntimeGroup,
@@ -61,8 +62,9 @@ async function message(worker: WorkerLike, data: unknown, timeout: number, onPro
 }
 export async function runtimeProgramWorker(base: string): Promise<WorkerLike | null> {
   try {
+    // The app has no Service Workers; its programs load directly.
     const serviceWorker = navigator.serviceWorker;
-    if (!serviceWorker) return null;
+    if (!serviceWorker || nativeApp()) return null;
     const scope = new URL('runtime/', base).href;
     const existing = await serviceWorker.getRegistration(scope);
     if (existing?.scope === scope && existing.active) return existing.active;

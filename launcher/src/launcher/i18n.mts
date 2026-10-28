@@ -333,6 +333,7 @@ const entries = [
   ["profile.theme.sakura", "樱花", "Sakura"],
   ["profile.userMissingHint", "账户系统开放后，这里会显示其他玩家的资料。", "Other players' profiles will appear here once accounts open."],
   ["profile.nickname", "昵称", "Nickname"],
+  ["profile.nicknameHint", "昵称最多 12 个字，留空则保持原来的昵称", "Up to 12 characters; leave it empty to keep the current one"],
   ["profile.characters", "选择头像角色", "Avatar character"],
   ["profile.expressions", "表情", "Expressions"],
   ["profile.expression.smile", "微笑", "Smile"],

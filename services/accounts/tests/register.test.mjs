@@ -99,3 +99,25 @@ test('signing in by username or email sets a session cookie that /me reads and s
   assert.match(out.headers.get('set-cookie'), /^eagler_session=; Path=\/; Max-Age=0;/);
   assert.equal((await call('/me', {cookie: token})).status, 401, 'the session ends with sign-out');
 });
+
+test('the app signs in for a bearer token across origins, without the cookie', async () => {
+  const app = 'tauri://localhost', url = path => base.replace('/register', path);
+  const preflight = await fetch(url('/login'), {method: 'OPTIONS', headers: {Origin: app, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type'}});
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'), app);
+  assert.equal(preflight.headers.get('access-control-allow-headers'), 'Content-Type, Authorization');
+  assert.equal(preflight.headers.get('access-control-allow-credentials'), null, 'no credentials cross origin');
+  const other = await fetch(url('/login'), {method: 'OPTIONS', headers: {Origin: 'https://evil.example', 'Access-Control-Request-Method': 'POST'}});
+  assert.equal(other.headers.get('access-control-allow-origin'), null, 'other sites are not allowed');
+  assert.equal((await register({username: 'Reimu_app', password: 'shrine-donation9', email: 'reimu@example.com'}, '203.0.113.60')).status, 201);
+  const login = await fetch(url('/login'), {method: 'POST', headers: {Origin: app, 'Content-Type': 'application/json', 'CF-Connecting-IP': '203.0.113.60'},
+    body: JSON.stringify({identifier: 'Reimu_app', password: 'shrine-donation9', session: 'token'})});
+  assert.equal(login.status, 200); assert.equal(login.headers.get('set-cookie'), null, 'the app gets no cookie');
+  assert.equal(login.headers.get('access-control-allow-origin'), app);
+  const {username, token} = await login.json();
+  assert.equal(username, 'Reimu_app'); assert.match(token, /^[\w-]{43}$/);
+  const me = await fetch(url('/me'), {headers: {Origin: app, Authorization: `Bearer ${token}`}});
+  assert.equal(me.status, 200); assert.equal((await me.json()).username, 'Reimu_app');
+  await fetch(url('/logout'), {method: 'POST', headers: {Origin: app, Authorization: `Bearer ${token}`}});
+  assert.equal((await fetch(url('/me'), {headers: {Authorization: `Bearer ${token}`}})).status, 401, 'signing out ends the token too');
+});

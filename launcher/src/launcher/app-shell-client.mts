@@ -1,3 +1,4 @@
+import {nativeApp} from './native-app.mts';
 export interface AppShellClientState {
   readonly registration: ServiceWorkerRegistrationLike | null;
   readonly updateReady: boolean;
@@ -279,7 +280,8 @@ export function createAppShellClient({
     });
     return registration;
   }
-  const ready = secureContext && serviceWorker
+  // The app runs from bundled files and has no offline shell to install.
+  const ready = secureContext && serviceWorker && !nativeApp()
     ? Promise.resolve().then(async () => {
         if (registrationIdentity) {
           // Never replace a different application already installed at this

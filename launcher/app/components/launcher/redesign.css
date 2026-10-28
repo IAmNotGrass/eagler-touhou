@@ -868,6 +868,10 @@ button.profile-page-avatar:hover .profile-avatar,button.profile-page-avatar:focu
 /* The name block starts just below the cover's edge and grows downward. */
 .profile-identity-main{display:flex;flex:1;flex-wrap:wrap;align-items:center;gap:12px 20px;min-width:0;margin-top:calc(var(--profile-avatar-size)*.38 + 14px)}
 .profile-identity-text{flex:1;min-width:0}
+.profile-name-edit{display:grid;gap:4px;max-width:360px}
+.profile-name-edit input{box-sizing:border-box;width:100%;height:46px;padding:0 12px;border:1px solid #ffffff2e;border-radius:10px;background:#222320;color:var(--paper);font:700 24px/1 var(--ui-font)}
+.profile-name-edit input:focus{outline:none;border-color:var(--red-bright)}
+.profile-name-edit small{color:var(--muted);font:12px/1.4 var(--ui-font)}
 .profile-page-handle{margin:2px 0 0;color:var(--red-bright);font:600 15px/1.4 var(--ui-font);overflow-wrap:anywhere}
 .profile-page-handle[data-empty]{color:var(--muted);font-weight:500}
 .profile-page-action{flex:none;min-height:40px;padding:0 22px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--paper);font:700 14px/1 var(--ui-font);letter-spacing:.04em;cursor:pointer;transition:background-color .15s ease,border-color .15s ease}
@@ -973,6 +977,7 @@ button.profile-page-avatar:hover .profile-avatar,button.profile-page-avatar:focu
  .profile-identity{gap:12px;padding:0 18px 18px;--profile-avatar-size:84px}
  .profile-page-avatar .profile-avatar{border-width:3px;font-size:32px}
  .profile-page-name{font-size:19px}
+ .profile-name-edit input{height:40px;font-size:18px}
  .profile-page-handle{font-size:13px}
  .profile-page-action{min-height:34px;padding:0 14px;font-size:12px}
  .profile-identity-main{gap:8px 12px;margin-top:calc(var(--profile-avatar-size)*.38 + 8px)}

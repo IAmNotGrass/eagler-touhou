@@ -1,3 +1,4 @@
+import {openExternal} from '../../../src/launcher/native-app.mts';
 import {useLayoutEffect, useSyncExternalStore} from 'react';
 import {useLocale} from '../../i18n';
 import type {GameDataImportModel} from '../../models/game-data-import';
@@ -35,6 +36,8 @@ export function GameDataImportWindows({model, getRuntimeReady}: GameDataImportWi
       <div className="game-data-link-row"><span>{t('package.link')}</span><a id="gameDataFallbackUrl" href={fallback?.url} target="_blank" rel="noopener noreferrer" aria-label={t('package.openLinkAria')} onClick={event => {
         if (!fallback?.url || getRuntimeReady()) return;
         event.stopPropagation();
+        // The app hands the link to the system browser.
+        if (openExternal(fallback.url)) {event.preventDefault(); return;}
         const opened = window.open(fallback.url, '_blank');
         if (opened) {opened.opener = null; event.preventDefault();}
       }}>{fallback?.url || t('package.fallbackLinkUnavailable')}</a></div>
