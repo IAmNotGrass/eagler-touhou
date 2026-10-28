@@ -70,30 +70,56 @@ function sequence(seed: number) {
 
 /** Divides a width × height rectangle into polygons with areas proportional to
  * `values` (all positive), in the same order. */
-export function voronoiTreemap(values: readonly number[], width: number, height: number, {iterations = 200, tolerance = 0.01, seed = 1} = {}): Polygon[] {
+export function voronoiTreemap(values: readonly number[], width: number, height: number, {iterations = 400, tolerance = 0.03, seed = 1, attempts = 4} = {}): Polygon[] {
   const count = values.length;
   if (!count) return [];
   const frame: Polygon = [[0, 0], [width, 0], [width, height], [0, height]];
   if (count === 1) return [frame];
   const total = values.reduce((sum, value) => sum + value, 0), area = width * height;
   const targets = values.map(value => area * value / total);
-  const random = sequence(seed);
-  let sites: Point[] = values.map(() => [width * (0.1 + 0.8 * random()), height * (0.1 + 0.8 * random())]);
+  // Rarely a start settles with a cell well off its share; another start then
+  // usually converges, and the closest result is kept.
+  let best: {cells: Polygon[]; error: number} | null = null;
+  for (let attempt = 0; attempt < attempts && !(best && best.error <= tolerance); attempt++) {
+    const cells = layout(values, targets, width, height, iterations, tolerance, seed + attempt * 7919);
+    const error = Math.max(...cells.map((cell, index) => Math.abs(polygonArea(cell) - targets[index]!) / targets[index]!));
+    if (!best || error < best.error) best = {cells, error};
+  }
+  return best!.cells;
+}
+
+function layout(values: readonly number[], targets: readonly number[], width: number, height: number, iterations: number, tolerance: number, seed: number): Polygon[] {
+  const count = values.length;
+  // The largest value starts at the centre and smaller ones further out, on a
+  // golden-angle spiral, so small cells settle around the edge as compact
+  // shapes rather than slivers between large ones.
+  const random = sequence(seed), order = values.map((_, index) => index).sort((a, b) => values[b]! - values[a]!);
+  let sites: Point[] = values.map(() => [0, 0]);
+  order.forEach((index, rank) => {
+    const reach = count === 1 ? 0 : 0.15 + 0.7 * rank / (count - 1), angle = rank * 2.39996 + random() * 0.3;
+    sites[index] = [width / 2 + Math.cos(angle) * reach * width / 2 * 0.9, height / 2 + Math.sin(angle) * reach * height / 2 * 0.9];
+  });
   // Weights act as squared radii; start each in proportion to its share.
   let weights = targets.map(target => target / Math.PI * 0.2);
   let cells = powerCells(sites, weights, width, height);
   for (let round = 0; round < iterations; round++) {
     const areas = cells.map(polygonArea);
-    if (areas.every((current, index) => Math.abs(current - targets[index]!) <= tolerance * area)) break;
+    // Each cell within `tolerance` of its own target, so small cells are as true as large ones.
+    if (areas.every((current, index) => Math.abs(current - targets[index]!) <= tolerance * targets[index]!)) break;
     // Sites move to their cells' centroids, which evens out the shapes.
     sites = sites.map((site, index) => cells[index]!.length >= 3 ? polygonCentroid(cells[index]!) : site);
-    // Too large a weight would swallow a neighbour's site; keep each within reach.
-    const nearest = sites.map((site, i) => Math.min(...sites.map((other, j) => j === i ? Infinity : (other[0] - site[0]) ** 2 + (other[1] - site[1]) ** 2)));
+    // Each weight grows or shrinks toward its target area, by at most a bounded step.
     weights = weights.map((weight, index) => {
       const current = areas[index]!, ratio = current > 0 ? targets[index]! / current : 2;
-      const adapted = Math.max(weight, 1e-6) * Math.min(Math.max(ratio, 0.6), 1.6);
-      return Math.max(1e-6, Math.min(adapted, nearest[index]!));
+      return Math.max(1e-6, Math.max(weight, 1e-6) * Math.min(Math.max(ratio, 0.6), 1.6));
     });
+    // A site whose weight exceeds a neighbour's by more than their squared
+    // distance would swallow that neighbour's site: trim the heavier one.
+    for (let i = 0; i < count; i++) for (let j = 0; j < count; j++) {
+      if (i === j) continue;
+      const excess = weights[i]! - weights[j]! - ((sites[i]![0] - sites[j]![0]) ** 2 + (sites[i]![1] - sites[j]![1]) ** 2);
+      if (excess > 0) weights[i] = Math.max(1e-6, weights[i]! - excess);
+    }
     cells = powerCells(sites, weights, width, height);
   }
   return cells;

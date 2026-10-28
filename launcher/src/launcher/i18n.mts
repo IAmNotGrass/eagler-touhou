@@ -270,6 +270,7 @@ const entries = [
   ["profile.playtime", "游戏时长", "Play time"],
   ["profile.playtimeTotal", "总时长", "Total"],
   ["profile.playtimeCategory", "作品分类", "Category"],
+  ["profile.playtimeOther", "其他", "Others"],
   ["profile.playtimeLoading", "正在读取存档…", "Reading saves…"],
   ["profile.playtimeEmpty", "还没有游戏时长记录。", "No play time recorded yet."],
   ["profile.follow", "关注", "Follow"],

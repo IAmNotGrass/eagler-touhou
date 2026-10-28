@@ -182,7 +182,7 @@ function ProfilePage({session, products}: {session: BrowserSession; products: re
     void readPlaytimes(played.map(product => product.id)).then(entries => {
       if (active) setPlaytime(entries.flatMap(entry => {
         const product = played.find(candidate => candidate.id === entry.product);
-        return product ? [{key: entry.product, seconds: entry.seconds, color: gameColor(entry.product), title: product.title, category: directoryCategory(product)}] : [];
+        return product ? [{key: entry.product, seconds: entry.seconds, color: gameColor(entry.product), title: product.title, category: directoryCategory(product), artwork: product.artwork}] : [];
       }));
     });
     return () => {active = false;};

@@ -32,7 +32,7 @@ async function show(slices,locale='zh-CN'){
 }
 
 const areaOf=points=>{const p=points.trim().split(/\s+/).map(pair=>pair.split(',').map(Number));let a=0;for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];a+=x0*y1-x1*y0;}return Math.abs(a)/2;};
-const cells=()=>[...env.document.querySelectorAll('.profile-playtime-map polygon')];
+const cells=()=>[...env.document.querySelectorAll('.profile-playtime-shade')];
 const total=()=>node('#profilePlaytimeTitle strong').textContent;
 
 test('the treemap divides the area in proportion to the values, covering all of it',()=>{
@@ -65,11 +65,39 @@ test('each played game takes a polygon whose area follows its play time',async()
  assert.equal(node('.profile-playtime-tip'),null,'no tip until a cell is pointed at');
 });
 
+test('each cell shows its game cover under a shade, or its colour without one',async()=>{
+ await show([{...three[0],artwork:'assets/th20-card.webp'},three[1],three[2]]);
+ const images=[...env.document.querySelectorAll('.profile-playtime-map image')];
+ assert.equal(images.length,1);assert.equal(images[0].getAttribute('href'),'assets/th20-card.webp');
+ assert.equal(images[0].getAttribute('preserveAspectRatio'),'xMidYMid slice','the cover fills its cell');
+ assert.match(images[0].getAttribute('clip-path'),/^url\(#playtime-cell-th20\)$/,'clipped to the cell');
+ assert.equal(cells().length,3,'every cell has its shade, which takes the pointer');
+});
+
+test('games under 2% share one other cell, listed when pointed at, and no cell is drawn under 2%',async()=>{
+ const tiny=(key,title,minutes)=>({key,title,seconds:minutes*60,color:'#888',category:'mainline'});
+ await show([{...three[0],seconds:100*3600},tiny('th06','東方紅魔郷',30),tiny('th07','東方妖々夢',20),{...three[1],seconds:10*3600}]);
+ assert.deepEqual(cells().map(cell=>cell.getAttribute('aria-label').split(' ')[0]),['東方錦上京','東方風神録','其他']);
+ const other=cells()[2];
+ assert.match(other.getAttribute('aria-label'),/東方紅魔郷 0时30分，東方妖々夢 0时20分/);
+ await React.act(async()=>other.focus());
+ assert.deepEqual([...env.document.querySelectorAll('.profile-playtime-tip li span')].map(span=>span.textContent),['東方紅魔郷','東方妖々夢']);
+ const sum=cells().reduce((total,cell)=>total+areaOf(cell.getAttribute('points')),0);
+ assert.ok(areaOf(other.getAttribute('points'))/sum>=0.018,'the merged cell is still drawn at about 2%');
+});
+
+test('a single small game is not merged, and is drawn at least 2% large',async()=>{
+ await show([{...three[0],seconds:200*3600},{key:'th06',title:'東方紅魔郷',seconds:600,color:'#888',category:'mainline'}]);
+ assert.equal(cells().length,2);assert.equal(cells()[1].getAttribute('aria-label').split(' ')[0],'東方紅魔郷');
+ const areas=cells().map(cell=>areaOf(cell.getAttribute('points')));
+ assert.ok(areas[1]/(areas[0]+areas[1])>=0.018);
+});
+
 test('pointing at a cell lights it and shows its name, time and share',async()=>{
  await show(three);
  const second=cells()[1];
  await React.act(async()=>second.focus());
- assert.equal(second.dataset.active,'true');assert.equal(node('.profile-playtime-map').dataset.active,'true','the others dim');
+ assert.equal(second.closest('.profile-playtime-cell').dataset.active,'true');assert.equal(node('.profile-playtime-map').dataset.active,'true','the others dim');
  assert.deepEqual([...node('.profile-playtime-tip').children].map(child=>child.textContent),['東方風神録','1时30分 · 30%']);
  await React.act(async()=>second.blur());
  assert.equal(node('.profile-playtime-tip'),null);
