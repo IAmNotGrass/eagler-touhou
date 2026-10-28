@@ -20,8 +20,9 @@ function clientAddress(request, trustedProxies) {
 const SESSION_COOKIE = 'eagler_session';
 /** The session cookie: sent to every page of the site, never readable by scripts. */
 const sessionCookie = (token, maxAge) => `${SESSION_COOKIE}=${token}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;
-/** The app's pages live at these origins; they may call the service and send a bearer token. */
-export const APP_ORIGINS = Object.freeze(['tauri://localhost', 'http://tauri.localhost', 'https://tauri.localhost']);
+/** The app's pages live at these origins (its own eagler scheme, and Tauri's
+ * default for older builds); they may call the service and send a bearer token. */
+export const APP_ORIGINS = Object.freeze(['eagler://localhost', 'http://eagler.localhost', 'https://eagler.localhost', 'tauri://localhost', 'http://tauri.localhost', 'https://tauri.localhost']);
 /** A session from the app's bearer token, else from the website's cookie. */
 function sessionToken(request) {
   const bearer = /^Bearer ([\w-]{20,})$/.exec(String(request.headers.authorization ?? ''));
