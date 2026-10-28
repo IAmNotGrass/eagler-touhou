@@ -907,28 +907,22 @@ button.profile-page-avatar:hover .profile-avatar,button.profile-page-avatar:focu
 .profile-playtime-filter button:hover{color:var(--paper)}
 .profile-playtime-filter button.selected{background:var(--red);color:var(--paper)}
 .profile-playtime-filter button:focus-visible{outline:2px solid var(--red-bright);outline-offset:1px}
-.profile-playtime-body{display:flex;align-items:center;gap:20px}
-.profile-playtime-chart{display:grid;justify-items:center;gap:4px;flex:none;margin:0}
-.profile-playtime-chart svg{width:440px;max-width:100%;height:auto;display:block;overflow:visible}
-.profile-playtime-chart :is(path,circle):not(.profile-playtime-empty){stroke:var(--panel);stroke-width:1.5;cursor:pointer;transition:transform .18s ease,filter .18s ease;outline:none}
-.profile-playtime-chart [data-active]{filter:brightness(1.12) drop-shadow(0 4px 10px #0008)}
-.profile-playtime-empty{fill:none;stroke:#ffffff3a;stroke-width:3}
-.profile-playtime-unknown{fill:#ffffff5c;font:700 56px/1 var(--ui-font)}
-.profile-playtime-callout{pointer-events:none}
-.profile-playtime-callout polyline{fill:none;stroke:#ebe7dfb3;stroke-width:1.2}
-.profile-playtime-callout circle{fill:var(--paper)}
-.profile-playtime-callout-name{fill:var(--paper);font:700 13px/1 var(--ui-font)}
-.profile-playtime-callout-time{fill:#c6c0b7;font:600 11px/1 var(--ui-font)}
-.profile-playtime-chart figcaption{display:grid;justify-items:center;gap:2px}
-.profile-playtime-chart figcaption span{color:var(--muted);font:600 12px/1.3 var(--ui-font);letter-spacing:.06em}
-.profile-playtime-chart figcaption strong{color:var(--paper);font:700 20px/1.3 var(--ui-font)}
-.profile-playtime-games{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));align-content:center;gap:2px 14px;flex:1;min-width:0;max-height:264px;margin:0;padding:0;overflow-y:auto;list-style:none;scrollbar-width:thin}
-.profile-playtime-games li{display:grid;grid-template-columns:8px minmax(0,1fr) auto;align-items:center;gap:7px;min-height:24px;padding:0 6px;border-radius:6px;color:#d8d2c8;font:600 12px/1.3 var(--ui-font)}
-.profile-playtime-games li[data-active]{background:#ffffff0d;color:var(--paper)}
-.profile-playtime-games i{width:8px;height:8px;border-radius:2px}
-.profile-playtime-games span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.profile-playtime-games time{color:var(--paper);font-variant-numeric:tabular-nums}
-.profile-playtime-note{flex:1;margin:0;color:var(--muted);font:13px/1.6 var(--ui-font)}
+.profile-playtime-header h2 strong{margin-left:2px;color:var(--paper);font-variant-numeric:tabular-nums}
+.profile-playtime-map{position:relative;overflow:hidden;border-radius:12px;background:#ffffff05}
+.profile-playtime-map svg{display:block;width:100%;height:100%}
+/* The panel-coloured outline leaves a gap between neighbouring cells. */
+.profile-playtime-map polygon{stroke:var(--panel);stroke-width:4;stroke-linejoin:round;cursor:pointer;outline:none;transition:filter .15s ease,opacity .15s ease}
+.profile-playtime-map[data-active] polygon:not([data-active]){opacity:.55}
+.profile-playtime-map polygon[data-active]{filter:brightness(1.15)}
+.profile-playtime-label{position:absolute;display:grid;justify-items:center;gap:2px;translate:-50% -50%;pointer-events:none;text-align:center;color:#fff;text-shadow:0 1px 3px #000a}
+.profile-playtime-label b,.profile-playtime-tip b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 14px/1.3 var(--ui-font)}
+.profile-playtime-label small{font:600 12px/1.2 var(--ui-font);opacity:.9;font-variant-numeric:tabular-nums}
+.profile-playtime-tip{position:absolute;z-index:2;display:grid;gap:2px;max-width:200px;padding:7px 11px;border:1px solid #ffffff26;border-radius:10px;background:#141413ee;color:var(--paper);box-shadow:0 8px 22px #0009;translate:-50% calc(-100% - 14px);pointer-events:none;white-space:nowrap}
+.profile-playtime-tip[data-below]{translate:-50% 14px}
+.profile-playtime-tip small{color:#c6c0b7;font:600 12px/1.2 var(--ui-font)}
+.profile-playtime-empty{display:grid;place-content:center;justify-items:center;gap:6px;height:100%;border:2px dashed #ffffff26;border-radius:12px;box-sizing:border-box}
+.profile-playtime-unknown{color:#ffffff5c;font:700 56px/1 var(--ui-font)}
+.profile-playtime-note{margin:0;color:var(--muted);font:13px/1.6 var(--ui-font)}
 /* Sign-in page: the password form and the other providers side by side. */
 .directory-layout .login-workspace{grid-column:1/-1;justify-self:center;display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:stretch;width:min(100%,880px)!important;min-height:0!important;margin-top:clamp(12px,6vh,72px);padding:44px 48px}
 .login-column{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -985,10 +979,8 @@ button.profile-page-avatar:hover .profile-avatar,button.profile-page-avatar:focu
  .profile-page-hint{padding:0 18px}
  .profile-showcases{padding:8px 18px 28px}
  .profile-showcase{padding:16px 18px}
- .profile-playtime-body{flex-direction:column;align-items:stretch;gap:14px}
  .profile-playtime-filter{width:100%;overflow-x:auto}
  .profile-playtime-filter button{flex:1 0 auto;padding:0 9px}
- .profile-playtime-games{max-height:none;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
  .directory-layout .login-workspace{grid-template-columns:minmax(0,1fr);padding:28px 22px;margin-top:8px}
  .login-divider{width:auto;height:1px;margin:24px 0;background:linear-gradient(90deg,transparent,var(--line) 20%,var(--line) 80%,transparent)}
  .login-divider span{padding:0 10px}

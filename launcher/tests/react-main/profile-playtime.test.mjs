@@ -15,6 +15,7 @@ before(async()=>{
  await build({absWorkingDir:project,stdin:{resolveDir:project,loader:'tsx',contents:`
   export * from './app/components/launcher/PlaytimeShowcase.tsx';
   export * from './app/models/playtime.ts';
+  export * from './app/models/voronoi-treemap.ts';
   export * from './app/i18n.tsx';
  `},outfile:output,bundle:true,platform:'node',format:'esm',jsx:'automatic',packages:'external',logLevel:'silent',plugins:[authoredSourcesPlugin(project)]});
  api=await import(pathToFileURL(output).href);
@@ -30,58 +31,67 @@ async function show(slices,locale='zh-CN'){
  await React.act(async()=>root.render(React.createElement(api.LocaleProvider,{locale},React.createElement(api.PlaytimeShowcase,{slices}))));
 }
 
-test('without play time the pie is an empty ring with a question mark over 0h 0min',async()=>{
+const areaOf=points=>{const p=points.trim().split(/\s+/).map(pair=>pair.split(',').map(Number));let a=0;for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];a+=x0*y1-x1*y0;}return Math.abs(a)/2;};
+const cells=()=>[...env.document.querySelectorAll('.profile-playtime-map polygon')];
+const total=()=>node('#profilePlaytimeTitle strong').textContent;
+
+test('the treemap divides the area in proportion to the values, covering all of it',()=>{
+ for(const values of [[3,1.5,0.5],[64,1,1],[10,9,8,7,6,5,4,3,2,1]]){
+  const polygons=api.voronoiTreemap(values,900,300,{seed:7}),sum=values.reduce((a,b)=>a+b,0);
+  assert.equal(polygons.length,values.length);
+  const areas=polygons.map(api.polygonArea);
+  assert.ok(Math.abs(areas.reduce((a,b)=>a+b,0)-900*300)<1,'the cells tile the whole area');
+  areas.forEach((area,index)=>assert.ok(Math.abs(area/(900*300)-values[index]/sum)<=0.012,`cell ${index} holds its share`));
+ }
+ assert.deepEqual(api.voronoiTreemap([5],100,50),[[[0,0],[100,0],[100,50],[0,50]]],'a single value fills the area');
+});
+
+test('without play time the area is empty with a question mark and the title reads 0h 0min',async()=>{
  await show([]);
  assert.equal(node('.profile-playtime-unknown').textContent,'?');
- assert.ok(node('.profile-playtime-empty'));assert.equal(env.document.querySelectorAll('.profile-playtime-chart path').length,0);
- assert.equal(node('.profile-playtime-chart figcaption strong').textContent,'0时0分');
- assert.equal(node('.profile-playtime-games'),null,'no games are listed');
+ assert.equal(cells().length,0);
+ assert.equal(total(),'0时0分');
+ assert.equal(node('#profilePlaytimeTitle').textContent,'游戏时长：0时0分','the total sits in the title at the top left');
 });
 
-test('each played game takes its share of the pie and is listed with its time',async()=>{
+test('each played game takes a polygon whose area follows its play time',async()=>{
  await show(three);
- assert.equal(env.document.querySelectorAll('.profile-playtime-chart path').length,3);
- assert.equal(node('.profile-playtime-unknown'),null);
- assert.equal(node('.profile-playtime-chart figcaption strong').textContent,'5时0分','the total sits below the pie');
- assert.deepEqual([...env.document.querySelectorAll('.profile-playtime-games li')].map(li=>[li.querySelector('span').textContent,li.querySelector('time').textContent]),
-  [['東方錦上京','3时0分'],['東方風神録','1时30分'],['東方妖々夢','0时30分']]);
- // The largest share, 60% from the top, sweeps past halfway.
- assert.match(env.document.querySelector('.profile-playtime-chart path').getAttribute('d'),/A84 84 0 1 1/);
- assert.equal(node('.profile-playtime-callout'),null,'no callout until a slice is pointed at');
+ assert.equal(cells().length,3);assert.equal(node('.profile-playtime-unknown'),null);
+ assert.equal(total(),'5时0分');
+ const areas=cells().map(cell=>areaOf(cell.getAttribute('points'))),sum=areas.reduce((a,b)=>a+b,0);
+ [0.6,0.3,0.1].forEach((share,index)=>assert.ok(Math.abs(areas[index]/sum-share)<0.015,`share ${share}`));
+ assert.deepEqual(cells().map(cell=>cell.getAttribute('fill')),['#5fa8e0','#e07b39','#e889b5']);
+ assert.ok([...env.document.querySelectorAll('.profile-playtime-label b')].some(label=>label.textContent==='東方錦上京'),'a large cell names its game');
+ assert.equal(node('.profile-playtime-tip'),null,'no tip until a cell is pointed at');
 });
 
-test('pointing at a slice lifts it and draws a callout line to its name and time',async()=>{
+test('pointing at a cell lights it and shows its name, time and share',async()=>{
  await show(three);
- const second=env.document.querySelectorAll('.profile-playtime-chart path')[1];
+ const second=cells()[1];
  await React.act(async()=>second.focus());
- assert.equal(second.dataset.active,'true');assert.match(second.style.transform,/translate\(.+\) scale\(1\.07\)/);
- const texts=[...env.document.querySelectorAll('.profile-playtime-callout text')].map(text=>text.textContent);
- assert.deepEqual(texts,['東方風神録','1时30分 · 30%']);
- assert.equal(env.document.querySelector('.profile-playtime-callout polyline').getAttribute('points').split(' ').length,3,'a line out of the slice, then across');
- assert.equal(node('.profile-playtime-games li[data-active]').textContent.startsWith('東方風神録'),true,'the listed game lights up too');
+ assert.equal(second.dataset.active,'true');assert.equal(node('.profile-playtime-map').dataset.active,'true','the others dim');
+ assert.deepEqual([...node('.profile-playtime-tip').children].map(child=>child.textContent),['東方風神録','1时30分 · 30%']);
  await React.act(async()=>second.blur());
- assert.equal(node('.profile-playtime-callout'),null);
+ assert.equal(node('.profile-playtime-tip'),null);
 });
 
-test('the category selector narrows the pie, the list and the total',async()=>{
+test('the category selector narrows the map and the total',async()=>{
  await show([...three,spinoff]);
- assert.equal(node('.profile-playtime-chart figcaption strong').textContent,'7时0分');
+ assert.equal(total(),'7时0分');
  const pick=label=>React.act(async()=>[...env.document.querySelectorAll('.profile-playtime-filter button')].find(button=>button.textContent===label).click());
  assert.deepEqual([...env.document.querySelectorAll('.profile-playtime-filter button')].map(button=>button.textContent),['全部作品','正作','旧作','小数点作','同人作']);
- assert.equal(node('.profile-playtime-filter .selected').textContent,'全部作品');
  await pick('小数点作');
- assert.equal(node('.profile-playtime-filter .selected').textContent,'小数点作');
- assert.deepEqual([...env.document.querySelectorAll('.profile-playtime-games li span')].map(span=>span.textContent),['東方萃夢想']);
- assert.equal(node('.profile-playtime-chart figcaption strong').textContent,'2时0分');
+ assert.equal(cells().length,1);assert.equal(total(),'2时0分');
  await pick('旧作');
- assert.ok(node('.profile-playtime-unknown'),'a category nobody played is an empty ring');assert.equal(node('.profile-playtime-chart figcaption strong').textContent,'0时0分');
+ assert.ok(node('.profile-playtime-unknown'),'a category nobody played is empty');assert.equal(total(),'0时0分');
 });
 
-test('one game fills the pie, and the time reads in English as hours and minutes',async()=>{
+test('one game fills the area, and the time reads in English as hours and minutes',async()=>{
  await show([{key:'th20',title:'Fossilized Wonders',seconds:64*3600+19*60+30,color:'#5fa8e0',category:'mainline'}],'en');
- assert.equal(env.document.querySelectorAll('.profile-playtime-chart path').length,0);
- assert.ok(node('.profile-playtime-chart circle:not(.profile-playtime-empty)'),'a lone game is a whole circle');
- assert.equal(node('.profile-playtime-chart figcaption strong').textContent,'64h 19m');
+ assert.equal(cells().length,1);
+ const [,,width,height]=node('.profile-playtime-map svg').getAttribute('viewBox').split(' ').map(Number);
+ assert.equal(areaOf(cells()[0].getAttribute('points')),width*height,'a lone game is the whole area');
+ assert.equal(total(),'64h 19m');assert.equal(node('#profilePlaytimeTitle').textContent,'Play time: 64h 19m');
 });
 
 test('play time comes from the saves of played games only, most played first',async()=>{
