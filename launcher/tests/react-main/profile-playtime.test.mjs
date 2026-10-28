@@ -14,6 +14,7 @@ before(async()=>{
  await mkdir(resolve(project,'.cache'),{recursive:true});work=await mkdtemp(resolve(project,'.cache/profile-playtime-'));const output=resolve(work,'actual.mjs');
  await build({absWorkingDir:project,stdin:{resolveDir:project,loader:'tsx',contents:`
   export * from './app/components/launcher/PlaytimeShowcase.tsx';
+  export * from './app/components/launcher/ProfileOverview.tsx';
   export * from './app/models/playtime.ts';
   export * from './app/models/voronoi-treemap.ts';
   export * from './app/i18n.tsx';
@@ -103,11 +104,14 @@ test('pointing at a cell lights it and shows its name, time and share',async()=>
  assert.equal(node('.profile-playtime-tip'),null);
 });
 
-test('the category selector narrows the map and the total',async()=>{
- await show([...three,spinoff]);
+test('the overview names itself beside the category selector, which narrows the map and the total',async()=>{
+ const container=env.document.createElement('main');env.document.body.append(container);root=createRoot(container);
+ await React.act(async()=>root.render(React.createElement(api.LocaleProvider,{locale:'zh-CN'},React.createElement(api.ProfileOverview,{playtime:[...three,spinoff],clears:[],privacy:{playtime:true,clears:true},owner:true}))));
+ assert.equal(node('.profile-overview-header h2').textContent,'概览');
+ assert.ok(node('.profile-overview-header + .profile-playtime #profilePlaytimeTitle'),'play time follows the title row');
  assert.equal(total(),'7时0分');
- const pick=label=>React.act(async()=>[...env.document.querySelectorAll('.profile-playtime-filter button')].find(button=>button.textContent===label).click());
- assert.deepEqual([...env.document.querySelectorAll('.profile-playtime-filter button')].map(button=>button.textContent),['全部作品','正作','旧作','小数点作','同人作']);
+ const pick=label=>React.act(async()=>[...env.document.querySelectorAll('.profile-overview-filter button')].find(button=>button.textContent===label).click());
+ assert.deepEqual([...env.document.querySelectorAll('.profile-overview-filter button')].map(button=>button.textContent),['全部作品','正作','旧作','小数点作','同人作']);
  await pick('小数点作');
  assert.equal(cells().length,1);assert.equal(total(),'2时0分');
  await pick('旧作');

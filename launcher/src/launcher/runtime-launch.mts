@@ -1,4 +1,4 @@
-import {nativeApp} from './native-app.mts';
+import {nativeApp} from './native-app.mjs';
 import {
   RUNTIME_MANIFEST_FILE, RUNTIME_CAPABILITIES, RUNTIME_PREPARE, RUNTIME_PROGRESS, RUNTIME_IMPORT, RUNTIME_CACHE_PROTOCOL,
   RUNTIME_CACHE_MAX_PREVIOUS, canonicalRuntimePayload, findRuntimeGroup,

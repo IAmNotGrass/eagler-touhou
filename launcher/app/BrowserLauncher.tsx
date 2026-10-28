@@ -24,7 +24,9 @@ import {LoginWorkspace} from './components/launcher/LoginWorkspace';
 import {RegisterWorkspace} from './components/launcher/RegisterWorkspace';
 import type {PlaytimeSlice} from './components/launcher/PlaytimeShowcase';
 import type {LibraryProduct} from './components/launcher/products';
-import {gameColor, readPlaytimes} from './models/playtime';
+import {gameColor, playtimesOf, readSaves} from './models/playtime';
+import type {ClearGame} from './components/launcher/ClearShowcase';
+import {supportsScoreStatistics} from './services/score-storage';
 import {directoryCategory} from './components/launcher/directory-categories';
 import {FirstUseNotice, SiteNotice, DonationDialog, AppleRefreshDialog, MultiplayerGuideDialog, ReplayDialog, ProfileDialog,
   type FirstUseNoticeHandle, type SiteNoticeHandle} from './components/notices';
@@ -174,22 +176,26 @@ function LoginPage({session}: {session: BrowserSession}) {
   return <LoginWorkspace account={account} onSignIn={session.account.signIn} onSignOut={() => void session.account.signOut()}/>;
 }
 function ProfilePage({session, products}: {session: BrowserSession; products: readonly LibraryProduct[]}) {
-  // Play time is read from each game's save whenever the page opens.
-  const [playtime, setPlaytime] = useState<PlaytimeSlice[] | null>(null);
+  // Play time and clears are read from each game's save whenever the page opens.
+  const [playtime, setPlaytime] = useState<PlaytimeSlice[] | null>(null), [clears, setClears] = useState<ClearGame[] | null>(null);
   useEffect(() => {
     let active = true;
     const played = products.filter(product => !product.multiplayer && !product.hidden);
-    void readPlaytimes(played.map(product => product.id)).then(entries => {
-      if (active) setPlaytime(entries.flatMap(entry => {
+    void readSaves(played.map(product => product.id)).then(saves => {
+      if (!active) return;
+      setPlaytime(playtimesOf(saves).flatMap(entry => {
         const product = played.find(candidate => candidate.id === entry.product);
         return product ? [{key: entry.product, seconds: entry.seconds, color: gameColor(entry.product), title: product.title, category: directoryCategory(product), artwork: product.artwork}] : [];
       }));
+      // Every game appears on the clear radar, with or without a save.
+      setClears(played.filter(product => supportsScoreStatistics(product.id)).map(product => ({key: product.id, gameId: product.gameId, title: product.title, category: directoryCategory(product), report: saves.find(save => save.product === product.id)?.report ?? null})));
     });
     return () => {active = false;};
   }, [products]);
   const navigation = useSurfaceNavigation(), profile = useSyncExternalStore(session.profile.subscribe, session.profile.getSnapshot, session.profile.getSnapshot);
   const account = useSyncExternalStore(session.account.subscribe, session.account.getSnapshot, session.account.getSnapshot);
-  return <ProfileWorkspace account={account} name={profile.name} avatar={avatarSource(profile.avatar)} cover={profile.cover} theme={profile.theme} showcases={profile.showcases} playtime={playtime} onShowcases={session.profile.setShowcases} onName={session.profile.setName} assetUrl={path => new URL(path, session.baseUrl).href}
+  return <ProfileWorkspace account={account} name={profile.name} avatar={avatarSource(profile.avatar)} cover={profile.cover} theme={profile.theme} showcases={profile.showcases} playtime={playtime} clears={clears} links={profile.links} privacy={profile.privacy} onLinks={session.profile.setLinks} onPrivacy={session.profile.setPrivacy}
+    comments={profile.comments} onComment={session.profile.addComment} onRemoveComment={session.profile.removeComment} onShowcases={session.profile.setShowcases} onName={session.profile.setName} assetUrl={path => new URL(path, session.baseUrl).href}
     onEdit={() => navigation.openInfoDialog('profileDialog')} onCover={session.profile.setCover} onTheme={session.profile.setTheme}/>;
 }
 function Footer({donationAvailable}: {donationAvailable: boolean}) {const navigation = useSurfaceNavigation(); return <SiteFooter donationAvailable={donationAvailable} onDonation={() => navigation.openInfoDialog('donationDialog')}/>;}

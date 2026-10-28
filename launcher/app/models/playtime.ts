@@ -1,5 +1,5 @@
 import {gameIdForProduct, type ProductId} from '../../src/contracts/product-catalog.mts';
-import {parseScoreDat} from '../../src/launcher/score-dat.mts';
+import {parseScoreDat, type ScoreReport} from '../../src/launcher/score-dat.mts';
 import {readStoredScore, supportsScoreStatistics} from '../services/score-storage';
 
 export interface GamePlaytime {product: ProductId; seconds: number}
@@ -11,15 +11,27 @@ const GAME_COLORS: Readonly<Record<string, string>> = {
 };
 export const gameColor = (product: ProductId) => GAME_COLORS[gameIdForProduct(product)] ?? '#a8a29a';
 
-/** Play time each game's save records, most played first. Games without a
- * record of play time, never played, or whose save cannot be read are left out. */
-export async function readPlaytimes(products: readonly ProductId[], read = readStoredScore): Promise<GamePlaytime[]> {
+/** Each game's save, parsed. Games never played, or whose save cannot be
+ * read, are left out. */
+export interface GameSave {product: ProductId; report: ScoreReport}
+export async function readSaves(products: readonly ProductId[], read = readStoredScore): Promise<GameSave[]> {
   const results = await Promise.all(products.filter(supportsScoreStatistics).map(async product => {
     try {
       const stored = await read(product, 'ja');
-      const seconds = stored ? parseScoreDat(gameIdForProduct(product), stored.bytes).playSeconds ?? 0 : 0;
-      return seconds > 0 ? {product, seconds} : null;
+      return stored ? {product, report: parseScoreDat(gameIdForProduct(product), stored.bytes)} : null;
     } catch {return null;}
   }));
-  return results.filter((entry): entry is GamePlaytime => entry !== null).sort((a, b) => b.seconds - a.seconds);
+  return results.filter((entry): entry is GameSave => entry !== null);
+}
+
+/** Play time each save records, most played first; saves without any are left out. */
+export function playtimesOf(saves: readonly GameSave[]): GamePlaytime[] {
+  return saves.flatMap(({product, report}) => (report.playSeconds ?? 0) > 0 ? [{product, seconds: report.playSeconds!}] : [])
+    .sort((a, b) => b.seconds - a.seconds);
+}
+
+/** Play time each game's save records, most played first. Games without a
+ * record of play time, never played, or whose save cannot be read are left out. */
+export async function readPlaytimes(products: readonly ProductId[], read = readStoredScore): Promise<GamePlaytime[]> {
+  return playtimesOf(await readSaves(products, read));
 }

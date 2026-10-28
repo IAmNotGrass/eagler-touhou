@@ -1,6 +1,6 @@
-import {useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {useLayoutEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {useLocale} from '../../i18n';
-import {directoryCategories, directoryCategoryKey, type DirectoryCategory, type DirectoryFilter} from './directory-categories';
+import type {DirectoryCategory, DirectoryFilter} from './directory-categories';
 import {polygonArea, polygonCentroid, voronoiTreemap, type Polygon} from '../../models/voronoi-treemap';
 
 export interface PlaytimeSlice {key: string; title: string; seconds: number; color: string; category: DirectoryCategory; artwork?: string | null}
@@ -22,16 +22,16 @@ const bounds = (polygon: Polygon) => {
 
 /** The play time showcase: the total beside its title, and the card filled
  * with one polygon per played game whose area follows its play time (a
- * Voronoi treemap), narrowed to one directory category. Each cell shows its
+ * Voronoi treemap), narrowed to the overview's directory category. Each cell shows its
  * game's cover, dimmed under the text. Games under 2% of the total share one
  * "other" cell, and no cell is drawn smaller than 2%, so the areas are
  * proportional apart from those. Large cells name their game; pointing at any
  * cell shows its name, time and share (and the games in "other"). Without
  * any play time the area is empty with a question mark. `slices` is null
  * while saves are read. */
-export function PlaytimeShowcase({slices}: {slices: readonly PlaytimeSlice[] | null}) {
+export function PlaytimeShowcase({slices, filter = 'all', badge}: {slices: readonly PlaytimeSlice[] | null; filter?: DirectoryFilter; badge?: ReactNode}) {
   const {t, locale} = useLocale();
-  const [filter, setFilter] = useState<DirectoryFilter>('all'), [active, setActive] = useState<string | null>(null);
+  const [active, setActive] = useState<string | null>(null);
   const area = useRef<HTMLDivElement>(null), [size, setSize] = useState({width: 960, height: HEIGHT});
   useLayoutEffect(() => {
     const node = area.current;
@@ -79,14 +79,7 @@ export function PlaytimeShowcase({slices}: {slices: readonly PlaytimeSlice[] | n
     onFocus: () => setActive(key), onBlur: () => setActive(current => current === key ? null : current),
   });
   return <section className="profile-showcase profile-playtime" aria-labelledby="profilePlaytimeTitle" aria-busy={slices === null}>
-    <header className="profile-playtime-header">
-      <h2 id="profilePlaytimeTitle">{t('profile.playtime')}{locale === 'en' ? ': ' : '：'}<strong>{slices === null ? '…' : duration(total)}</strong></h2>
-      <div className="profile-playtime-filter" role="group" aria-label={t('profile.playtimeCategory')}>
-        {(['all', ...directoryCategories] as DirectoryFilter[]).map(value => <button key={value} type="button" aria-pressed={filter === value}
-          className={filter === value ? 'selected' : undefined} onClick={() => {setFilter(value); setActive(null);}}>
-          {t(value === 'all' ? 'directory.category.allNarrow' : directoryCategoryKey(value))}</button>)}
-      </div>
-    </header>
+    <h3 id="profilePlaytimeTitle">{t('profile.playtime')}{locale === 'en' ? ': ' : '：'}<strong>{slices === null ? '…' : duration(total)}</strong>{badge}</h3>
     <div className="profile-playtime-map" ref={area} style={{height: size.height}} data-active={hovered ? true : undefined}>
       {slices === null ? <p className="profile-playtime-note" role="status">{t('profile.playtimeLoading')}</p>
         : total > 0 ? <>

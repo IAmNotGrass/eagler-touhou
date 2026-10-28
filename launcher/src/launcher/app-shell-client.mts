@@ -1,4 +1,4 @@
-import {nativeApp} from './native-app.mts';
+import {nativeApp} from './native-app.mjs';
 export interface AppShellClientState {
   readonly registration: ServiceWorkerRegistrationLike | null;
   readonly updateReady: boolean;

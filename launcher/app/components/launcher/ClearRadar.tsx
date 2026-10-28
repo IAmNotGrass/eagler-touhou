@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState, type KeyboardEvent} from 'react';
 import {scoreDifficulties, type ScoreReport} from '../../../src/launcher/score-dat.mts';
 import {useLocale} from '../../i18n';
 import {scoreText} from './score-copy';
@@ -45,8 +45,13 @@ function extraSegment(axis: number, spokes: Spokes) {
 }
 
 /** Clear records as a radar: one axis per loadout, Easy at the centre ring out
- * to Lunatic, and a hollow outer band for Extra. */
-export function ClearRadar({loadouts, report}: {loadouts: readonly string[]; report: ScoreReport | null}) {
+ * to Lunatic, and a hollow outer band for Extra. With `onAxis`, clicking an
+ * axis (or pressing Enter on its label) chooses it, and `selected` marks the
+ * chosen one. */
+export function ClearRadar({loadouts, report, label, selected = null, onAxis}: {
+  loadouts: readonly string[]; report: Pick<ScoreReport, 'clears' | 'clearKinds'> | null;
+  label?: string; selected?: number | null; onAxis?(axis: number): void;
+}) {
   const {t, locale} = useLocale(), [active, setActive] = useState<Active>(null);
   const count = loadouts.length, groups = pairedGroups(loadouts);
   // Grouped charts turn half a step so the two characters split left/right.
@@ -74,6 +79,10 @@ export function ClearRadar({loadouts, report}: {loadouts: readonly string[]; rep
     onPointerEnter: () => setActive(next),
     onPointerDown: () => setActive(next),
     onFocus: () => setActive(next),
+    ...onAxis && next && {
+      onClick: () => onAxis(next.axis),
+      onKeyDown: (event: KeyboardEvent<SVGElement>) => {if (event.key === 'Enter' || event.key === ' ') {event.preventDefault(); onAxis(next.axis);}},
+    },
   });
   const same = (a: Active, b: Active) => a?.axis === b?.axis && a?.level === b?.level;
   const detail = active ? active.level === null ? axisSummary(active.axis) : describe(active.axis, active.level) : null;
@@ -97,15 +106,15 @@ export function ClearRadar({loadouts, report}: {loadouts: readonly string[]; rep
     return `M${CX} ${CY}L${x1.toFixed(2)} ${y1.toFixed(2)}A${r} ${r} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}Z`;
   };
   return <div className="clear-radar-wrap">
-    <svg className="clear-radar" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="group" aria-label={t('scores.clearMatrix')}
-      data-focused={active !== null}
+    <svg className="clear-radar" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="group" aria-label={label ?? t('scores.clearMatrix')}
+      data-focused={active !== null} data-choosable={onAxis ? true : undefined}
       onPointerLeave={() => setActive(null)} onBlur={event => {if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setActive(null);}}>
       <g className="clear-radar-sectors" aria-hidden="true">
         {loadouts.map((name, axis) => <path key={name} className="clear-radar-sector" d={sector(axis)} {...pick({axis, level: null})}/>)}
       </g>
       <g className="clear-radar-grid" aria-hidden="true">
         {Array.from({length: MAIN_LEVELS}, (_, level) => <path key={level} className={level === MAIN_LEVELS - 1 ? 'clear-radar-ring outer' : 'clear-radar-ring'} d={ring(spokes, RADIUS * (level + 1) / MAIN_LEVELS)}/>)}
-        {loadouts.map((name, axis) => {const [x, y] = point(axis, spokes, EXTRA_OUTER); return <line key={name} className="clear-radar-axis" data-active={active?.axis === axis} x1={CX} y1={CY} x2={x} y2={y}/>;})}
+        {loadouts.map((name, axis) => {const [x, y] = point(axis, spokes, EXTRA_OUTER); return <line key={name} className="clear-radar-axis" data-active={active?.axis === axis} data-selected={selected === axis || undefined} x1={CX} y1={CY} x2={x} y2={y}/>;})}
       </g>
       <g className="clear-radar-extra">
         {loadouts.map((name, axis) => {
@@ -137,8 +146,8 @@ export function ClearRadar({loadouts, report}: {loadouts: readonly string[]; rep
           const a = angle(axis, spokes), [x, y] = point(axis, spokes, LABEL_RADIUS), cos = Math.cos(a), sin = Math.sin(a);
           const anchor = cos > 0.3 ? 'start' : cos < -0.3 ? 'end' : 'middle', text = lines(short(axis));
           const top = y + (sin > 0.3 ? 8 : sin < -0.3 ? -2 : 4) - (text.length - 1) * (sin > 0.3 ? 0 : sin < -0.3 ? 12 : 6);
-          return <text key={name} className="clear-radar-label" x={x} y={top} textAnchor={anchor} data-active={active?.axis === axis}
-            tabIndex={0} aria-label={axisSummary(axis)} {...pick({axis, level: null})}>
+          return <text key={name} className="clear-radar-label" x={x} y={top} textAnchor={anchor} data-active={active?.axis === axis} data-selected={selected === axis || undefined}
+            tabIndex={0} role={onAxis ? 'button' : undefined} aria-label={axisSummary(axis)} aria-pressed={onAxis ? selected === axis : undefined} {...pick({axis, level: null})}>
             {text.length > 1 ? text.map((line, index) => <tspan key={index} x={x} dy={index ? 12 : 0}>{line}</tspan>) : text[0]}
           </text>;
         })}
