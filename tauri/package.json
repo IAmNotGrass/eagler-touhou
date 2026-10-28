@@ -4,7 +4,7 @@
   "type": "module",
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "frontend": "node ../launcher/scripts/package-app-frontend.mjs --output=dist --site-manifest=${EAGLER_APP_SITE_MANIFEST:-../games/dev-site-manifest.json} --service-origin=${EAGLER_APP_SERVICE_ORIGIN:-https://lograss.top}",
+    "frontend": "node scripts/frontend.mjs",
     "icons": "tauri icon app-icon.png",
     "dev": "tauri dev",
     "build": "tauri build",
