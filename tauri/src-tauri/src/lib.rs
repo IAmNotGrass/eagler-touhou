@@ -1,8 +1,9 @@
-/// The app is the website's launcher loaded from bundled files. The page does
-/// almost everything itself; the shell adds the system-browser opener for links
-/// to other sites and keeps the account's sign-in token in the system's
-/// credential store (Windows Credential Manager, macOS Keychain, the Secret
-/// Service on Linux).
+/// The app is the website's launcher loaded from bundled files at its own
+/// origin, which also serves the game content the website publishes (see
+/// `content`). The page does almost everything itself; the shell adds the
+/// system-browser opener for links to other sites and keeps the account's
+/// sign-in token in the system's credential store (Windows Credential Manager,
+/// macOS Keychain, the Secret Service on Linux).
 mod account_token {
     #[cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))]
     mod store {
@@ -59,11 +60,33 @@ mod account_token {
     }
 }
 
+mod content;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let client = reqwest::Client::builder()
+        .user_agent(concat!("EaglerTouhouApp/", env!("CARGO_PKG_VERSION")))
+        .connect_timeout(std::time::Duration::from_secs(15))
+        .build()
+        .expect("an HTTP client");
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .register_asynchronous_uri_scheme_protocol(content::SCHEME, move |context, request, responder| {
+            let (app, client) = (context.app_handle().clone(), client.clone());
+            tauri::async_runtime::spawn(async move { responder.respond(content::serve(app, client, request).await) });
+        })
         .invoke_handler(tauri::generate_handler![account_token::account_token_get, account_token::account_token_set])
+        .setup(|app| {
+            let url = content::app_url().parse().expect("the app's address");
+            tauri::WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::CustomProtocol(url))
+                .title("东方Project 原作 STG ~ EAGLER TOUHOU")
+                .inner_size(1440.0, 900.0)
+                .min_inner_size(480.0, 560.0)
+                .center()
+                .background_color(tauri::window::Color(16, 16, 15, 255))
+                .build()?;
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running the Eagler Touhou app");
 }

@@ -2,7 +2,10 @@
 /** Assembles the files the Tauri app bundles: the built frontend, the game
  * card artwork and the site metadata, with the website's services named.
  *
- *   node scripts/package-app-frontend.mjs --output=DIR --site-manifest=FILE|URL --service-origin=https://example.org [--artwork=DIR|URL]
+ *   node scripts/package-app-frontend.mjs --output=DIR --site-manifest=FILE|URL --service-origin=https://example.org [--artwork=DIR|URL] [--overrides=DIR]
+ *
+ * Files under --overrides replace the website's file at the same path, such as
+ * the app's own first-use notice; each must name a file the package has.
  *
  * The site manifest and the card artwork (a folder, by default the workspace's
  * games/host-artwork) may instead come from a published site, such as the
@@ -11,9 +14,9 @@
  * The site manifest's play relay becomes the service origin's /relay, and
  * every page carries the origin in a `eagler-service-origin` meta element, so
  * accounts and play reach the website while the pages load from the app. */
-import {copyFile, mkdir, readFile, rm, writeFile} from 'node:fs/promises';
+import {copyFile, mkdir, readdir, readFile, rm, writeFile} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
-import {dirname, resolve} from 'node:path';
+import {dirname, relative, resolve, sep} from 'node:path';
 import {setDefaultAutoSelectFamilyAttemptTimeout} from 'node:net';
 import {FRONTEND_PACKAGE_FILES, hostArtworkFiles, resolveFrontendPackageSource} from '../lib/frontend-manifest.mjs';
 import {DEVELOPMENT_CONTENT} from '../lib/development-content.mjs';
@@ -23,8 +26,8 @@ import {LEGACY_HOST_MANIFEST_FILE, legacyHostManifestResponse} from '../compat/s
 import {workspaceRoot} from '../lib/workspace-layout.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).map(argument => {
-  const match = /^--(output|site-manifest|service-origin|artwork)=(.+)$/.exec(argument);
-  if (!match) throw new Error(`Unknown argument ${argument}; usage: --output=DIR --site-manifest=FILE|URL --service-origin=URL [--artwork=DIR|URL]`);
+  const match = /^--(output|site-manifest|service-origin|artwork|overrides)=(.+)$/.exec(argument);
+  if (!match) throw new Error(`Unknown argument ${argument}; usage: --output=DIR --site-manifest=FILE|URL --service-origin=URL [--artwork=DIR|URL] [--overrides=DIR]`);
   return [match[1], match[2]];
 }));
 for (const name of ['output', 'site-manifest', 'service-origin']) if (!args[name]) throw new Error(`Missing --${name}`);
@@ -59,6 +62,19 @@ for (const path of FRONTEND_PACKAGE_FILES) {
   } else await place(path, target => copyFile(source, target));
 }
 
+// App versions of website files.
+let overridden = 0;
+if (args.overrides) {
+  const root = resolve(args.overrides);
+  for (const entry of await readdir(root, {recursive: true, withFileTypes: true})) {
+    if (!entry.isFile()) continue;
+    const path = relative(root, resolve(entry.parentPath, entry.name)).split(sep).join('/');
+    if (!FRONTEND_PACKAGE_FILES.includes(path)) throw new Error(`Override ${path} names no packaged file`);
+    await place(path, target => copyFile(resolve(root, path), target));
+    overridden++;
+  }
+}
+
 let missingArtwork = 0;
 for (const name of hostArtworkFiles(Object.keys(DEVELOPMENT_CONTENT.games))) {
   if (artwork instanceof URL) {
@@ -72,11 +88,18 @@ for (const name of hostArtworkFiles(Object.keys(DEVELOPMENT_CONTENT.games))) {
 
 const manifestText = remote(args['site-manifest']) ? (await download(args['site-manifest']))?.toString('utf8') : await readFile(resolve(args['site-manifest']), 'utf8');
 if (!manifestText) throw new Error(`No site manifest at ${args['site-manifest']}`);
-const manifest = validateSiteManifest(JSON.parse(manifestText));
+// A newer site may list games this launcher does not know yet; they are left out.
+const published = JSON.parse(manifestText), unknown = [];
+for (const game of Object.keys(published.games ?? {})) {
+  try {validateSiteManifest({...published, games: {[game]: published.games[game]}});}
+  catch {unknown.push(game); delete published.games[game];}
+}
+if (unknown.length) console.warn(`Left out games this launcher does not know: ${unknown.join(', ')}`);
+const manifest = validateSiteManifest(published);
 manifest.shared.netplayRelay = `wss://${service.host}/relay`;
 const json = value => `${JSON.stringify(value, null, 2)}\n`;
 await place(SITE_MANIFEST_FILE, target => writeFile(target, json(manifest)));
 await place(RELEASE_CATALOG_FILE, target => writeFile(target, json({schema: RELEASE_CATALOG_SCHEMA, games: {}})));
 await place(LEGACY_HOST_MANIFEST_FILE, target => writeFile(target, JSON.stringify(legacyHostManifestResponse(manifest)) + '\n'));
 
-console.log(`App frontend: ${FRONTEND_PACKAGE_FILES.length} files, ${missingArtwork ? `${missingArtwork} artwork files missing` : 'all artwork'}, services at ${service.origin} -> ${output}`);
+console.log(`App frontend: ${FRONTEND_PACKAGE_FILES.length} files (${overridden} app versions), ${missingArtwork ? `${missingArtwork} artwork files missing` : 'all artwork'}, services at ${service.origin} -> ${output}`);

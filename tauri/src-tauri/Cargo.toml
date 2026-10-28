@@ -16,6 +16,8 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
+# Downloads the website's game content for the app's own origin.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
 
 # The account sign-in token is kept in the system's credential store.
 [target.'cfg(target_os = "windows")'.dependencies]

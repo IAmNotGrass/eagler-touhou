@@ -13,7 +13,8 @@ export function directPreloadRuntimeUrl(plan: {
   const declared = plan.runtimeVariant === 'multiplayer' ? game.multiplayerRuntime : game.runtime;
   if (!declared) throw new Error('Host does not declare this Runtime variant');
   const url = new URL(declared, baseUrl), requested = new URL(plan.entry, baseUrl), base = new URL(baseUrl);
-  if (url.href !== requested.href || url.origin !== base.origin || !['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.hash) throw new Error('Invalid direct preload Runtime source');
+  // The launcher's own scheme is also allowed: the app's is not http(s).
+  if (url.href !== requested.href || url.origin !== base.origin || ![...['http:', 'https:'], base.protocol].includes(url.protocol) || url.username || url.password || url.hash) throw new Error('Invalid direct preload Runtime source');
   url.searchParams.set('runtimeVariant', plan.runtimeVariant);
   url.searchParams.set('asset', game.gameData.version);
   if (typeof game.music.ogg?.version === 'string') url.searchParams.set('oggAsset', game.music.ogg.version);

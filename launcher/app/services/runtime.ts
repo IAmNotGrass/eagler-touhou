@@ -256,7 +256,7 @@ export function createRuntimeService(options: RuntimeServiceOptions) {
   const host = options.hostWindow ?? window as unknown as RuntimeHost;
   const frame = options.frame;
   const baseUrl = new URL(options.baseUrl, host.location.href).href;
-  const origin = new URL(baseUrl).origin;
+  const origin = new URL(baseUrl).origin, launcherProtocol = new URL(baseUrl).protocol;
   if (origin !== host.location.origin) throw new Error('Runtime must share the Launcher origin');
   if (host.__eaglerPrepareManagedRuntimeDataV1) throw new Error('A Runtime DATA owner is already installed');
   const timers: RuntimeTimers = options.timers ?? {
@@ -457,7 +457,8 @@ export function createRuntimeService(options: RuntimeServiceOptions) {
     }
     if (target !== 'about:blank') {
       const url = new URL(target);
-      if (!token || !['http:', 'https:'].includes(url.protocol) || url.origin !== origin ||
+      // The launcher's own scheme is also allowed: the app's is not http(s).
+      if (!token || ![...['http:', 'https:'], launcherProtocol].includes(url.protocol) || url.origin !== origin ||
           url.href !== snapshot.source || url.searchParams.get(RUNTIME_EPOCH_QUERY_PARAMETER) !== String(token.id)) {
         throw new Error('Invalid Runtime replacement navigation');
       }

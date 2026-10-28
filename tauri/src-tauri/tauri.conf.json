@@ -10,18 +10,7 @@
   },
   "app": {
     "withGlobalTauri": false,
-    "windows": [
-      {
-        "label": "main",
-        "title": "东方Project 原作 STG ~ EAGLER TOUHOU",
-        "width": 1440,
-        "height": 900,
-        "minWidth": 480,
-        "minHeight": 560,
-        "center": true,
-        "backgroundColor": "#10100f"
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": null
     }

@@ -1,8 +1,8 @@
 name: App
 # Builds the Tauri app (tauri/) for Windows and macOS. Run it by hand from the
 # Actions tab, or push a tag such as app-v0.1.0 to also draft a GitHub release
-# with the installers. The pages come from this commit; the game card artwork
-# and the site manifest come from the published website.
+# with the installers. The pages come from this commit; the game list and card
+# artwork come from the content site, which the app also downloads games from.
 'on':
   workflow_dispatch: null
   push:
@@ -14,9 +14,10 @@ concurrency:
   group: app-${{ github.ref }}
   cancel-in-progress: true
 env:
+  # Accounts and play.
   EAGLER_APP_SERVICE_ORIGIN: https://lograss.top
-  EAGLER_APP_SITE_MANIFEST: https://lograss.top/site-manifest.json
-  EAGLER_APP_ARTWORK: https://lograss.top/assets/
+  # The game list, card artwork and the games the app downloads.
+  EAGLER_APP_CONTENT_ORIGIN: https://touhou.vip
 jobs:
   build:
     strategy:
