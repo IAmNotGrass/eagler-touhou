@@ -154,7 +154,7 @@ function Header({session, firstUse, notice, donationAvailable}: {
   const account = useSyncExternalStore(session.account.subscribe, session.account.getSnapshot, session.account.getSnapshot);
   const [menuOpen, setMenuOpen] = useState(false), url = (path: string) => new URL(path, session.baseUrl).href;
   return <LauncherMasthead profileName={profile.name} profileAvatar={avatarSource(profile.avatar)} onProfile={() => navigation.roomCode !== null || navigation.playerOpen ? navigation.openInfoDialog('profileDialog') : account.status === 'signed-in' ? navigation.openProfile() : navigation.openLogin()}
-    onSignOut={account.status === 'signed-in' ? () => void session.account.signOut() : undefined} onHome={navigation.openHome} updatedAge={updatedAge} variant={navigation.context} assetUrl={url} launcherHref={url(locale === 'en' ? 'en.html' : './')}
+    onSignOut={account.status === 'signed-in' ? () => void session.account.signOut() : undefined} onHome={navigation.openHome} onSingleplayer={navigation.openHome} onMultiplayer={navigation.openLobby} updatedAge={updatedAge} variant={navigation.context} assetUrl={url} launcherHref={url(locale === 'en' ? 'en.html' : './')}
     faqHref={url('faq.html')} aboutHref={url('about.html')} migrationPolicyKnown={metadata.siteManifest !== null} migrationHref={metadata.siteManifest && siteOriginMigrationAvailable(metadata.siteManifest, window.location.protocol) ? url('migrate.html') : undefined}
     menuOpen={menuOpen} onMenuOpenChange={setMenuOpen} lessMotion={prefs.lessMotion} onToggleMotion={session.preferences.toggleMotion}
     noticeEnabled={prefs.noticeEnabled} onToggleNotice={session.preferences.toggleNotice}

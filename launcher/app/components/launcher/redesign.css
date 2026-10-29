@@ -835,6 +835,45 @@ body:has(.lobby-redesign-sheet) #roomDialog .lobby-submit{background:var(--red);
 
 /* Menu entries that the host does not offer stay out of the header menu. */
 .masthead-menu-item[hidden]{display:none}
+/* Header menus that open on hover: play and community. */
+.masthead-nav-toggle{gap:4px}
+.masthead-nav-chevron{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s ease}
+.masthead-nav-toggle[aria-expanded=true] .masthead-nav-chevron{transform:rotate(180deg)}
+.masthead-nav-panel{left:0;right:auto;min-width:170px}
+.masthead-nav-toggle[aria-expanded=true]+.masthead-menu-panel{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
+/* The gap below the button still counts as the menu, so the pointer can cross it. */
+.masthead-nav-menu::after{content:"";position:absolute;left:0;right:0;top:100%;height:10px}
+.masthead-nav-panel .masthead-menu-item:disabled{color:rgba(255,255,255,.58);cursor:default}
+.masthead-nav-panel .masthead-menu-item:disabled:before{display:none}
+.masthead-nav-panel .masthead-menu-item:disabled:active{transform:none}
+.masthead-nav-soon{margin-left:auto;padding:2px 6px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);border-radius:999px;font:600 9px/1.3 var(--ui-font);letter-spacing:.04em;white-space:nowrap}
+@media(max-width:480px){
+ .redesign-sheet .masthead-nav-toggle{padding-inline:4px}
+ .masthead-nav-chevron{display:none}
+ .masthead-nav-panel{min-width:150px}
+}
+/* The options menu: a plain list here, and on a portrait phone a full page
+   of groups (play, community, other) that expand in place. */
+.masthead-menu-sheet-header,#mastheadMenuPanel .masthead-menu-group-toggle,#mastheadMenuPanel .masthead-menu-group:is([data-group=play],[data-group=community]){display:none}
+.masthead-menu-group-body{display:grid;gap:3px}
+@media(max-width:780px) and (orientation:portrait){
+ .masthead-nav-menu{display:none}
+ :root:has(#mastheadMenuToggle[aria-expanded=true]){overflow:hidden}
+ #mastheadMenuPanel{position:fixed;inset:0;z-index:400;display:block;min-width:0;box-sizing:border-box;padding:max(12px,env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom));border:0;border-radius:0;background:#141413;box-shadow:none;overflow-y:auto;overscroll-behavior:contain;transform:translateY(-12px)}
+ .masthead-menu-toggle[aria-expanded=true]+#mastheadMenuPanel{transform:none}
+ .masthead-menu-sheet-header{display:flex;align-items:center;justify-content:space-between;min-height:48px;margin-bottom:6px;color:var(--paper);font:700 18px/1.2 var(--ui-font);letter-spacing:.04em}
+ .masthead-menu-close{display:grid;place-items:center;width:40px;height:40px;padding:0;border:1px solid var(--line);border-radius:50%;background:transparent;color:var(--paper);font:400 22px/1 var(--ui-font);cursor:pointer}
+ #mastheadMenuPanel .masthead-menu-group[data-group]{display:block;border-top:1px solid #ffffff14}
+ #mastheadMenuPanel .masthead-menu-group-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:56px;padding:0 4px;border:0;background:transparent;color:var(--paper);font:700 16px/1.2 var(--ui-font);letter-spacing:.04em;cursor:pointer}
+ .masthead-menu-group-toggle svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s ease}
+ #mastheadMenuPanel .masthead-menu-group-toggle[aria-expanded=true]{color:var(--red-bright)}
+ .masthead-menu-group-toggle[aria-expanded=true] svg{transform:rotate(180deg)}
+ .masthead-menu-group-toggle:focus-visible{outline:2px solid var(--red-bright);outline-offset:-2px;border-radius:8px}
+ #mastheadMenuPanel .masthead-menu-group-body{display:none;padding:0 0 12px}
+ #mastheadMenuPanel .masthead-menu-group-toggle[aria-expanded=true]+.masthead-menu-group-body{display:grid}
+ #mastheadMenuPanel .masthead-menu-item{min-height:46px;font-size:13px}
+ #mastheadMenuPanel .masthead-menu-language .mizuki-select-trigger{min-height:46px;font-size:13px}
+}
 
 /* Standalone pages (user pages, sign-in): no directory; one card below the header that grows with its content. */
 .main.library-layout.directory-layout.page-layout{grid-template-columns:minmax(0,1fr)}

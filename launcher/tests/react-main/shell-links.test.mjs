@@ -65,3 +65,17 @@ test('Lobby launcher back keeps original anchor and uses Router, standalone docs
 test('Lobby masthead close closes actual detached custom-select menu',async()=>{await mount(el(Masthead));await click('#mastheadMenuToggle');await click('.mizuki-select-trigger');assert.equal(n('.mizuki-select-menu').hidden,false);await click('#mastheadMenuToggle');assert.equal(n('.mizuki-select-menu').hidden,true);assert.equal(n('#mastheadMenuPanel').hasAttribute('inert'),true);});
 test('Lobby custom-select item click does not count as masthead outside click',async()=>{await mount(el(Masthead));await click('#mastheadMenuToggle');await click('.mizuki-select-trigger');await click('.mizuki-select-item');assert.equal(n('#mastheadMenuToggle').getAttribute('aria-expanded'),'true');});
 test('Lobby Escape closes menu and restores original toggle focus',async()=>{await mount(el(Masthead));await click('#mastheadMenuToggle');const event=new env.window.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true});await React.act(async()=>n('#mastheadMenuPanel').dispatchEvent(event));assert.equal(event.defaultPrevented,true);assert.equal(n('#mastheadMenuToggle').getAttribute('aria-expanded'),'false');assert.equal(env.document.activeElement,n('#mastheadMenuToggle'));});
+test('Masthead menu groups play, community and the options for the phone page, one group open at a time',async()=>{
+ const chosen=[];
+ await mount(el(owners.LauncherMasthead,{variant:'library',assetUrl:x=>x,launcherHref:'/en.html',faqHref:'faq.html',aboutHref:'about.html',menuOpen:true,onMenuOpenChange(){},lessMotion:false,onToggleMotion(){},noticeEnabled:true,onToggleNotice(){},diagnosticsEnabled:false,onToggleDiagnostics(){},onDonation(){},onFirstUse(){},onMultiplayer:()=>chosen.push('multi'),languageControl:null}));
+ assert.deepEqual([...env.document.querySelectorAll('#mastheadMenuPanel .masthead-menu-group')].map(group=>group.dataset.group),['play','community','other']);
+ assert.ok(n('#mastheadGroupBody-other #globalSettingsOpen'),'the options sit under "other"');
+ assert.equal(n('#sheet-mastheadForum').disabled,true);
+ await click('#mastheadGroup-play');
+ assert.equal(n('#mastheadGroup-play').getAttribute('aria-expanded'),'true');
+ await click('#mastheadGroup-other');
+ assert.equal(n('#mastheadGroup-play').getAttribute('aria-expanded'),'false');
+ assert.equal(n('#mastheadGroup-other').getAttribute('aria-expanded'),'true');
+ await click('#sheet-mastheadMultiplayer');
+ assert.deepEqual(chosen,['multi']);
+});
