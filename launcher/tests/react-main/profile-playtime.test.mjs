@@ -126,6 +126,12 @@ test('one game fills the area, and the time reads in English as hours and minute
  assert.equal(total(),'64h 19m');assert.equal(node('#profilePlaytimeTitle').textContent,'Play time: 64h 19m');
 });
 
+test('saves are read through the reader given, so a save chosen in the save library counts',async()=>{
+ const asked=[];const read=async(product,language)=>{asked.push([product,language]);return null;};
+ assert.deepEqual(await api.readSaves(['th06','th10','th06mp'],read),[]);
+ assert.deepEqual(asked.map(([product])=>product).sort(),['th06','th10'],'every readable single-player save goes through the given reader');
+});
+
 test('play time comes from the saves of played games only, most played first',async()=>{
  const reads=[];
  const bytesFor={};

@@ -176,12 +176,16 @@ function LoginPage({session}: {session: BrowserSession}) {
   return <LoginWorkspace account={account} onSignIn={session.account.signIn} onSignOut={() => void session.account.signOut()}/>;
 }
 function ProfilePage({session, products}: {session: BrowserSession; products: readonly LibraryProduct[]}) {
-  // Play time and clears are read from each game's save whenever the page opens.
+  // Play time and clears are read from each game's save (the one chosen in its
+  // save library, as the game card shows) when the page opens and whenever a
+  // save changes.
   const [playtime, setPlaytime] = useState<PlaytimeSlice[] | null>(null), [clears, setClears] = useState<ClearGame[] | null>(null);
+  const [savesRevision, setSavesRevision] = useState(0);
+  useEffect(() => session.saves.subscribe(() => setSavesRevision(revision => revision + 1)), [session]);
   useEffect(() => {
     let active = true;
     const played = products.filter(product => !product.multiplayer && !product.hidden);
-    void readSaves(played.map(product => product.id)).then(saves => {
+    void readSaves(played.map(product => product.id), session.saves.read).then(saves => {
       if (!active) return;
       setPlaytime(playtimesOf(saves).flatMap(entry => {
         const product = played.find(candidate => candidate.id === entry.product);
@@ -191,7 +195,7 @@ function ProfilePage({session, products}: {session: BrowserSession; products: re
       setClears(played.filter(product => supportsScoreStatistics(product.id)).map(product => ({key: product.id, gameId: product.gameId, title: product.title, category: directoryCategory(product), report: saves.find(save => save.product === product.id)?.report ?? null})));
     });
     return () => {active = false;};
-  }, [products]);
+  }, [products, session, savesRevision]);
   const navigation = useSurfaceNavigation(), profile = useSyncExternalStore(session.profile.subscribe, session.profile.getSnapshot, session.profile.getSnapshot);
   const account = useSyncExternalStore(session.account.subscribe, session.account.getSnapshot, session.account.getSnapshot);
   return <ProfileWorkspace account={account} name={profile.name} avatar={avatarSource(profile.avatar)} cover={profile.cover} theme={profile.theme} showcases={profile.showcases} playtime={playtime} clears={clears} links={profile.links} privacy={profile.privacy} onLinks={session.profile.setLinks} onPrivacy={session.profile.setPrivacy}

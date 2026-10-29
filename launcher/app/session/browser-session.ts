@@ -187,7 +187,9 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
   };
   const feedback = createFeedbackModel(), decisions = createDecisionStore();
   const archiveStorage = createSaveLibraryStorage(window.indexedDB);
-  const scores = createScoreStatistics({read: async (product, language) => {
+  // A game's save as the player uses it: the save chosen in its save library,
+  // or else the game's own. The game card and the profile both read this.
+  const readSave = async (product: ProductId, language: string) => {
     if (window.indexedDB && supportsScore(product)) {
       const binding = await archiveStorage.state(product);
       if (binding.selectedId) {
@@ -197,11 +199,19 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
       }
     }
     return readStoredScore(product, language, window.indexedDB);
-  }});
+  };
+  const scores = createScoreStatistics({read: readSave});
+  // Told whenever a save may have changed (imported, chosen, played, or the page shown again).
+  const saveListeners = new Set<() => void>();
+  const savesChanged = () => saveListeners.forEach(listener => listener());
+  const saves = Object.freeze({
+    read: readSave,
+    subscribe(listener: () => void) {saveListeners.add(listener); return () => {saveListeners.delete(listener);};},
+  });
   const saveLibrary = createSaveLibrary({storage: archiveStorage,
     read: (product, language) => readStoredScore(product, language, window.indexedDB),
     download: (name, bytes, mime) => ports.download(name, bytes, mime),
-    onChange: product => scores.invalidate(product),
+    onChange: product => {scores.invalidate(product); savesChanged();},
     recover: (product, action) => activity(async () => {
       if (!slots) throw new SaveLibraryError('unsupported');
       if (!await decisions.askConfirmation({message: t(action === 'restore' ? 'saveLibrary.confirmRestore' : 'saveLibrary.confirmKeep'), confirmText: t('action.confirm')})) return false;
@@ -215,9 +225,9 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
   let nativeSaveEdition: 'jp' | 'chs' | null = null;
   const slots = window.indexedDB ? createSaveSlotRunner({storage: archiveStorage, runtime: requiredRuntime, locks: window.navigator.locks,
     read: (product, language, _factory, timeout, edition) => readStoredScore(product, language, window.indexedDB, timeout, edition),
-    onChange: product => {scores.invalidate(product); saveLibrary.invalidate(product);},
+    onChange: product => {scores.invalidate(product); saveLibrary.invalidate(product); savesChanged();},
   }) : null;
-  const refreshScores = () => {if (document.visibilityState === 'visible') {scores.invalidate(); saveLibrary.invalidate();}};
+  const refreshScores = () => {if (document.visibilityState === 'visible') {scores.invalidate(); saveLibrary.invalidate(); savesChanged();}};
   window.addEventListener('focus', refreshScores); document.addEventListener('visibilitychange', refreshScores);
   feedback.translatedStatus(() => t('status.selectGame'));
   const calibration = createNetplayCalibration({timers: window, userAgent: window.navigator.userAgent});
@@ -1329,7 +1339,7 @@ export function createBrowserSession({document, window, baseUrl: configuredBaseU
       const command = spectatorPlaybackCommand(state, action, frame);
       if (command) await owner.send('spectator-playback', command);
     },
-    saveLibrary, scores, profile, account, room, titleNetwork, calibration, networkDiagnostics, appShell: appShellOwner, baseUrl, storage, mobile, metadata, settingsContext, acquisition, directory, gameData, transfer, startupError, startup, settings, gamepad, keyboardPreferences, th09LocalInput, touchLayout, preferences, feedback, decisions, nativeTouch, settingsActions,
+    saveLibrary, scores, saves, profile, account, room, titleNetwork, calibration, networkDiagnostics, appShell: appShellOwner, baseUrl, storage, mobile, metadata, settingsContext, acquisition, directory, gameData, transfer, startupError, startup, settings, gamepad, keyboardPreferences, th09LocalInput, touchLayout, preferences, feedback, decisions, nativeTouch, settingsActions,
     subscribe(listener: () => void) {listeners.add(listener); return () => {listeners.delete(listener);};}, getSnapshot: () => snapshot,
     initialize, attachFrame, requestRuntimeClose, launch, openReplayViewer, exitRoomPlayerFullscreen,
     restoreRoomFromUrl,
