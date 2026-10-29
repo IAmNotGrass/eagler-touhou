@@ -26,11 +26,20 @@ export function FilesWorkspace({product, language, saveLibrary, replays, replayA
       <button type="button" id="scoreFilesClose" onClick={() => navigation.closeInfoDialog('scoreFilesDialog')}><span aria-hidden="true">←</span>{t('action.back')}</button>
       <h1 id="scoreFilesTitle">{t('workspace.files')}</h1><span className="files-game-title">{PRODUCT_GAMES[gameIdForProduct(product)].title}</span>
     </div>
-    <div className="files-workspace-columns">
-      {saveLibrary ? <SaveLibraryPanel retainSelection model={saveLibrary} product={product} language={language} active actions={actions} assetUrl={assetUrl}/> : <NativeSavePanel product={product} actions={actions} assetUrl={assetUrl}/>}
-      {replays && replayActions ? <WorkspaceReplayPanel model={replays} product={product} actions={replayActions} reportError={actions.reportError} assetUrl={assetUrl}/> : <section className="file-library" aria-labelledby="fileReplayTitle"><div className="file-library-heading"><h2 id="fileReplayTitle">{t('settings.replay')}</h2></div><p className="file-library-empty" role="status">{t('files.replayUnavailable')}</p></section>}
-    </div>
+    <FileLibraries product={product} language={language} saveLibrary={saveLibrary} replays={replays} replayActions={replayActions} actions={actions} assetUrl={assetUrl}/>
   </aside>;
+}
+
+/** A game's saves and replays side by side, as the game settings page shows them. */
+export function FileLibraries({product, language, saveLibrary, replays, replayActions, actions, assetUrl = path=>path}: {
+  product: ProductId; language: string; saveLibrary?: SaveLibraryModel; replays?: ReplayModel | null;
+  replayActions?: WorkspaceReplayActions; actions: SettingsActions; assetUrl?:(path:string)=>string;
+}) {
+  const {t} = useLocale();
+  return <div className="files-workspace-columns">
+    {saveLibrary ? <SaveLibraryPanel retainSelection model={saveLibrary} product={product} language={language} active actions={actions} assetUrl={assetUrl}/> : <NativeSavePanel product={product} actions={actions} assetUrl={assetUrl}/>}
+    {replays && replayActions ? <WorkspaceReplayPanel model={replays} product={product} actions={replayActions} reportError={actions.reportError} assetUrl={assetUrl}/> : <section className="file-library" aria-labelledby="fileReplayTitle"><div className="file-library-heading"><h2 id="fileReplayTitle">{t('settings.replay')}</h2></div><p className="file-library-empty" role="status">{t('files.replayUnavailable')}</p></section>}
+  </div>;
 }
 
 function NativeSavePanel({product, actions, assetUrl}: {product: ProductId; actions: SettingsActions; assetUrl:(path:string)=>string}) {

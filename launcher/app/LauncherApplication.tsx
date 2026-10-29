@@ -11,7 +11,7 @@ import {LocaleProvider, translate} from './i18n';
 import {PlayerSurface} from './components/player/PlayerSurface';
 import {LibrarySurface} from './components/launcher/LibrarySurface';
 import {GameWorkspace} from './components/launcher/GameWorkspace';
-import {FilesWorkspace, type WorkspaceReplayActions} from './components/launcher/FilesWorkspace';
+import {FileLibraries, type WorkspaceReplayActions} from './components/launcher/FilesWorkspace';
 import {SettingsWorkspace} from './components/launcher/SettingsWorkspace';
 import {RoomWorkspaceDock, useRoomDockMedia} from './components/launcher/RoomWorkspaceDock';
 import {createPortal} from 'react-dom';
@@ -114,9 +114,8 @@ function LauncherSurfaces({host}: {host: LauncherHost}) {
   const navigation = useSurfaceNavigation();
   const previousContext = useRef(navigation.context), restoreLaunchFocus = useRef(false);
   const settingsScope = navigation.workspaceSettingsScope;
-  const filesOpen = navigation.context === 'library' && navigation.roomCode === null && navigation.infoDialogOpen('scoreFilesDialog');
   const profileOpen = navigation.profileOpen && navigation.roomCode === null, loginOpen = navigation.loginOpen && navigation.roomCode === null, registerOpen = navigation.registerOpen && navigation.roomCode === null;
-  const workspaceKind = settingsScope ? `settings:${settingsScope}` : filesOpen ? 'files' : navigation.roomCode !== null ? 'room' : profileOpen ? 'profile' : loginOpen ? 'login' : registerOpen ? 'register' : navigation.context;
+  const workspaceKind = settingsScope ? `settings:${settingsScope}` : navigation.roomCode !== null ? 'room' : profileOpen ? 'profile' : loginOpen ? 'login' : registerOpen ? 'register' : navigation.context;
   const motionContext = useRef(workspaceKind);
   useLayoutEffect(() => {
     if (motionContext.current === workspaceKind) return;
@@ -124,8 +123,7 @@ function LauncherSurfaces({host}: {host: LauncherHost}) {
     motionContext.current = workspaceKind;
     const backwards = previous === 'room' || workspaceKind === 'library';
     const settingsMotion = workspaceKind.startsWith('settings:') ? 'open' : previous.startsWith('settings:') ? 'close' : undefined;
-    const filesMotion = workspaceKind === 'files' ? 'open' : previous === 'files' ? 'close' : undefined;
-    const motion = animateWorkspaceCard(document.querySelector<HTMLElement>(workspaceCardSelector), 'entry', backwards, host.lessMotion,settingsMotion,filesMotion);
+    const motion = animateWorkspaceCard(document.querySelector<HTMLElement>(workspaceCardSelector), 'entry', backwards, host.lessMotion,settingsMotion);
     void motion.finished.then(completed => {
       if (completed) {
         motion.cancel();
@@ -141,7 +139,6 @@ function LauncherSurfaces({host}: {host: LauncherHost}) {
           const username=document.getElementById('loginUsername');
           document.getElementById(workspaceKind === 'login' && username instanceof HTMLInputElement && username.value ? 'loginPassword' : pageFocus[workspaceKind]!)?.focus({preventScroll:true});}
           return;}
-        if(filesMotion){document.getElementById(filesMotion === 'open' ? 'scoreFilesClose' : 'scoreFilesOpen')?.focus({preventScroll:true});return;}
         const target = document.querySelector<HTMLElement>(previous === 'room' ? '#createButton' : backwards ? '#optionsLobbyLink' : '#launcherLink') ??
           (backwards ? document.getElementById('siteInfoTitle') : null);
         if(target instanceof HTMLButtonElement && target.disabled) document.getElementById('launcherLink')?.focus({preventScroll:true});
@@ -271,12 +268,13 @@ function LauncherSurfaces({host}: {host: LauncherHost}) {
     <LibrarySurface lobby={navigation.context === 'lobby' || roomOpen} products={navigation.context === 'lobby' || roomOpen ? host.products.filter(product => product.multiplayer).map(product => ({...product, href: directoryGameHref(host.workspaceLobbyHref ?? host.lobbyHref, product.id)})) : host.products} selectedProduct={roomOpen ? host.roomProduct ?? navigation.productId ?? undefined : navigation.context === 'lobby' ? navigation.filterProductId ?? undefined : optionsOpen ? navigation.productId ?? undefined : undefined}
       roomDirectoryLocked={host.roomDirectoryLocked} onActivate={roomOpen ? host.onRoomProductSelected ?? (() => {}) : navigation.context === 'lobby' ? id => {if (isProductId(id)) navigation.selectLobbyProduct(id);} : activate} masthead={host.masthead} footer={host.footer} serverStatusNote={host.serverStatusNote}
       onSite={navigation.selectSite} siteHref={navigation.context === 'lobby' ? host.workspaceLobbyHref ?? host.lobbyHref : undefined}
-      lobbyHref={host.workspaceLobbyHref ?? host.lobbyHref} optionsOpen={optionsOpen} settingsOpen={!!settingsScope} settingsCard={settingsScope && workspaceSettingsModel ? <SettingsWorkspace scope={settingsScope} gameTitle={selectedProduct?.title ?? settings?.gameId ?? ''} model={workspaceSettingsModel} effectiveModel={host.settings} actions={host.settingsActions} onOpenTouchLayout={openTouchLayout}/> : undefined}
-      pageOpen={profileOpen || loginOpen || registerOpen} pageCard={profileOpen ? host.profilePage : loginOpen ? host.loginPage : registerOpen ? host.registerPage : undefined} filesOpen={filesOpen} filesCard={filesOpen && selectedProduct ? <FilesWorkspace product={selectedProduct.id} language={settings?.language ?? 'ja'} saveLibrary={host.saveLibrary} replays={host.replays} replayActions={host.replayActions} actions={host.settingsActions} hidden={!!settingsScope} assetUrl={host.assetUrl}/> : undefined}
+      lobbyHref={host.workspaceLobbyHref ?? host.lobbyHref} optionsOpen={optionsOpen} settingsOpen={!!settingsScope} settingsCard={settingsScope && workspaceSettingsModel ? <SettingsWorkspace scope={settingsScope} gameTitle={selectedProduct?.title ?? settings?.gameId ?? ''} model={workspaceSettingsModel} effectiveModel={host.settings} actions={host.settingsActions} onOpenTouchLayout={openTouchLayout}
+        files={settingsScope === 'game' && navigation.context === 'library' && navigation.roomCode === null && selectedProduct ? <FileLibraries product={selectedProduct.id} language={settings?.language ?? 'ja'} saveLibrary={host.saveLibrary} replays={host.replays} replayActions={host.replayActions} actions={host.settingsActions} assetUrl={host.assetUrl}/> : undefined}/> : undefined}
+      pageOpen={profileOpen || loginOpen || registerOpen} pageCard={profileOpen ? host.profilePage : loginOpen ? host.loginPage : registerOpen ? host.registerPage : undefined}
       persistent={host.roomSurface} roomOpen={roomOpen} directoryCollapsed={directoryCollapsed} directoryRestoring={directoryRestoring} foregroundActive={navigation.surface === 'touch' || host.runtimeOpen === true} roomDrawer={host.roomDrawer} onBack={navigation.closeSurface} assetUrl={host.assetUrl} siteNoticeLines={host.siteNoticeLines}>
-      {roomOpen ? <>{settingsPanel}{roomWorkspace && <RoomWorkspaceDock/>}</> : navigation.context === 'lobby' ? host.renderLobby ? host.renderLobby(lobbyProps) : <LobbySurface {...lobbyProps}/> : optionsOpen && selectedProduct ? <GameWorkspace saveLibrary={host.saveLibrary} scores={host.scores} scoreLanguage={settings?.language ?? 'ja'} assetUrl={host.assetUrl} product={selectedProduct} actions={host.optionsActions} renderActions={host.renderWorkspaceActions} multiplayerOnline={host.multiplayerOnline} multiplayerDiagnostics={host.multiplayerDiagnostics}
+      {roomOpen ? <>{settingsPanel}{roomWorkspace && <RoomWorkspaceDock/>}</> : navigation.context === 'lobby' ? host.renderLobby ? host.renderLobby(lobbyProps) : <LobbySurface {...lobbyProps}/> : optionsOpen && selectedProduct ? <GameWorkspace scores={host.scores} scoreLanguage={settings?.language ?? 'ja'} assetUrl={host.assetUrl} product={selectedProduct} actions={host.optionsActions} renderActions={host.renderWorkspaceActions} multiplayerOnline={host.multiplayerOnline} multiplayerDiagnostics={host.multiplayerDiagnostics}
         multiplayerHref={host.products.some(product => product.gameId === selectedProduct.gameId && product.multiplayer && !product.hidden) ? directoryGameHref(host.workspaceLobbyHref ?? host.lobbyHref, `${selectedProduct.gameId}mp`) : undefined}
-        onFiles={() => navigation.openInfoDialog('scoreFilesDialog')} onSettings={() => navigation.openWorkspaceSettings('game')}/> : undefined}
+        onSettings={() => navigation.openWorkspaceSettings('game')}/> : undefined}
     </LibrarySurface>
     {roomWorkspace && !roomDocked && playerElement && createPortal(<div className="room-workspace-footer">{host.footer}</div>, playerElement)}
     <PlayerSurface roomWorkspace={roomWorkspace} replayWorkspace={host.replayWorkspace} preview={host.bootTouchPreview} previewImage={host.bootTouchPreviewImage} onElement={setPlayerElement} onFrame={host.runtimeFrame} open={roomWorkspace || roomOpen && host.roomPlayerExpanded === true || navigation.surface === 'touch' || host.runtimeOpen === true || host.replayWorkspace === true} editing={navigation.surface === 'touch'}>{host.runtimeControls}</PlayerSurface>

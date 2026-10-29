@@ -1,13 +1,15 @@
 import {useLocale} from '../../i18n';
-import {useMemo} from 'react';
+import {useMemo, type ReactNode} from 'react';
 import type {GameSettingsModel} from '../../models/game-settings';
 import type {SettingsScope} from '../../models/scoped-settings';
 import {useSurfaceNavigation} from '../../navigation/surface-navigation';
 import {SettingsBody} from '../settings/SettingsBody';
 import type {SettingsActions} from '../settings/types';
 
-export function SettingsWorkspace({scope, gameTitle, model, effectiveModel, actions, onOpenTouchLayout}: {
+export function SettingsWorkspace({scope, gameTitle, model, effectiveModel, actions, onOpenTouchLayout, files}: {
   scope: SettingsScope; gameTitle: string; model: GameSettingsModel; effectiveModel: GameSettingsModel; actions: SettingsActions; onOpenTouchLayout(): void;
+  /** The game's saves and replays, shown above its settings. */
+  files?: ReactNode;
 }) {
   const {t} = useLocale(), navigation = useSurfaceNavigation();
   const scopedActions = useMemo(()=>({...actions,externalMidi:{...actions.externalMidi,async selectOutput(value:string){
@@ -21,6 +23,7 @@ export function SettingsWorkspace({scope, gameTitle, model, effectiveModel, acti
       <p>{scope === 'global' ? t('settings.globalDescription') : t('settings.gameDescription',{game:gameTitle})}</p></div>
       <button type="button" id="globalSettingsClose" onClick={()=>navigation.closeInfoDialog('globalSettingsDialog')}>{t('action.back')}</button>
     </div>
+    {files && <section className="settings-files" aria-labelledby="settingsFilesTitle"><h2 id="settingsFilesTitle" className="settings-files-title">{t('workspace.files')}</h2>{files}</section>}
     <div className="workspace-dialogs workspace-settings-content settings-workspace-content">
       <SettingsBody model={model} actions={scopedActions} sections="settings" expanded onOpenTouchLayout={scope === 'game' ? ()=>navigation.openWorkspaceSettings('global') : onOpenTouchLayout}/>
     </div>

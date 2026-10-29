@@ -177,7 +177,7 @@ async function until(predicate, message) {
   assert.ok(predicate(), message);
 }
 async function click(selector) {await React.act(async () => {node(selector).click();}); await tick();}
-async function closeOptions(context) {if(env.document.querySelector('.settings-workspace')) {await click('#globalSettingsClose');await until(()=>!env.document.querySelector('.settings-workspace'),'settings card returns to its original workspace');} if (context === 'library') await escapeFrom('#scoreFilesOpen'); else await click('#libraryBack');}
+async function closeOptions(context) {if(env.document.querySelector('.settings-workspace')) {await click('#globalSettingsClose');await until(()=>!env.document.querySelector('.settings-workspace'),'settings card returns to its original workspace');} if (context === 'library') await escapeFrom('#gameSettingsOpen'); else await click('#libraryBack');}
 // Main lobby retains the embedded options document while its native carrier
 // closes; only an open carrier makes those controls a visible options surface.
 function visibleOptions() {
@@ -427,7 +427,7 @@ test('main-derived decision store: occupied request is not replaced; secondary/c
 
 test('synthetic mounted decisions: secondary and hidden Cancel retain focus and native button activation without history', {timeout:15000}, async () => {
   await mountEntry(['/?game=th06'], {realDecisions: true});
-  node('#scoreFilesOpen').focus(); const originalFocus = env.document.activeElement, key = mounted.router.state.location.key;
+  node('#gameSettingsOpen').focus(); const originalFocus = env.document.activeElement, key = mounted.router.state.location.key;
   let first;
   await React.act(async () => {first = mounted.host.decisions.askDecision({message: 'Fixture decision', secondaryText: 'Background', confirmOnEnter: false});});
   const firstDialog = node('#decisionDialog');
@@ -530,7 +530,7 @@ for (const context of ['library', 'lobby']) for (const dismiss of (context === '
     await click('#touchLayoutExit'); assertOriginalDiscardCopy(); await click('#decisionConfirm');
     await until(() => !hasEditor() && hasOptions(product), 'discard restores actual settings');
     assert.equal(mounted.router.state.location.key, settingsKey, 'the editor returns to the same settings-card entry');
-    if (dismiss === 'escape') await escapeFrom(context === 'library' ? '#scoreFilesOpen' : '#libraryBack');
+    if (dismiss === 'escape') await escapeFrom(context === 'library' ? '#gameSettingsOpen' : '#libraryBack');
     else if (dismiss === 'native-cancel') {
       await React.act(async () => {node('#lobbyOptionsDialog').dispatchEvent(new env.window.Event('cancel', {cancelable: true}));});
       await tick();
@@ -588,25 +588,21 @@ test('redesign workspace: one entry per game selects immediately, keeps director
   assert.equal(node('#siteInfoTitle').textContent, owners.translate('en', 'notice.aria'));
 });
 
-test('redesign workspace: settings and files cards retain one field owner and use selected-product actions', async () => {
+test('redesign workspace: game settings hold the saves and replays and use selected-product actions', async () => {
   const f = await mountEntry(['/?game=th07']);
   const requests = []; f.host.settingsActions.file = async (action, product) => {requests.push({action, product});};
+  assert.equal(env.document.querySelector('#scoreFilesOpen'), null, 'the game card has no separate saves button');
   await click('.workspace-game-settings'); await until(() => !!env.document.querySelector('.settings-workspace'), 'settings card opens');
+  assert.ok(node('.settings-workspace .settings-files'), 'saves and replays sit at the top of the game settings');
+  assert.equal(node('.settings-files').compareDocumentPosition(node('.settings-workspace-content')) & env.window.Node.DOCUMENT_POSITION_FOLLOWING, env.window.Node.DOCUMENT_POSITION_FOLLOWING);
   const before = f.host.settings.getSnapshot().options.alwaysHitbox;
   await click('#alwaysHitboxToggle');
   assert.equal(f.host.settings.getSnapshot().options.alwaysHitbox, !before);
-  await click('#globalSettingsClose'); await until(() => !env.document.querySelector('.settings-workspace'), 'settings returns to selected workspace');
-  await click('#scoreFilesOpen'); await until(() => !!env.document.querySelector('.files-workspace'), 'files card opens');
-  assert.equal(node('#scoreFilesDialog').tagName, 'ASIDE');
-  assert.equal(node('.workspace-current').hidden, true);
-  assert.equal(env.document.querySelector('#fileOptions'), null);
-  assert.equal(env.document.querySelectorAll('#alwaysHitboxToggle').length, 0,'closing the settings card removes its controls instead of duplicating them in the file dialog');
   assert.equal(env.document.querySelectorAll('[data-action="export-save"]').length, 1);
   await click('[data-action="export-save"]');
   assert.deepEqual(requests, [{action: 'export-save', product: 'th07'}]);
-  await click('#scoreFilesClose'); await until(() => !env.document.querySelector('.files-workspace'), 'files return to workspace');
-  assert.equal(node('.workspace-current').hidden, false);
-  assert.equal(env.document.activeElement.id, 'scoreFilesOpen');
+  await click('#globalSettingsClose'); await until(() => !env.document.querySelector('.settings-workspace'), 'settings returns to selected workspace');
+  assert.equal(env.document.querySelectorAll('.settings-files').length, 0);
   assert.ok(hasOptions('th07')); assert.equal(url(), '/?game=th07');
 });
 
@@ -729,31 +725,6 @@ for(const vertical of [false,true])test(`settings cards enter from above and oth
    await React.act(async()=>leave.finish());await tick();const back=animation.calls.at(-1);assert.equal(back.card,game);assert.match(back.frames[0].translate,/^0 [\d.]+px$/);
    await React.act(async()=>back.finish());await tick();assert.equal(node('.game-workspace'),game);assert.equal(node('#gameFrame'),frame);assert.equal(node('.workspace-current').hidden,false);
  }finally{animation.restore();}
-});
-
-for(const vertical of [false,true])test(`files card enters from below, returns downward and restores its opener: ${vertical ? 'portrait':'desktop'}`,async()=>{
- const animation=installCardAnimations(vertical);
- try{
-   const f=await mountEntry(['/?game=th07']);const game=node('.game-workspace'),frame=node('#gameFrame');
-   await click('#scoreFilesOpen');const exit=animation.calls.at(-1);assert.equal(exit.card,game);assert.match(exit.frames[1].translate,/^0 -[\d.]+px$/);
-   assert.equal(env.document.querySelector('.files-workspace'),null,'outgoing game remains until departure finishes');
-   await React.act(async()=>exit.finish());await tick();const entry=animation.calls.at(-1);const files=node('.files-workspace');assert.equal(entry.card,files);assert.match(entry.frames[0].translate,/^0 [\d.]+px$/);
-   await React.act(async()=>entry.finish());await tick();assert.equal(env.document.activeElement.id,'scoreFilesClose');
-   await escapeFrom('#scoreFilesClose');const leave=animation.calls.at(-1);assert.equal(leave.card,files);assert.match(leave.frames[1].translate,/^0 [\d.]+px$/);
-   await React.act(async()=>leave.finish());await tick();const back=animation.calls.at(-1);assert.equal(back.card,game);assert.match(back.frames[0].translate,/^0 -[\d.]+px$/);
-   await React.act(async()=>back.finish());await tick();assert.equal(node('.game-workspace'),game);assert.equal(node('#gameFrame'),frame);assert.equal(env.document.activeElement.id,'scoreFilesOpen');assert.equal(url(),'/?game=th07');assert.deepEqual(f.nativeCalls,[]);
- }finally{animation.restore();}
-});
-
-test('files workspace survives nested global settings and browser Back/Forward without a modal carrier',async()=>{
- const f=await mountEntry(['/?game=th07']);const game=node('.game-workspace');
- await click('#scoreFilesOpen');const files=node('.files-workspace');
- await click('#globalSettingsOpen');assert.equal(files.hidden,true);assert.equal(node('.workspace-current').hidden,true);
- await click('#globalSettingsOpen');assert.equal(node('.files-workspace'),files);assert.equal(files.hidden,false);
- await click('#scoreFilesClose');assert.equal(env.document.querySelector('.files-workspace'),null);assert.equal(node('.game-workspace'),game);
- await React.act(async()=>f.router.navigate(1));await until(()=>!!env.document.querySelector('.files-workspace'),'Forward reopens the files workspace');
- assert.equal(node('#scoreFilesDialog').tagName,'ASIDE');assert.equal(url(),'/?game=th07');
- await escapeFrom('#scoreFilesClose');assert.equal(env.document.querySelector('.files-workspace'),null);
 });
 
 test('card exchange keeps the real outgoing owner until exit, then enters and reverses on return', async () => {

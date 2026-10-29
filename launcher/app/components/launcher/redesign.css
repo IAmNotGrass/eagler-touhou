@@ -136,13 +136,6 @@ html:has(.directory-layout):not(:has(.player.active)){overflow-y:auto!important}
 .workspace-toolbar button:hover,.site-info-heading>button:hover,.settings-workspace-heading>button:hover,.room-workspace-header :is(.workspace-control,.mizuki-select-trigger):hover:not(:disabled){background:#ffffff08}
 .workspace-toolbar button:focus-visible,.site-info-heading>button:focus-visible,.settings-workspace-heading>button:focus-visible,.room-workspace-header :is(.workspace-control,.mizuki-select-trigger):focus-visible{outline:2px solid var(--red-bright);outline-offset:3px}
 .workspace-toolbar .workspace-game-settings{margin-left:auto}
-.workspace-toolbar>.save-choice{padding:0;gap:8px;flex:0 1 auto;min-width:0}
-.workspace-toolbar .save-choice label{white-space:nowrap}
-.workspace-toolbar .save-choice select{min-width:0;width:clamp(110px,14vw,210px)}
-.workspace-toolbar .save-choice .mizuki-select{min-width:0;width:clamp(110px,14vw,210px)}
-.workspace-toolbar .save-choice .mizuki-select-trigger{min-height:40px;border:1px solid var(--line);border-radius:999px;background:transparent;box-shadow:none;padding:9px 16px;font:500 13px/1.4 var(--ui-font)}
-.workspace-toolbar .save-choice .mizuki-select-trigger:is(:hover,:focus-visible){background:#ffffff08}
-.game-workspace .workspace-toolbar .save-choice .mizuki-select-trigger{box-shadow:none}
 .workspace-game-info{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:350px;padding:48px 32px;text-align:center}
 .workspace-game-number{font:500 clamp(48px,5vw,72px)/1 var(--art-font);color:#c5bfb4;margin:0 0 20px}
 .workspace-game-info h2{font:700 clamp(24px,3vw,38px)/1.4 var(--ui-font);margin:0 0 12px;color:var(--paper)}
@@ -417,13 +410,7 @@ html[lang=en] .directory-coming-soon>span{writing-mode:horizontal-tb;text-align:
 .save-library-status{min-height:1.6em;font-size:13px}
 @media(max-width:600px){.save-library{padding:16px}.save-library-entry{display:block}.save-library-row-actions{margin-top:12px}.save-library-heading h2{font-size:16px}}
 
-.save-choice{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 32px 0;font-size:13px;color:var(--muted)}
-.save-choice-control{display:flex;align-items:center;gap:inherit;min-width:0}
-.save-choice-prefix{display:none}
-.save-choice select{max-width:100%;min-width:180px;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:#20211e;color:var(--paper);font:inherit}
-.save-choice button{border:1px solid var(--line);border-radius:14px;padding:10px;background:transparent;color:var(--paper);cursor:pointer}.save-choice small{flex-basis:100%;color:#e0b7a7}
 .save-recovery{padding:12px;border:1px solid #c5845b70;border-radius:14px;margin-block:16px}.save-recovery button{margin:6px}.save-backups{margin-top:16px}.save-backup{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;margin-top:12px}.save-backup>span{flex:1}.workspace-launch-footer .launch-multiplayer .launch-icon{display:flex;width:20px;height:20px;flex:none}.workspace-launch-footer .launch-multiplayer svg{width:20px;height:20px}
-@media(max-width:600px){.save-choice{padding:16px 18px 0}.save-choice select{flex:1;min-width:0}}
 
 @media(min-width:781px) and (orientation:landscape){
  .redesign-sheet>.masthead{position:sticky;top:0}
@@ -447,23 +434,9 @@ html[lang=en] .directory-coming-soon>span{writing-mode:horizontal-tb;text-align:
  .game-workspace .workspace-toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:6px;padding-top:16px}
  .game-workspace .workspace-toolbar>button{font-size:clamp(11px,3vw,12px);padding-inline:10px}
  .game-workspace .workspace-toolbar .workspace-game-settings{grid-column:3;justify-self:end;margin-left:0}
- .workspace-toolbar>.save-choice{gap:6px;font-size:clamp(9px,2.6vw,11px);flex-wrap:wrap}
- .workspace-toolbar .save-choice-control{flex:1 1 100%;gap:0}
- .workspace-toolbar .save-choice-control>label{display:none}
- .workspace-toolbar .save-choice :is(select,.mizuki-select){flex:1;min-width:0;width:0}
- .game-workspace .workspace-toolbar .save-choice .mizuki-select-trigger{min-height:40px;padding:9px;gap:5px;background:#ffffff03;font-size:12px}
- .game-workspace .workspace-toolbar .save-choice .mizuki-select-trigger:is(:hover,:focus-visible){background:#ffffff08;color:var(--paper)}
- .game-workspace .workspace-toolbar .save-choice .mizuki-select-trigger:focus-visible{outline:2px solid var(--red-bright);outline-offset:3px}
- .workspace-toolbar .save-choice-prefix{display:block;flex:none;color:var(--muted);font-size:clamp(9px,2.6vw,11px)}
- .workspace-toolbar .save-choice .mizuki-select-value{flex:1}
- .workspace-toolbar .save-choice .mizuki-select-arrow,.workspace-toolbar .save-choice .mizuki-select-arrow svg{width:14px;height:14px}
- .workspace-toolbar>.save-choice>:is(button,small){flex-basis:100%}
 }
 @media(max-width:360px) and (orientation:portrait){
- .workspace-toolbar .save-choice-prefix{display:none}
  html[lang=en] .game-workspace .workspace-toolbar{grid-template-columns:minmax(0,1fr) auto}
- html[lang=en] .game-workspace .workspace-toolbar>#scoreFilesOpen{justify-self:start}
- html[lang=en] .game-workspace .workspace-toolbar>.save-choice{grid-column:1/-1;grid-row:2}
  html[lang=en] .game-workspace .workspace-toolbar>.workspace-game-settings{grid-column:2;grid-row:1}
 }
 
@@ -641,41 +614,41 @@ body:has(.lobby-redesign-sheet) #roomDialog .lobby-submit{background:var(--red);
 .files-workspace-toolbar h1{margin:0;font:700 22px/1.4 var(--ui-font);color:var(--paper)}
 .files-game-title{margin-left:auto;color:var(--muted);font:12px/1.5 var(--ui-font)}
 .files-workspace-columns{flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;padding:0 32px 28px}
-.files-workspace .file-library{display:flex;flex-direction:column;min-width:0;min-height:0;margin:0;padding:0;border:0;border-radius:0;background:transparent;font:13px/1.5 var(--ui-font)}
-.files-workspace .file-library-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;padding:16px 0 12px;border-top:1px solid var(--line)}
-.files-workspace .file-library-heading h2{font:700 18px/1.4 var(--ui-font);margin:0;color:var(--paper)}
-.files-workspace .file-library :is(button,.save-library-download){display:inline-flex;align-items:center;justify-content:center;flex:none;gap:6px;min-height:36px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--paper);font:500 12px/1.5 var(--ui-font);text-decoration:none;cursor:pointer;box-sizing:border-box}
-.files-workspace .file-library :is(button,.save-library-download):hover:not(:disabled):not([aria-disabled=true]){background:#ffffff08}
-.files-workspace .file-library :is(button,.save-library-download):is(:disabled,[aria-disabled=true]){opacity:.4;cursor:default}
-.files-workspace :is(button,a,input,.file-library-scroll):focus-visible{outline:2px solid var(--red-bright);outline-offset:3px}
-.files-workspace .file-library-caption{flex:none;margin:0 0 14px;min-height:36px;color:var(--muted);font:11px/1.6 var(--ui-font)}
-.files-workspace .save-library-status{flex:none;min-height:0;margin:0 0 10px;font:11px/1.6 var(--ui-font);color:#ddb8a8}
-.files-workspace .file-library-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#a7a19560 transparent;overscroll-behavior-y:contain;padding-right:8px;scrollbar-gutter:stable;touch-action:pan-y}
-.files-workspace .file-library-list{list-style:none;padding:0;margin:0;min-width:0}
-.files-workspace .file-library-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap;min-width:0;padding:16px 0;border-top:1px solid #ffffff12;margin:0}
-.files-workspace .file-library-row:first-child{border-top:0;padding-top:4px}
-.files-workspace .file-library-row-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;overflow-wrap:anywhere}
-.files-workspace .file-library-row>.file-library-row-copy{min-width:0}
-.files-workspace .file-library-row strong{display:block;min-width:0;font:600 14px/1.5 var(--ui-font);color:var(--paper);overflow-wrap:anywhere}
-.files-workspace .file-library-row small{color:var(--muted);font:10px/1.6 var(--ui-font)}
-.files-workspace .save-library-match{font:10px/1.5 var(--ui-font);color:#b2c98f;margin:0}
-.files-workspace .save-library-row-actions{flex:none;flex-wrap:nowrap;gap:6px}
-.files-workspace .file-library .file-library-text-action{align-self:start;min-height:0;padding:3px 0;border:0;border-radius:4px;color:var(--muted);font-size:10px}
-.files-workspace .file-library-empty{margin:12px 0;padding:24px 12px;text-align:center;color:var(--muted);font:12px/1.8 var(--ui-font)}
-.files-workspace .save-backups{font:11px/1.6 var(--ui-font);color:var(--muted);padding:12px 0;border-top:1px solid var(--line)}
-.files-workspace .save-backups summary{cursor:pointer}
-.files-workspace .save-backup>span{min-width:0;overflow-wrap:anywhere}
-.files-workspace .save-backup .save-library-download{font-size:10px;min-height:30px;padding:5px 10px}
-.files-workspace .save-recovery{margin:0 0 12px;font:11px/1.7 var(--ui-font)}
-.files-workspace .file-library-hints{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:14px;margin-top:14px;color:var(--muted);font-size:11px}
-.files-workspace .file-library-hints>span{flex:1}
-.files-workspace .replay-library.dragging{outline:2px dashed var(--red-bright);outline-offset:6px;border-radius:12px}
+:is(.files-workspace,.settings-files) .file-library{display:flex;flex-direction:column;min-width:0;min-height:0;margin:0;padding:0;border:0;border-radius:0;background:transparent;font:13px/1.5 var(--ui-font)}
+:is(.files-workspace,.settings-files) .file-library-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;padding:16px 0 12px;border-top:1px solid var(--line)}
+:is(.files-workspace,.settings-files) .file-library-heading h2{font:700 18px/1.4 var(--ui-font);margin:0;color:var(--paper)}
+:is(.files-workspace,.settings-files) .file-library :is(button,.save-library-download){display:inline-flex;align-items:center;justify-content:center;flex:none;gap:6px;min-height:36px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--paper);font:500 12px/1.5 var(--ui-font);text-decoration:none;cursor:pointer;box-sizing:border-box}
+:is(.files-workspace,.settings-files) .file-library :is(button,.save-library-download):hover:not(:disabled):not([aria-disabled=true]){background:#ffffff08}
+:is(.files-workspace,.settings-files) .file-library :is(button,.save-library-download):is(:disabled,[aria-disabled=true]){opacity:.4;cursor:default}
+:is(.files-workspace,.settings-files) :is(button,a,input,.file-library-scroll):focus-visible{outline:2px solid var(--red-bright);outline-offset:3px}
+:is(.files-workspace,.settings-files) .file-library-caption{flex:none;margin:0 0 14px;min-height:36px;color:var(--muted);font:11px/1.6 var(--ui-font)}
+:is(.files-workspace,.settings-files) .save-library-status{flex:none;min-height:0;margin:0 0 10px;font:11px/1.6 var(--ui-font);color:#ddb8a8}
+:is(.files-workspace,.settings-files) .file-library-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#a7a19560 transparent;overscroll-behavior-y:contain;padding-right:8px;scrollbar-gutter:stable;touch-action:pan-y}
+:is(.files-workspace,.settings-files) .file-library-list{list-style:none;padding:0;margin:0;min-width:0}
+:is(.files-workspace,.settings-files) .file-library-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap;min-width:0;padding:16px 0;border-top:1px solid #ffffff12;margin:0}
+:is(.files-workspace,.settings-files) .file-library-row:first-child{border-top:0;padding-top:4px}
+:is(.files-workspace,.settings-files) .file-library-row-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;overflow-wrap:anywhere}
+:is(.files-workspace,.settings-files) .file-library-row>.file-library-row-copy{min-width:0}
+:is(.files-workspace,.settings-files) .file-library-row strong{display:block;min-width:0;font:600 14px/1.5 var(--ui-font);color:var(--paper);overflow-wrap:anywhere}
+:is(.files-workspace,.settings-files) .file-library-row small{color:var(--muted);font:10px/1.6 var(--ui-font)}
+:is(.files-workspace,.settings-files) .save-library-match{font:10px/1.5 var(--ui-font);color:#b2c98f;margin:0}
+:is(.files-workspace,.settings-files) .save-library-row-actions{flex:none;flex-wrap:nowrap;gap:6px}
+:is(.files-workspace,.settings-files) .file-library .file-library-text-action{align-self:start;min-height:0;padding:3px 0;border:0;border-radius:4px;color:var(--muted);font-size:10px}
+:is(.files-workspace,.settings-files) .file-library-empty{margin:12px 0;padding:24px 12px;text-align:center;color:var(--muted);font:12px/1.8 var(--ui-font)}
+:is(.files-workspace,.settings-files) .save-backups{font:11px/1.6 var(--ui-font);color:var(--muted);padding:12px 0;border-top:1px solid var(--line)}
+:is(.files-workspace,.settings-files) .save-backups summary{cursor:pointer}
+:is(.files-workspace,.settings-files) .save-backup>span{min-width:0;overflow-wrap:anywhere}
+:is(.files-workspace,.settings-files) .save-backup .save-library-download{font-size:10px;min-height:30px;padding:5px 10px}
+:is(.files-workspace,.settings-files) .save-recovery{margin:0 0 12px;font:11px/1.7 var(--ui-font)}
+:is(.files-workspace,.settings-files) .file-library-hints{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:14px;margin-top:14px;color:var(--muted);font-size:11px}
+:is(.files-workspace,.settings-files) .file-library-hints>span{flex:1}
+:is(.files-workspace,.settings-files) .replay-library.dragging{outline:2px dashed var(--red-bright);outline-offset:6px;border-radius:12px}
 @media(min-width:781px) and (orientation:landscape) and (max-height:650px){
  .files-workspace-toolbar{padding-top:18px}
  .files-workspace-columns{padding-bottom:18px;gap:24px}
  .directory-layout .files-workspace{gap:14px}
- .files-workspace .file-library-heading{padding-top:12px}
- .files-workspace .file-library-caption{margin-bottom:8px}
+ :is(.files-workspace,.settings-files) .file-library-heading{padding-top:12px}
+ :is(.files-workspace,.settings-files) .file-library-caption{margin-bottom:8px}
 }
 @media(max-width:780px),(orientation:portrait){
  .directory-layout .files-workspace{height:auto!important;gap:18px}
@@ -683,46 +656,46 @@ body:has(.lobby-redesign-sheet) #roomDialog .lobby-submit{background:var(--red);
  .files-workspace-toolbar h1{font-size:20px}
  .files-game-title{font-size:11px}
  .files-workspace-columns{flex:none;grid-template-columns:minmax(0,1fr);gap:20px;padding:0 18px 22px}
- .files-workspace .file-library-heading{padding-top:14px}
- .files-workspace .file-library-heading h2{font-size:17px}
- .files-workspace .file-library-caption{min-height:0;margin-bottom:12px}
- .files-workspace .file-library-scroll{flex:none;max-height:320px;max-height:clamp(180px,40svh,360px)}
- .files-workspace .replay-library-scroll{min-height:140px}
- .files-workspace .file-library-row{padding-block:14px}
+ :is(.files-workspace,.settings-files) .file-library-heading{padding-top:14px}
+ :is(.files-workspace,.settings-files) .file-library-heading h2{font-size:17px}
+ :is(.files-workspace,.settings-files) .file-library-caption{min-height:0;margin-bottom:12px}
+ :is(.files-workspace,.settings-files) .file-library-scroll{flex:none;max-height:320px;max-height:clamp(180px,40svh,360px)}
+ :is(.files-workspace,.settings-files) .replay-library-scroll{min-height:140px}
+ :is(.files-workspace,.settings-files) .file-library-row{padding-block:14px}
 }
 @media(max-width:360px){
  .files-workspace-toolbar{gap:10px}
  .files-workspace-toolbar h1{font-size:18px}
  .files-game-title{flex-basis:100%;margin:0}
- .files-workspace .file-library-row{gap:8px}
- .files-workspace .file-library :is(button,.save-library-download){padding-inline:11px}
+ :is(.files-workspace,.settings-files) .file-library-row{gap:8px}
+ :is(.files-workspace,.settings-files) .file-library :is(button,.save-library-download){padding-inline:11px}
 }
 
 /* Selected minimal file-table design: names, size and two quiet row actions. */
 .files-game-title{font:700 clamp(24px,2.5vw,36px)/1.3 var(--ui-font);color:var(--paper);max-width:46%;text-align:right}
-.files-workspace .file-library-heading{padding:18px 0;margin:0;border-bottom:1px solid var(--line)}
-.files-workspace .file-library-heading h2{font-size:20px}
-.files-workspace .file-library-heading>button{min-height:36px;padding:7px 20px}
-.files-workspace .file-library-row{gap:12px;min-height:56px;padding:10px 0;border-top:0;border-bottom:1px solid #ffffff12;box-sizing:border-box}
-.files-workspace .file-library-row:first-child{padding-top:10px}
-.files-workspace .file-library-name{flex:1;min-width:0;font:500 16px/1.5 var(--ui-font);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.files-workspace .file-library-row.is-selected .file-library-name{color:var(--red-bright)}
-.files-workspace .file-library .file-icon-action{display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;min-height:32px;padding:7px;border:1px solid var(--line);border-radius:50%;color:var(--paper);background:transparent}
-.files-workspace .file-library .file-delete-action:hover:not(:disabled){color:var(--red-bright);border-color:var(--red-bright)}
+:is(.files-workspace,.settings-files) .file-library-heading{padding:18px 0;margin:0;border-bottom:1px solid var(--line)}
+:is(.files-workspace,.settings-files) .file-library-heading h2{font-size:20px}
+:is(.files-workspace,.settings-files) .file-library-heading>button{min-height:36px;padding:7px 20px}
+:is(.files-workspace,.settings-files) .file-library-row{gap:12px;min-height:56px;padding:10px 0;border-top:0;border-bottom:1px solid #ffffff12;box-sizing:border-box}
+:is(.files-workspace,.settings-files) .file-library-row:first-child{padding-top:10px}
+:is(.files-workspace,.settings-files) .file-library-name{flex:1;min-width:0;font:500 16px/1.5 var(--ui-font);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+:is(.files-workspace,.settings-files) .file-library-row.is-selected .file-library-name{color:var(--red-bright)}
+:is(.files-workspace,.settings-files) .file-library .file-icon-action{display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;min-height:32px;padding:7px;border:1px solid var(--line);border-radius:50%;color:var(--paper);background:transparent}
+:is(.files-workspace,.settings-files) .file-library .file-delete-action:hover:not(:disabled){color:var(--red-bright);border-color:var(--red-bright)}
 .file-action-icon{display:block;width:18px;height:18px;flex:none;background:currentColor;mask-size:contain;mask-position:center;mask-repeat:no-repeat;-webkit-mask-size:contain;-webkit-mask-position:center;-webkit-mask-repeat:no-repeat}
-.files-workspace .file-library-size{flex:none;font:11px/1.5 var(--ui-font);white-space:nowrap;color:var(--muted);min-width:42px;text-align:right}
-.files-workspace .save-library-row-actions{gap:8px;flex-wrap:nowrap}
-.files-workspace .file-library-scroll{padding-top:0}
-.files-workspace .save-library-current{margin:0;padding-block:10px}
+:is(.files-workspace,.settings-files) .file-library-size{flex:none;font:11px/1.5 var(--ui-font);white-space:nowrap;color:var(--muted);min-width:42px;text-align:right}
+:is(.files-workspace,.settings-files) .save-library-row-actions{gap:8px;flex-wrap:nowrap}
+:is(.files-workspace,.settings-files) .file-library-scroll{padding-top:0}
+:is(.files-workspace,.settings-files) .save-library-current{margin:0;padding-block:10px}
 @media(max-width:780px),(orientation:portrait){
  .files-workspace-toolbar{gap:10px}
  .files-workspace-toolbar h1{font-size:20px}
  .files-game-title{margin-left:auto;font-size:22px;max-width:100%}
- .files-workspace .file-library-heading{padding:14px 0}
- .files-workspace .file-library-heading h2{font-size:18px}
- .files-workspace .file-library-row{min-height:54px;gap:8px}
- .files-workspace .file-library-name{font-size:14px}
- .files-workspace .file-library-size{min-width:35px;font-size:10px}
+ :is(.files-workspace,.settings-files) .file-library-heading{padding:14px 0}
+ :is(.files-workspace,.settings-files) .file-library-heading h2{font-size:18px}
+ :is(.files-workspace,.settings-files) .file-library-row{min-height:54px;gap:8px}
+ :is(.files-workspace,.settings-files) .file-library-name{font-size:14px}
+ :is(.files-workspace,.settings-files) .file-library-size{min-width:35px;font-size:10px}
 }
 @media(max-width:480px),(orientation:portrait) and (max-width:780px){
  .files-workspace-toolbar{display:grid;grid-template-columns:auto minmax(0,1fr)}
@@ -732,13 +705,13 @@ body:has(.lobby-redesign-sheet) #roomDialog .lobby-submit{background:var(--red);
 
 @media(max-width:780px),(orientation:portrait){
  .files-game-title{font-size:24px}
- .files-workspace .file-library .file-icon-action{flex-basis:44px;width:44px;height:44px;min-height:44px;padding:12px}
+ :is(.files-workspace,.settings-files) .file-library .file-icon-action{flex-basis:44px;width:44px;height:44px;min-height:44px;padding:12px}
 }
-.files-workspace .file-library-row>.file-library-name{font:500 16px/1.5 var(--ui-font)}
-.files-workspace .file-library-row>.file-library-size{font:11px/1.5 var(--ui-font);color:var(--muted)}
+:is(.files-workspace,.settings-files) .file-library-row>.file-library-name{font:500 16px/1.5 var(--ui-font)}
+:is(.files-workspace,.settings-files) .file-library-row>.file-library-size{font:11px/1.5 var(--ui-font);color:var(--muted)}
 @media(max-width:780px),(orientation:portrait){
- .files-workspace .file-library-row>.file-library-name{font-size:14px}
- .files-workspace .file-library-row>.file-library-size{font-size:10px}
+ :is(.files-workspace,.settings-files) .file-library-row>.file-library-name{font-size:14px}
+ :is(.files-workspace,.settings-files) .file-library-row>.file-library-size{font-size:10px}
 }
 
 /* Upstream components inside the redesign: settings input entries read as the
@@ -1142,4 +1115,59 @@ a.profile-link:focus-visible{outline:2px solid var(--red-bright);outline-offset:
  .profile-cover-tools{right:10px;bottom:10px}
  .profile-theme-picker{grid-template-columns:repeat(4,auto)}
  .profile-theme-option{width:56px}
+}
+/* The subtitle shows only in the two-column game card below. */
+.score-game-subtitle{display:none}
+/* Game card, wider screens: the title, best score, favourite loadout and play
+   time run down a left column above the launch buttons; the clear radar takes
+   the rest. Portraits are left out. Portrait phones keep the stacked layout. */
+@media not ((max-width:780px) and (orientation:portrait)){
+ .directory-layout .game-workspace:has(>.score-panel):not(:has(#mpShell)){display:grid!important;grid-template-columns:minmax(220px,clamp(220px,28%,300px)) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;column-gap:clamp(16px,2.4vw,32px)}
+ /* The settings button sits in the top-right corner instead of a row of its own. */
+ .game-workspace:has(>.score-panel):not(:has(#mpShell))>.workspace-toolbar{position:absolute;top:0;right:0;padding:24px 32px 0}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) :is(.score-panel,.score-content){display:contents}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-metrics{grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:stretch;gap:0;padding:30px 0 0 32px;border-bottom:0}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-metrics>div{padding:16px 0;border-top:1px solid #ffffff14}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-metrics>.score-game-identity{padding:0 0 18px;border-top:0}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-game-title{font-size:clamp(22px,2vw,28px);line-height:1.3}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-game-subtitle{display:block;margin:6px 0 0;color:#b5afa7;font:500 13px/1.5 var(--ui-font);letter-spacing:.02em}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-metrics strong{font-size:clamp(18px,1.6vw,22px)}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-metrics>div:last-child strong{font-size:15px;line-height:1.6}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-playtime{grid-column:1;grid-row:2;margin:0;padding:16px 0 0 32px;border-top:1px solid #ffffff14;box-sizing:border-box;font-size:clamp(15px,1.4vw,19px)}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-content>.tools-callout{grid-column:1;grid-row:3;width:auto;margin:16px 0 0 32px}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-stage{grid-column:2;grid-row:1/5;min-height:0;margin:76px 32px 24px 0}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-character{display:none}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-content{--score-portrait-space:0px}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell))>.workspace-launch-footer{grid-column:1;grid-row:4;padding:20px 0 28px 32px}
+ .directory-layout .game-workspace:has(>.score-panel):not(:has(#mpShell)) .workspace-launch-footer .launch-actions{grid-template-columns:minmax(0,1fr)!important;gap:10px}
+ .directory-layout .game-workspace:has(>.score-panel):not(:has(#mpShell)) .workspace-launch-footer .launch-actions .launch{min-height:44px;justify-content:center}
+ .directory-layout .game-workspace:has(>.score-panel):not(:has(#mpShell)) .workspace-launch-footer .launch-actions .launch-secondary{width:100%;justify-self:stretch}
+}
+/* Game settings: the saves and replays above the settings. */
+.settings-files{padding:20px 32px 4px}
+.settings-files-title{margin:0 0 4px;color:var(--paper);font:700 20px/1.4 var(--ui-font)}
+.settings-files .files-workspace-columns{padding:0}
+.settings-files .file-library-scroll{max-height:340px}
+@media(max-width:780px) and (orientation:portrait){.settings-files{padding:16px 18px 0}.settings-files .files-workspace-columns{grid-template-columns:minmax(0,1fr)}}
+/* Game card, portrait phones: the title and scores share the top row with the
+   settings button, the clear radar fills the middle as large as the width
+   allows, and the card stretches to the bottom of the screen. Portraits are
+   left out; the launch buttons keep their layout. */
+@media(max-width:780px) and (orientation:portrait){
+ .main.library-layout.directory-layout:has(.game-workspace>.score-panel){grid-template-rows:auto minmax(0,1fr);align-content:stretch}
+ .main.library-layout.directory-layout .workspace-column>.workspace-current>.game-workspace:has(>.score-panel):not(:has(#mpShell)){flex:1 0 auto!important}
+ .directory-layout .game-workspace:has(>.score-panel):not(:has(#mpShell)){display:grid!important;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto auto;align-items:center}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell))>.workspace-toolbar{grid-column:2;grid-row:1;display:block;padding:14px 18px 12px 8px}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) :is(.score-panel,.score-content){display:contents}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-content{--score-portrait-space:0px}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-metrics{grid-column:1;grid-row:1;align-self:center;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);padding:14px 0 12px 18px;border-bottom:0}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-game-title{white-space:nowrap}
+ /* The radar is sized by the width here (its height is not known before layout), and centred in the space left. */
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-stage,.game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-stage:has(.score-clear-area){grid-column:1/-1;grid-row:2;align-self:stretch;display:flex;flex-direction:column;justify-content:center;min-height:0;margin:0 18px;padding:10px 0 6px;border-top:1px solid #ffffff18;container-type:inline-size}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-clear-area{position:relative;inset:auto;width:100%;height:auto}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .clear-radar{width:100%;height:auto;max-height:min(62dvh,560px)}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-playtime{grid-column:1/-1;grid-row:3;margin:0;padding:4px 18px 0}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-content>.tools-callout{grid-column:1/-1;grid-row:3;width:auto;margin:8px 18px 0}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell)) .score-character{display:none}
+ .game-workspace:has(>.score-panel):not(:has(#mpShell))>.workspace-launch-footer{grid-column:1/-1;grid-row:4}
 }
