@@ -212,7 +212,7 @@ export function ProfileWorkspace({account, name, avatar, cover, theme, showcases
         <h2 id={`profileShowcase${index}`}>{showcase.title.trim() || t('profile.showcase.info')}</h2>
         {showcase.body.trim() && <p>{showcase.body}</p>}
       </section>)}
-      <ProfileOverview playtime={playtime} clears={clears} privacy={privacy} owner={own}/>
+      <ProfileOverview playtime={playtime} clears={clears} privacy={privacy} owner={own} assetUrl={assetUrl}/>
       <ProfileComments comments={comments} name={name} avatar={avatar} handle={signedIn ? account.username ?? null : null} signedIn={signedIn} owner={own} assetUrl={assetUrl}
         onAdd={body => onComment(body, signedIn ? account.username ?? null : null)} onRemove={onRemoveComment} onSignIn={navigation.openLogin}/>
     </div>}

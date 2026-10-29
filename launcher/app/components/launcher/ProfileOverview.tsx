@@ -9,8 +9,8 @@ import {ClearShowcase, type ClearGame} from './ClearShowcase';
  * directory category chosen beside it. Either list is null while saves are
  * read. A section the owner hid from others is left out for them; the owner
  * still sees it, marked as visible only to them. */
-export function ProfileOverview({playtime, clears, privacy, owner}: {
-  playtime: readonly PlaytimeSlice[] | null; clears: readonly ClearGame[] | null; privacy: ProfilePrivacy; owner: boolean;
+export function ProfileOverview({playtime, clears, privacy, owner, assetUrl}: {
+  playtime: readonly PlaytimeSlice[] | null; clears: readonly ClearGame[] | null; privacy: ProfilePrivacy; owner: boolean; assetUrl?(path: string): string;
 }) {
   const {t} = useLocale(), [filter, setFilter] = useState<DirectoryFilter>('all');
   const shown = (section: keyof ProfilePrivacy) => owner || privacy[section];
@@ -26,6 +26,6 @@ export function ProfileOverview({playtime, clears, privacy, owner}: {
       </div>
     </header>
     {shown('playtime') && <PlaytimeShowcase slices={playtime} filter={filter} badge={badge('playtime')}/>}
-    {shown('clears') && <ClearShowcase games={clears} filter={filter} badge={badge('clears')}/>}
+    {shown('clears') && <ClearShowcase games={clears} filter={filter} badge={badge('clears')} assetUrl={assetUrl}/>}
   </section>;
 }

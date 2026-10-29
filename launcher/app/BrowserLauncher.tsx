@@ -192,7 +192,7 @@ function ProfilePage({session, products}: {session: BrowserSession; products: re
         return product ? [{key: entry.product, seconds: entry.seconds, color: gameColor(entry.product), title: product.title, category: directoryCategory(product), artwork: product.artwork}] : [];
       }));
       // Every game appears on the clear radar, with or without a save.
-      setClears(played.filter(product => supportsScoreStatistics(product.id)).map(product => ({key: product.id, gameId: product.gameId, title: product.title, category: directoryCategory(product), report: saves.find(save => save.product === product.id)?.report ?? null})));
+      setClears(played.filter(product => supportsScoreStatistics(product.id)).map(product => ({key: product.id, gameId: product.gameId, title: product.title, number: product.number, category: directoryCategory(product), report: saves.find(save => save.product === product.id)?.report ?? null})));
     });
     return () => {active = false;};
   }, [products, session, savesRevision]);
